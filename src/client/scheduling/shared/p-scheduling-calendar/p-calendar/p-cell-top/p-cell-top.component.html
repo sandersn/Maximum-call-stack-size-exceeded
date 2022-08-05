@@ -1,0 +1,70 @@
+<p-checkbox
+	*ngIf="!neverShowDayTools && shiftsAreSelectable"
+	[class.only-show-on-hover]="!shiftsAreSelected"
+	class="border-right multi-select-checkbox bg-white small"
+	style="min-width: 38px;"
+	[size]="BootstrapSize.SM"
+	[hasButtonStyle]="false"
+	[ngModel]="shiftsAreSelected"
+	(onClick)="selectShifts($event)"
+	[disabled]="!shiftsAreSelectable"
+></p-checkbox>
+<div class="flex-grow-1 d-flex justify-content-center align-items-center">
+	<span class="cal-day-number ml-2 mr-2 nowrap">{{ dayStart | date: dateFormat }}</span>
+	<p-button [attributeInfo]="null"
+		*ngIf="!neverShowDayTools"
+		class="mr-2 sticky-note-button"
+		[class.d-none]="!canEditMemos && !pinStickyNote"
+		[class.only-show-on-hover]="!pinStickyNote"
+		[size]="BootstrapSize.SM"
+		[theme]="isToday ? PBtnThemeEnum.OUTLINE_SECONDARY : PThemeEnum.LIGHT"
+		btnClasses="border-0"
+		(triggerClick)="editComments(commentsModalContent)"
+		title="Kommentare" i18n-title
+
+		(mouseover)="hover = true"
+		(mouseleave)="hover = false"
+	>
+		<p-sticky-note
+			[backgroundColor]="isToday ? (hover ? PThemeEnum.DARK : PThemeEnum.PRIMARY) : null"
+			[showDot]="shiftsOfDayHaveDescriptions"
+		></p-sticky-note>
+	</p-button>
+</div>
+
+<ng-template #commentsModalContent let-c="close" let-d="dismiss">
+	<p-modal-content
+		modalTitle="Kommentare am {{ dayStart | date:'shortDate' }}" i18n-modalTitle
+		closeBtnLabel="Ok" i18n-closeBtnLabel
+		[hideDismissBtn]="true"
+		(onDismiss)="d('Cross click')"
+		(onClose)="c();"
+		size="frameless"
+	>
+		<p-modal-content-body>
+			<div class="m-3">
+				<label i18n>Tageskommentar</label>
+				<p-day-comment
+					class="card o-hidden"
+					[clickable]="canEditMemos"
+					[showDateInput]="true"
+					[dayStart]="dayStart"
+					[maxTextLength]="false"
+					[maxLines]="false"
+				></p-day-comment>
+			</div>
+			<div class="m-3">
+				<label i18n>Schichtkommentare</label>
+				<p-shift-comments
+					*ngIf="shiftsForCommentsModal.length; else noShiftComments"
+					[shiftsForList]="shiftsForCommentsModal"
+					[date]="dayStart"
+					class="border-right"
+				></p-shift-comments>
+				<ng-template #noShiftComments>
+					<div class="card card-body text-center text-muted text-small" i18n>Keine Schichtkommentare vorhanden. Um welche zu hinterlassen, gehe in die gewünschte Schicht.</div>
+				</ng-template>
+			</div>
+		</p-modal-content-body>
+	</p-modal-content>
+</ng-template>

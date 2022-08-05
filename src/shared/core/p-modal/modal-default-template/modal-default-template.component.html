@@ -1,0 +1,26 @@
+<p-modal-content
+	[modalTitle]="modalContentOptions.modalTitle"
+	[dismissBtnLabel]="modalContentOptions.dismissBtnLabel ?? null"
+	[closeBtnLabel]="modalContentOptions.closeBtnLabel ?? null"
+	[closeBtnTheme]="modalContentOptions.closeBtnTheme"
+	[hideDismissBtn]="!!modalContentOptions.hideDismissBtn"
+	[closeBtnDisabled]="closeBtnDisabled"
+
+	[showCustomFooter]="showCustomFooter"
+	[theme]="theme ?? null"
+	(onDismiss)="onDismiss()"
+	(onClose)="onClose();"
+>
+	<p-modal-content-body>
+		<h4 *ngIf="modalContentOptions.icon" class="text-center mt-1 mb-3">
+			<fa-icon [fixedWidth]="true" [icon]="modalContentOptions.icon"></fa-icon>
+		</h4>
+		<p [innerHtml]="modalContentOptions.description"></p>
+		<ng-container #content></ng-container>
+
+	</p-modal-content-body>
+
+	<p-modal-content-footer>
+		<ng-container #footer></ng-container>
+	</p-modal-content-footer>
+</p-modal-content>

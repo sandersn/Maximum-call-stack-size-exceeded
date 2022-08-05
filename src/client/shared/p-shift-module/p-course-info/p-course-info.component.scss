@@ -1,0 +1,10 @@
+@import "p-variables";
+
+:host {
+	display: block;
+	font-size: $font-size-xs;
+}
+
+.users-icon {
+	opacity: 0.8;
+}

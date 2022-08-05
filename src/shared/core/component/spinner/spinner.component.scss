@@ -1,0 +1,39 @@
+@import "variables";
+
+:host {
+	display: flex;
+
+	// NOTE: This tiny thing caused PLANO-37408. It caused a scrollbar when p-spinner had class `.h-100`.
+	// I think it’s not necessary anymore.
+	// transform: translateY(2px);
+}
+
+/* Animation */
+@keyframes loading {
+	to { transform: rotate(360deg); }
+}
+
+/* Loader */
+.loading {
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+
+	border-radius: 50%;
+	background: transparent;
+
+	border-width: $border-width * 2;
+	border-style: solid;
+	border-top-color: theme-color-level("primary", 1);
+	border-right-color: theme-color-level("primary", -10);
+	border-bottom-color: theme-color-level("primary", -10);
+	border-left-color: theme-color-level("primary", -10);
+
+	animation: loading 1.2s infinite linear;
+
+	&.loading-lg {
+		border-width: $border-width * 4;
+		width: 30px;
+		height: 30px;
+	}
+}

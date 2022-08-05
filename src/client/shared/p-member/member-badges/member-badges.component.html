@@ -1,0 +1,25 @@
+<ng-template [ngIf]="!!members.length">
+	<ng-template
+		ngFor let-member
+		[ngForOf]="membersForList"
+		let-i="index"
+	>
+		<p-member-badge
+			class="badges-stack-item"
+			[style.z-index]="members.length + 1"
+			[style.position]="'relative'"
+			size="small"
+			[memberId]="member.id"
+			[firstName]="member.firstName"
+			[lastName]="member.lastName"
+			[isMe]="!!isMe(member)"
+			[absenceType]="absenceType(member.id)"
+			[alwaysShowMemberInitials]="true"
+		></p-member-badge>
+	</ng-template>
+</ng-template>
+<p-empty-member-badges
+	*ngIf="emptyMemberSlots"
+	style="z-index: 1"
+	[emptyMemberSlots]="emptyMemberSlots"
+></p-empty-member-badges>

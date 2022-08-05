@@ -1,0 +1,51 @@
+<p-input
+	[type]="isSelectMode ? PApiPrimitiveTypes.Search : PApiPrimitiveTypes.string"
+	[(ngModel)]="searchTerm"
+	(focus)="startSelectMode()"
+>
+	<p-input-prepend *ngIf="!isSelectMode">
+		<span class="input-group-text"
+			(click)="toggleIsSelectMode()"
+		><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ITEMS_MEMBER"></fa-icon></span>
+	</p-input-prepend>
+</p-input>
+
+<div class="input-group"
+	[class.pulse]="!!control"
+	[class.pulse-success]="isValid"
+	[class.clicked]="clicked"
+>
+	<ng-template [ngIf]="isSelectMode">
+		<p-list class="pt-2 w-100">
+			<ng-template
+				ngFor let-member
+				[ngForOf]="membersForList"
+			>
+				<ng-container *ngTemplateOutlet="listItem; context: {member: member}"></ng-container>
+			</ng-template>
+		</p-list>
+	</ng-template>
+</div>
+
+<ng-template #listItem let-member="member">
+	<p-list-item
+		class="d-flex align-items-center justify-content-center flex-grow-1 card-options"
+		[selected]="value && value.id && member.id.equals(value.id)"
+		(onClick)="onClickMember(member)"
+	>
+		<p-member-badge
+			[memberId]="member.id"
+			[firstName]="member.firstName"
+			[lastName]="member.lastName"
+			[isMe]="isMe(member)"
+			[absenceType]="absenceType(member.id)"
+			size="normal"
+		></p-member-badge>
+		<div class="mr-auto ml-2 d-flex align-items-center">
+			<span class="title"><strong>{{ member.firstName }}</strong> {{ member.lastName }}</span>
+		</div>
+		<div class="card-option border-0 d-flex align-items-center justify-content-center"><p-member-wish-icon
+			[member]="member"
+		></p-member-wish-icon></div>
+	</p-list-item>
+</ng-template>

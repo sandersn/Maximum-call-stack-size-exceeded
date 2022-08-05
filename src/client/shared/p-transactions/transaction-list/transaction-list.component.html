@@ -1,0 +1,102 @@
+<ng-template [ngIf]="!isLoading" [ngIfElse]="skeletonListTemplate">
+	<ng-container *ngFor="let transaction of transactions">
+		<div
+			*ngIf="transaction.attributeInfoThis.show"
+			id="scroll-target-id-{{transaction?.id?.toString() ?? 'null'}}"
+			class="card mb-0 card-options flex-row mt--1"
+			[class.muted-item]="false"
+		>
+			<div class="flex-grow-1 m-2 transactions-list-tupel">
+				<div
+					*ngIf="!excludedColumn.includes(TransactionsSortedByEmum.DATE_TIME)"
+					class="{{ TransactionsSortedByEmum.DATE_TIME }}"
+				>
+					<div pCropOnOverflow>{{ time(transaction) ?? null | date:'veryShortDate' }}</div>
+					<div class="form-text m-0" title="Uhrzeit" i18n-title pCropOnOverflow>{{ time(transaction) ?? null | date:'mediumTime' }}</div>
+				</div>
+				<div
+				*ngIf="!excludedColumn.includes(TransactionsSortedByEmum.BOOKING_NUMBER)"
+				class="{{ TransactionsSortedByEmum.BOOKING_NUMBER }}"
+					pCropOnOverflow
+				>
+					<div title="Buchungsnummer" i18n-title>
+						<fa-icon *ngIf="transaction.bookingNumber" class="small text-muted" [icon]="'hashtag'"></fa-icon>{{ transaction.bookingNumber ? transaction.bookingNumber : '-' }}
+					</div>
+				</div>
+				<div *ngIf="!excludedColumn.includes(TransactionsSortedByEmum.OFFER_NAME)"
+				class="{{ TransactionsSortedByEmum.OFFER_NAME }}" pCropOnOverflow>{{ transaction.offerName ? transaction.offerName : '-' }}</div>
+				<div *ngIf="!excludedColumn.includes(TransactionsSortedByEmum.TYPE)"
+				class="{{ TransactionsSortedByEmum.TYPE }}">
+					<div pCropOnOverflow [innerHTML]="transaction.typeTitle ? transaction.typeTitle : '?'"></div>
+					<div class="form-text m-0" pCropOnOverflow [innerHTML]="transaction.typeSubTitle"></div>
+				</div>
+				<div *ngIf="!excludedColumn.includes(TransactionsSortedByEmum.PAYMENT_METHOD_TYPE)"
+				class="{{ TransactionsSortedByEmum.PAYMENT_METHOD_TYPE }}" >
+					<div pCropOnOverflow><fa-icon [icon]="getTypeIcon(transaction)"></fa-icon>&nbsp;{{ transaction.paymentMethodName }}</div>
+				</div>
+				<div *ngIf="!excludedColumn.includes(TransactionsSortedByEmum.AMOUNT)"
+				class="{{ TransactionsSortedByEmum.AMOUNT }}">
+					<div pCropOnOverflow [class.text-danger]="transaction.amount && transaction.amount < 0" [class.text-success]="transaction.amount && transaction.amount > 0">{{ transaction.amount | currency:undefined:undefined:undefined:undefined:undefined:true }}</div>
+					<div
+						class="drPlanoFee form-text m-0"
+						pCropOnOverflow
+						[class.text-muted]="transaction.drPlanoFeeNet === 0"
+						[class.text-danger]="-transaction.drPlanoFeeNet < 0"
+						[class.text-success]="-transaction.drPlanoFeeNet > 0"
+					><span [popover]="drPlanoFeeDescription">{{ -transaction.drPlanoFeeNet | currency:undefined:undefined:undefined:undefined:undefined:true }}</span></div>
+					<ng-template #drPlanoFeeDescription><span i18n>Gebühr für die Online-Zahlung</span></ng-template>
+				</div>
+
+			</div>
+			<p-button
+				*ngIf="!transaction.isNewItem()"
+				[isLoading]="isLoading"
+				[show]="true"
+				[canEdit]="true"
+				btnClasses="card-option border-bottom-0"
+				(triggerClick)="onEditItem.emit(transaction.id)"
+				title="Zahlung anzeigen" i18n-title
+			><fa-icon [fixedWidth]="true" [icon]="transaction.attributeInfoThis.canEdit ? PlanoFaIconPool.EDIT : PlanoFaIconPool.MORE_INFO"></fa-icon></p-button>
+		</div>
+	</ng-container>
+</ng-template>
+
+<ng-template #skeletonListTemplate>
+	<ng-container *ngFor="let transaction of [0.6,0.5,0.4,0.3,0.2,0.1]">
+		<ng-container *ngTemplateOutlet="skeletonItem, context: {$implicit: transaction}"></ng-container>
+	</ng-container>
+</ng-template>
+
+<ng-template #skeletonItem let-transaction>
+	<div class="card mb-0 card-options flex-row mt--1"
+		[style.opacity]="transaction"
+	>
+		<div class="flex-grow-1 m-2 transactions-list-tupel">
+			<div *ngIf="!excludedColumn.includes(TransactionsSortedByEmum.DATE_TIME)"
+			class="text-skeleton-animated {{ TransactionsSortedByEmum.DATE_TIME }}">{{ 1234.12 | date:'veryShortDate' }}</div>
+			<div *ngIf="!excludedColumn.includes(TransactionsSortedByEmum.BOOKING_NUMBER)"
+			class="text-skeleton-animated {{ TransactionsSortedByEmum.BOOKING_NUMBER }}"><fa-icon class="text-skeleton-animated small text-muted" [icon]="'hashtag'"></fa-icon>███████ ████████</div>
+			<div *ngIf="!excludedColumn.includes(TransactionsSortedByEmum.OFFER_NAME)"
+			class="text-skeleton-animated {{ TransactionsSortedByEmum.OFFER_NAME }}">████</div>
+			<div *ngIf="!excludedColumn.includes(TransactionsSortedByEmum.TYPE)"
+			class="{{ TransactionsSortedByEmum.TYPE }}">
+				<div class="text-skeleton-animated">██████</div>
+				<div class="text-skeleton-animated form-text m-0">███ ██████</div>
+			</div>
+			<div *ngIf="!excludedColumn.includes(TransactionsSortedByEmum.PAYMENT_METHOD_TYPE)"
+			class="{{ TransactionsSortedByEmum.PAYMENT_METHOD_TYPE }}" >
+				<div class="text-skeleton-animated"><fa-icon [isLoading]="true"></fa-icon>&nbsp;██████</div>
+			</div>
+			<div *ngIf="!excludedColumn.includes(TransactionsSortedByEmum.AMOUNT)"
+			class="{{ TransactionsSortedByEmum.AMOUNT }}">
+				<div class="text-skeleton-animated">███ █</div>
+				<div class="text-skeleton-animated drPlanoFee form-text m-0"><span popover="Gebühr für die Online&#8209;Zahlung">██ █</span></div>
+			</div>
+
+		</div>
+		<p-button
+			[attributeInfo]="transaction.attributeInfoThis"
+			btnClasses="card-option border-bottom-0"
+		><fa-icon [fixedWidth]="true" icon="pen" class="text-skeleton-animated"></fa-icon></p-button>
+	</div>
+</ng-template>

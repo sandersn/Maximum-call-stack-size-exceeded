@@ -1,0 +1,59 @@
+<ng-template
+	ngFor let-rightsArrayItem
+	[ngForOf]="rightsArray"
+>
+	<div class="table-responsive">
+		<table class="table table-hover table-bordered">
+			<!-- table-striped -->
+			<thead>
+				<tr id="scroll-target-id-{{titleToId(rightsArrayItem)}}" class="bg-dark">
+					<th scope="col" [attr.colspan]="COLSPAN_OF_FIRST_COL + rowEntries[0].rightKeys.length + rowEntries[1].rightKeys.length" class="pl-3 pr-3 nowrap text-center border-bottom-0"><h5 class="m-0 text-white">{{ rightsArrayItem.area | localize }}</h5></th>
+				</tr>
+				<tr class="table-sm thead-light">
+					<th scope="col" [attr.colspan]="COLSPAN_OF_FIRST_COL" class="pl-3 pr-3" style="width: 30%; border-right-color: #aaa;" i18n>Typ der Rechtegruppe</th>
+					<th scope="col" [attr.colspan]="rowEntries[0].rightKeys.length" class="pl-3 pr-3 text-center" style="width: 35%; border-right-color: #aaa;" i18n>Admins</th>
+					<th scope="col" [attr.colspan]="rowEntries[1].rightKeys.length" class="pl-3 pr-3 text-center" style="width: 35%;" i18n>Mitarbeitende</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr class="table-sm thead-light">
+					<th scope="col" [attr.colspan]="COLSPAN_OF_FIRST_COL" class="pl-3 pr-3 nowrap" style="border-right-color: #aaa;" i18n>Berechtigungen</th>
+					<ng-container *ngFor="let rowEntry of rowEntries">
+						<ng-container *ngFor="let rightKey of rowEntry.rightKeys">
+							<th scope="col" colspan="1" class="pl-3 pr-3 nowrap text-center"
+								[pTooltip]="getDescriptionForRightKey(rightKey) | localize"
+							><fa-icon [fixedWidth]="true" [icon]="getIconForRightKey(rightKey)"></fa-icon><ng-container *ngIf="getLabelForRightKey(rightKey)">&ngsp;{{getLabelForRightKey(rightKey)! | localize}}</ng-container></th>
+						</ng-container>
+					</ng-container>
+				</tr>
+				<tr *ngFor="let rightsArrayItemItem of $any(rightsArrayItem.items)">
+					<th style="font-weight: normal;" [attr.colspan]="COLSPAN_OF_FIRST_COL" class="pl-3 pr-3" scope="row">{{ rightsArrayItemItem.title | localize }}</th>
+					<ng-template
+						ngFor let-value
+						[ngForOf]="getRowOfValues(rightsArrayItem, rightsArrayItemItem)"
+					>
+						<ng-template
+							[ngTemplateOutlet]="tdTemplate"
+							[ngTemplateOutletContext]="{ $implicit : value }"
+						></ng-template>
+					</ng-template>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</ng-template>
+
+<ng-template #tdTemplate let-value>
+	<td
+		*ngIf="value!==undefined && value.colspan!==0"
+
+		[popover]="value && value.tooltipText ? (value.tooltipText | localize) : undefined"
+		triggers="mouseenter:mouseleave"
+		container="body"
+		placement="top"
+
+		[attr.colspan]="value ? value.colspan : 1"
+		class="pl-3 pr-3 text-center nowrap"
+		style="vertical-align: middle;"
+	><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.SUCCESS" *ngIf="value && value.value"></fa-icon><span *ngIf="value && value.tooltipText" class="text-warning">*</span></td>
+</ng-template>

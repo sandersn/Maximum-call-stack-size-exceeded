@@ -1,0 +1,11 @@
+<p-now-line
+	style="position: absolute;"
+	*ngIf="layout.show"
+
+	[style.top.px]="layout.y"
+	[style.left.px]="layout.x"
+	[style.width.px]="layout.width"
+	[style.height.px]="layout.height"
+	[style.z-index]="layout.z"
+	[style.hidden]="!layout.show"
+></p-now-line>

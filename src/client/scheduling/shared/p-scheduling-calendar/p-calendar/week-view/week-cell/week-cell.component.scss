@@ -1,0 +1,21 @@
+@import "variables";
+
+.shifts {
+	@media (min-width: 1620px) {
+		padding: map-get($spacers, 2);
+	}
+}
+
+.cal-day-headers {
+	margin: 0;
+}
+
+.week-view-day-cell {
+	flex: 1;
+	padding-bottom: map-get($spacers, 3);
+	width: calc(100px / 7);
+}
+
+.cal-week-view .cal-day-headers .cal-header {
+	text-align: left;
+}

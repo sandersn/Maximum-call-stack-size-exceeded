@@ -1,0 +1,175 @@
+<div class="flex-grow-1 d-flex flex-column">
+	<div class="flex-grow-0 d-flex pl-3 pr-3 pt-3 pb-2">
+		<div
+			class="flex-grow-1 d-flex"
+		>
+			<p-button [attributeInfo]="null"
+				class="mr-2"
+				[buttonType]="PButtonType.TOGGLE"
+				[icon]="null"
+				[isActiveButton]="!!editFilterModeActive"
+				[darkMode]="true"
+				[size]="BootstrapSize.SM"
+				(triggerClick)="editFilterModeActive=!editFilterModeActive"
+
+				[popover]="!editFilterModeActive ? (filterIsActive ? itemsFilterTitlePopover : 'Filter') : undefined!"
+				placement="bottom"
+			><span class="nowrap"><fa-icon
+				[class.text-white]="!editFilterModeActive"
+				[fixedWidth]="true" [icon]="PlanoFaIconPool.FILTER"
+			></fa-icon><span *ngIf="editFilterModeActive || filterIsActive">&nbsp;<p-led [theme]="PThemeEnum.PRIMARY" [off]="!filterIsActive"></p-led></span></span></p-button>
+			<ng-template #itemsFilterTitlePopover>
+				<span [innerHTML]="itemsFilterTitle"></span>
+			</ng-template>
+			<p-button [attributeInfo]="null"
+				class="mr-2"
+				[buttonType]="PButtonType.TOGGLE"
+				[icon]="null"
+				[isActiveButton]="!!editListItemsMode"
+				[darkMode]="true"
+				[size]="BootstrapSize.SM"
+				(triggerClick)="editListItemsMode=!editListItemsMode"
+
+				[popover]="editButtonTitle"
+				placement="bottom"
+			><fa-icon
+				[class.text-white]="!editListItemsMode"
+				[fixedWidth]="true" [icon]="rightsService.userCanWriteAnyShiftModel ? PlanoFaIconPool.EDIT : 'info'"
+			></fa-icon></p-button>
+			<p-button [attributeInfo]="null"
+				*ngIf="showAddButton"
+				class="ml-auto"
+				[darkMode]="true"
+				[theme]="PBtnThemeEnum.OUTLINE_PRIMARY"
+				[size]="BootstrapSize.SM"
+				[disabled]="!!isLoading"
+				(triggerClick)="showDetails(null)"
+				popover="Tätigkeit hinzufügen" i18n-popover
+				placement="bottom"
+			><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon></p-button>
+		</div>
+	</div>
+	<div class="flex-grow-1 position-relative">
+		<scroll-shadow-box [backgroundStyle]="PThemeEnum.DARK">
+			<div class="pl-3 pr-3">
+				<p-input
+					class="mt-1 mb-3"
+					[type]="PApiPrimitiveTypes.Search"
+					[(ngModel)]="searchTerm"
+					[theme]="!!searchTerm ? null : PBtnThemeEnum.OUTLINE_DARK"
+					[class.flex-grow-1]="searchIsActive"
+					[size]="BootstrapSize.SM"
+				></p-input>
+
+				<div *ngIf="editFilterModeActive" class="mr-2 ml-2 title mb-3 mt-3">
+					<span><fa-icon
+						[class.text-primary]="filterIsActive"
+						[class.text-white]="!filterIsActive"
+						[style.opacity]="filterIsActive ? '1' : '0.2'"
+						[fixedWidth]="true"
+						[icon]="PlanoFaIconPool.FILTER"
+					></fa-icon>&nbsp;<span class="text-white" [innerHTML]="itemsFilterTitle"></span></span>
+				</div>
+
+				<div class="list-group list-group-flush"
+					*ngIf="!isLoading; else spinnerTemplate"
+				>
+					<div *ngIf="noItemsAvailable" class="card p-3">
+						<span i18n>Noch keine Tätigkeiten vorhanden.</span>
+						<span *ngIf="me.isLoaded() && me.data.isOwner"><br><span i18n>Lege hier die Tätigkeiten und buchbaren Angebote deines Betriebs an – bspw. Frühschicht oder Kindergeburtstag. Diese dienen dann als Vorlagen für die Erstellung neuer Schichten / Termine im Kalender.</span><br><span i18n>Klick auf’s <fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon> um Tätigkeiten anzulegen.</span></span>
+					</div>
+
+					<ng-template
+						[ngIf]="!showAllItemsFilteredHint"
+						[ngIfElse]="everyItemFilteredTemplate"
+					>
+						<ng-template
+							ngFor let-shiftModelsForList
+							[ngForOf]="groupedShiftModelsForList"
+						>
+							<list-headline
+								class="card mb-1 mt-2 o-hidden"
+								*ngIf="showHeadline(shiftModelsForList)"
+								headlineIconAlign="left"
+								[class.trashed]="shiftModelsForList.hasUntrashedItem"
+								[text]="translatedListHeadlineText(shiftModelsForList)"
+								(onClick)="toggleList(shiftModelsForList.get(0)!.parentName)"
+							>
+								<fa-icon headline-icon [icon]="!isCollapsed(shiftModelsForList.get(0)!.parentName) ? PlanoFaIconPool.COLLAPSIBLE_OPEN : PlanoFaIconPool.COLLAPSIBLE_CLOSE"></fa-icon>
+								<button
+									*ngIf="editFilterModeActive"
+									(click)="onClickFilterParent($event, shiftModelsForList)"
+									[class.affected]="!isVisibleItems(shiftModelsForList) && !!filterService.someShiftModelsAreVisible(shiftModelsForList)"
+									class="card-option btn btn-sm pt-1 pb-1 d-flex align-items-center justify-content-center btn-secondary"
+								><fa-icon [fixedWidth]="true" [class.text-primary]="!(isVisibleItems(shiftModelsForList) || filterService.someShiftModelsAreVisible(shiftModelsForList))" [icon]="isVisibleItems(shiftModelsForList) || filterService.someShiftModelsAreVisible(shiftModelsForList) ? PlanoFaIconPool.VISIBLE : PlanoFaIconPool.INVISIBLE"></fa-icon></button>
+							</list-headline>
+							<ng-container *ngIf="!isCollapsed(shiftModelsForList.get(0)!.parentName)">
+								<ng-template
+									ngFor let-shiftModel
+									[ngForOf]="getShiftModelsSorted(shiftModelsForList)"
+								>
+									<shiftmodel-list-item
+										*ngIf="!shiftModel.trashed && (editFilterModeActive || isVisibleItem(shiftModel))"
+										class="mb-1"
+										[shiftModel]="shiftModel"
+										(onItemClick)="highlightService.isHighlighted($event) ? highlightService.setHighlighted(null) : highlightService.setHighlighted($event)"
+										(onSelectInCalendarClick)="onSelectRelatedShifts.emit(shiftModel)"
+										[editFilterModeActive]="!!editFilterModeActive"
+										[editListItemsMode]="!!editListItemsMode"
+										[hideMultiSelectBtn]="hideMultiSelectBtn"
+									></shiftmodel-list-item>
+								</ng-template>
+							</ng-container>
+						</ng-template>
+					</ng-template>
+
+					<ng-template #everyItemFilteredTemplate>
+						<ng-template
+							[ngTemplateOutlet]="everythingFilteredTemplate"
+							[ngTemplateOutletContext]="{$implicit: shiftModels}"
+						></ng-template>
+					</ng-template>
+				</div>
+
+				<ng-template [ngIf]="showSomeItemsFilteredHint">
+					<p-alert
+						class="mt-2"
+						[theme]="PThemeEnum.SECONDARY"
+						[dismissable]="false"
+					>
+						<div class="mb-2" i18n>Übrigens… {{filterService.hiddenItemsCount(searchedShiftModels)}} {filterService.hiddenItemsCount(searchedShiftModels), plural, =1 {weiteres Suchergebnis ist} other {weitere Suchergebnisse sind}} durch deine Filter-Einstellung nicht sichtbar.</div>
+						<p-button [attributeInfo]="null"
+							(triggerClick)="editFilterModeActive=!editFilterModeActive"
+							[theme]="PThemeEnum.PRIMARY"
+							[darkMode]="true"
+							i18n
+						>Filter anzeigen</p-button>
+					</p-alert>
+				</ng-template>
+			</div>
+		</scroll-shadow-box>
+	</div>
+</div>
+
+<ng-template #everythingFilteredTemplate let-items>
+	<p-alert
+		class="mt-2"
+		[theme]="PThemeEnum.SECONDARY"
+		[dismissable]="false"
+	>
+		<div class="mb-2">
+			<span i18n>Aktuell sind alle {{filterService.hiddenItemsCount(items)}} Elemente mit Hilfe der Filter-Funktion ausgeblendet.</span>
+		</div>
+		<p-button [attributeInfo]="null"
+			(triggerClick)="editFilterModeActive=!editFilterModeActive"
+			[theme]="PThemeEnum.PRIMARY"
+			[darkMode]="true"
+			i18n
+		>Filter anzeigen</p-button>
+	</p-alert>
+</ng-template>
+<ng-template #spinnerTemplate>
+	<div class="card m-0">
+		<p-spinner [size]="BootstrapSize.LG" class="m-3"></p-spinner>
+	</div>
+</ng-template>

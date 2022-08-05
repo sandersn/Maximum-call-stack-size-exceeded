@@ -1,0 +1,221 @@
+<p-subheader [containerSize]="BootstrapSize.SM" [isNewItem]="false"></p-subheader>
+
+<div class="flex-grow-1 d-flex position-relative">
+	<scroll-shadow-box class="flex-grow-1">
+		<div class="container-sm pb-tawk pl-3 pr-3">
+			<h2 i18n>FAQ zur Online-Zahlung</h2>
+			<div class="mb-4">
+				<div class="mb-5" i18n>Hier findest du häufig gestellte Fragen zu der Online-Zahlungsfunktion von Dr.&nbsp;Plano. Sie ergänzen unsere <a routerLink="/client/tutorials" target="_blank" rel="noopener" class="tut-video-link">Tutorial-Videos</a>. Wenn deine Frage nicht dabei ist, dann melde dich in unserem Online-Chat und wir helfen dir gerne weiter 😊</div>
+
+				<p-collapsible id="setup">
+					<span trigger i18n>Wie richte ich die Online-Zahlung ein?</span>
+					<div content class="card-body">
+						<p i18n>Die Aktivierung der Online-Zahlung kannst du <a routerLink="/client/plugin/payments" target="_blank" rel="noopener">hier</a> vornehmen. Dort findest du auch weitere wichtige Infos zur Einrichtung.</p>
+					</div>
+				</p-collapsible>
+
+				<p-collapsible id="payment-methods">
+					<span trigger i18n>Welche Zahlungsarten stehen zur Verfügung?</span>
+					<div content class="card-body">
+						<p i18n>Wir stellen für viele Länder ein differenziertes Repertoire an Zahlungsarten zur Verfügung. Eine Liste der Zahlungsarten findest du <a routerLink="/client/plugin/payments/" fragment="payment-methods" target="_blank" rel="noopener">hier</a>. Die Zahlungsart deiner Wahl ist nicht dabei? Dann melde dich gerne bei uns.</p>
+						<p i18n>Um den Online-Zahlungsverkehr für deinen Betrieb so sicher wie möglich zu gestalten, können Zahlungsarten, die (temporär) eine signifikant hohe Risikobewertung erhalten, von uns pausiert und bei der Online-Zahlung deinen Kunden nicht angeboten werden. Das betrifft vor allem Zahlungsarten, die ein erhöhtes Risiko an Zahlungsreklamationen (Chargebacks) aufweisen.</p>
+						<!-- cSpell:ignore Wochenend -->
+						<p i18n>Ein sehr hohes Risiko an Zahlungsreklamationen (Chargebacks) birgt beispielsweise die <strong>SEPA-Basislastschrift</strong>. Bei der Online-Zahlung über SEPA-Lastschrift ist es leider nicht möglich, direkt zum Zeitpunkt der Zahlung zu prüfen, ob das Konto des Endkunden tatsächlich gedeckt ist. Diese Prüfung wird erst nach Abschluss der Online-Zahlung beauftragt und kann bis zu 6 oder 7 Tagen dauern, falls Wochenend- und Feiertage dazwischen liegen, da die Prüfung nur zu den Banköffnungszeiten durchgeführt wird. Aufgrund dieser Umstände kommt es bei Zahlungen per SEPA-Lastschrift statistisch signifikant zu mehr Zahlungsreklamationen (Chargebacks). Um nun zu vermeiden, dass eure Endkunden ein Angebot buchen und wahrnehmen, obwohl ihr Konto gar nicht gedeckt ist, <strong>bieten wir die SEPA-Basislastschrift bei kurzfristigen Buchungen nicht an</strong>. So wird sichergestellt, dass eure Endkunden nur Angebote wahrnehmen, die sie garantiert bezahlt haben.</p>
+					</div>
+				</p-collapsible>
+
+				<p-collapsible id="payment-page">
+					<span trigger i18n>Zahlen meine Kunden direkt auf meiner Homepage oder werden sie weitergeleitet?</span>
+					<div content class="card-body">
+						<p i18n>Aus Sicherheitsgründen werden deine Kunden zur Zahlung auf eine von uns gehostete Seite weitergeleitet. Um ihnen einen möglichst nahtlose Buchungs- und Zahlungserfahrung zu bieten, kannst du die Zahlungsseite deinem Unternehmensauftritt anzupassen. Lade dazu dein Logo und ein Banner-Bild <a routerLink="/client/plugin/basis/" target="_blank" rel="noopener">auf dieser Seite</a> hoch.</p>
+					</div>
+				</p-collapsible>
+
+				<p-collapsible id="currency-conversion">
+					<span trigger i18n>Können auch Kunden mit einer anderen Währung ihre Buchungen online bezahlen?</span>
+					<div content class="card-body">
+						<p i18n>Ja, deine Endkunden können ihre Buchungen mit fast allen Währungen online bezahlen, denn die meisten Zahlungsarten – besonders Kreditkarten – bieten einen Währungswechsel z.B. in Euro an. Dabei können Gebühren für deine Endkunden entstehen.</p>
+					</div>
+				</p-collapsible>
+
+				<p-collapsible id="pricing">
+					<span trigger i18n>Welche Gebühren fallen für die Online-Zahlung an?</span>
+					<div content class="card-body">
+						<p i18n>Dr.&nbsp;Plano berechnet dir für jede Online-Zahlung eine Gebühr von <mark class="nowarp">2,39 % + 0,35 €</mark>&nbsp;(zuzüglich <a routerLink="/client/plugin/faq-online-payment/" fragment="vat" class="nowrap">Umsatzsteuer</a>). Unter einer »Zahlung« sind sowohl <strong>Einzahlungen</strong> durch Kunden als auch <strong>Rückzahlung</strong> an deine Kunden zu verstehen.</p>
+						<p i18n><strong>Warum Rückzahlungen gebührenpflichtig sind?</strong> Aus Sicht von Kreditkartenorganisationen und Banken sind Rückzahlungen genau so Transaktionen wie Einzahlungen, wofür sie Gebühren erheben. Daher müssen auch wir für jede Rückzahlung Gebühren bezahlen. Bei unserer Preisgestaltung für die Online-Zahlung haben wir uns bewusst dagegen entschieden, die Gebühren für Einzahlungen höher anzusetzen und stattdessen Rückzahlungen kostenlos zu machen. Dabei hätten wir nämlich die Anzahl sowie das Volumen der Rückzahlungen hochrechnen bzw. schätzen müssen, um deren Kosten bei der Gebühr für Einzahlungen mitberechnen zu können. Stattdessen haben wir uns für die genauere und transparentere Lösung entschieden: Für jede Rückzahlung fällt die exakt passende Gebühr an. So können wir auch die Gebühr für Einzahlungen, die weit häufiger vorkommen als Rückzahlungen, niedriger halten. In der <a routerLink="/client/sales/transactions" target="_blank" rel="noopener">Zahlungsübersicht</a> siehst du, ob und in welcher Höhe Gebühren für eine Zahlung angefallen sind.</p>
+						<p i18n><a routerLink="/online-payment-pricing" target="_blank" rel="noopener" class="nowrap">Alle Gebühren detailliert anzeigen<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.NAV_FORWARD" class="ml-1 small"></fa-icon></a></p>
+						<p-alert [theme]="PThemeEnum.INFO" class="d-block" i18n>Aktionsrabatte oder dauerhafte Rabatte, die allgemein auf den Rechnungsbetrag von Dr.&nbsp;Plano Anwendung finden, <mark>gelten nicht</mark> für die Gebühren der Online-Zahlung – es sei denn, sie werden explizit auf die Online-Zahlungsgebühren gewährt. Diese Regelung ist wirtschaftlich notwendig, da wir selbst hohe Gebühren an Adyen, unseren Partner für die Realisierung der Online-Zahlung, entrichten müssen.</p-alert>
+					</div>
+				</p-collapsible>
+
+				<p-collapsible id="vat">
+					<span trigger i18n>Warum wird auf die Gebühr der Online-Zahlung Umsatzsteuer angerechnet?</span>
+					<div content class="card-body">
+						<p i18n>Falls dein Betrieb umsatzsteuerpflichtig ist, fällt für die Gebühren der Online-Zahlung über Dr.&nbsp;Plano – wie für alle Service-Gebühren – Umsatzsteuer an (§ 4 Nr. 8 UStG findet hier keine Anwendung). Die Umsatzsteuer der Online-Zahlungsgebühren wird <strong>am Ende jedes Monats</strong> für alle in dem Monat angefallenen Gebühren berechnet und in der Regel direkt von deinem Online-Guthaben abzogen. Für diesen monatlichen USt.-Abzug findest du in der <a routerLink="/client/sales/transactions" target="_blank" rel="noopener">Zahlungsübersicht</a> einen eigenen Eintrag, wonach du auch filtern kannst.</p>
+						<p i18n>Als Händler erhältst du natürlich die Umsatzsteuer nach deiner <strong>Umsatzsteuererklärung</strong> zurück. Dafür nutzt du am besten die monatliche Rechnung, die du von uns bekommst und in der die Umsatzsteuer ausgewiesen ist.</p>
+						<p-alert [theme]="PThemeEnum.INFO" class="d-block" i18n>Bis zum <mark>{{Config.NEW_TRANSACTION_STYLE_WITHOUT_VAT_DATE - 1 | date:'shortDate'}}</mark> wurde in Dr.&nbsp;Plano die Umsatzsteuer unmittelbar nach jeder Zahlung berechnet und in der Detailseite der Zahlung ausgewiesen. Der Steuerbetrag der meisten Zahlungen musste auf- oder abgerundet werden, um auf zwei Nachkommastellen zu kommen (gemäß DIN-Norm 1333). Das häufige Runden führte dazu, dass die Summe aller Einzelsteuerbeträge eines Monats abweichen konnte vom Umsatzsteuerbetrag desselben Monats, wenn er einmalig auf Basis der Summe aller Netto-Online-Zahlungsgebühren errechnet wurde. Um die mögliche Abweichung beider Methoden der Umsatzsteuer-Berechnung zu vermeiden, haben wir in Abstimmung mit mehreren Steuerbüros entschieden, die Umsatzsteuer einmalig am Monatsende zu berechnen. Diese Lösung wird ab dem <mark>{{Config.NEW_TRANSACTION_STYLE_WITHOUT_VAT_DATE | date:'shortDate'}}</mark> eingesetzt.</p-alert>
+						<p i18n>Zur Info: Manche Zahlungsdienstleister wie z.B. PayPal haben eine Banklizenz, weshalb deren Gebühren von der Steuerpflicht befreit sind.</p>
+					</div>
+				</p-collapsible>
+
+				<p-collapsible id="billing">
+					<span trigger i18n>Wie erfolgt die Abrechnung der Gebühren bzw. die Rechnungsstellung?</span>
+					<div content class="card-body">
+						<p i18n>Dr.&nbsp;Plano versucht die Abrechnung so komfortabel und zeitsparend wie möglich zu gestalten. Daher werden anfallende Gebühren direkt vom Zahlungsbetrag bzw. deinem Online-Guthaben abgezogen. Somit wird die Rechnung, die du am 15. jedes Monats für die Online-Zahlungen des vorausgegangenen Monats erhältst, in der Regel bereits beglichen sein – was die Online-Zahlungsgebühren betrifft. Sollte doch mal eine Gebühr offen sein, weil z.B. dein Online-Guthaben nicht ausreichte, um alle Gebühren zu decken, wird der Rechnungsbetrag per SEPA-Basislastschrift beglichen. Natürlich kannst du dir eine Übersicht aller abgerechneten Zahlungen jederzeit selbst in der <a routerLink="/client/sales/transactions" rel="noopener" target="_blank">Zahlungsübersicht</a> exportieren.</p>
+					</div>
+				</p-collapsible>
+
+				<p-collapsible id="refund">
+					<span trigger i18n>Wie mache ich Rückerstattungen an meine Kunden?</span>
+					<div content class="card-body">
+						<p i18n>Buchungen, die deine Kunden online bezahlen, kannst du mit wenigen Klickst direkt in der betroffenen Buchung zurückerstatten. Du kannst es aber noch effizienter gestalten, indem du deinen Kunden erlaubst, ihre Buchungen selbst online zu stornieren und dazu noch die <strong>automatische Online-Rückerstattung</strong> aktivierst:</p>
+							<ol>
+								<li i18n>Deine Kunden können dann komfortabel über einen Link in den Emails (z.B. in der Buchungsbestätigung) stornieren. Der Link wird automatisch in die Emails platziert, wenn du die Stornierung durch Kunden erlaubst. Du brauchst also deine <a target="_blank" rel="noopener" routerLink="/client/plugin/emails">Email-Vorlagen</a> nicht manuell anzupassen.</li>
+								<li i18n>Nach erfolgter Stornierung durch einen Kunden wird Dr.&nbsp;Plano die bereits bezahlte Gebühr – abzüglich der ggf. anfallenden Stornogebühr – automatisch an deinen Kunden zurückzahlen&nbsp;👍</li>
+							</ol>
+
+						<p i18n>Voraussetzung für jegliche Online-Rückerstattung ist natürlich, dass dein gesamter Account und die jeweilige Buchung noch <strong>genügend Online-Guthaben</strong> aufweisen. Ob und wie viel du bei einer Buchung deinem Kunden online zurückerstatten kannst, wird dir in der jeweiligen Buchung angezeigt. Bei der automatischen Rückerstattung muss so viel Guthaben vorhanden sein, dass der zu erstattende Betrag komplett zurückgezahlt werden kann – Teilerstattungen werden nicht automatisch ausgeführt, sondern können nur von dir manuell veranlasst werden. Mehr dazu, wie sich das Online-Guthaben zusammensetzt, erfährst du <a routerLink="/client/plugin/faq-online-payment/" fragment="balance" class="nowrap">weiter unten<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.SCROLL_DOWN" class="ml-1 small"></fa-icon></a></p>
+						<p i18n>Generell können Online-Zahlungen nur bis maximal <strong>180 Tage</strong> nach ihrer Einzahlung zurückerstattet werden. Bei Zahlungen, die älter als 180 Tage sind, akzeptieren die  Banken keine Rückerstattung mehr.</p>
+						<p i18n>Wie du einfach & schnell Online-Rückerstattung veranlassen oder andere Rückerstattungen erfassen kannst, zeigt dir unser passendes <a routerLink="/client/tutorials" target="_blank" rel="noopener" class="tut-video-link">Tutorial-Video</a>.</p>
+						<p i18n>Buchungen, die deine Kunden über <strong>andere Zahlungsarten</strong> (z.B. per Kassenzahlung) beglichen hatten, kannst du leider nicht über die Online-Zahlung bequem erstatten. Du musst sie über einen anderen Weg deiner Wahl erstatten. Wir empfehlen dir, solche Rückerstattungen dennoch in Dr.&nbsp;Plano zu erfassen, damit alles korrekt dokumentiert ist – da freut sich unter anderem deine Buchhaltung 😉</p>
+						<p-alert [theme]="PThemeEnum.INFO" [icon]="PlanoFaIconPool.SECURITY" class="d-block" i18n>Es ist sehr empfehlenswert, Rückerstattungen für Buchungen, die deine Kunden online bezahlt hatten, auch über die Online-Zahlung durchzuführen. Andernfalls besteht nämlich das Risiko, dass ein Kunde nach Erhalt der Rückerstattung trotzdem bei seiner / ihrer Bank die ursprüngliche Online-Zahlung reklamiert (Chargeback) und dadurch das Geld noch einmal von dir zurückerstattet bekommt. Das ist eine typische Betrugsmethode, die du so vermeiden kannst.</p-alert>
+					</div>
+				</p-collapsible>
+
+				<p-collapsible id="statement">
+					<span trigger i18n>Wo sehe ich vergangene Zahlungen und meine Kontoauszüge?</span>
+					<div content class="card-body">
+						<p i18n>Im Hauptmenü findest du den Punkt »<a routerLink="/client/sales" target="_blank" rel="noopener">Verkäufe</a>« und darin den Bereich »Zahlungen«. Dort siehst du alle ein- und ausgegangenen Zahlungen. Diese sind mit den dazugehörigen Buchungen verbunden, wodurch du schnell & komfortabel Zahlungen ihren Buchungen zuordnen kannst.</p>
+						<p i18n><strong>Kontoauszüge</strong> bzw. Exporte erhältst du direkt in Dr.&nbsp;Plano. Du kannst jederzeit bei der Zahlungsübersicht deinen gewünschten Zeitraum einstellen und anschließend den Export im gewünschten Format herunterladen.</p>
+					</div>
+				</p-collapsible>
+
+				<p-collapsible id="balance">
+					<span trigger i18n>Wie setzt sich mein Online-Guthaben zusammen?</span>
+					<div content class="card-body">
+						<p i18n>Dein Guthaben wächst unter anderem, wenn deine Kunden ihre Buchungen online bezahlen. Dein Guthaben nimmt ab durch Rückzahlungen an Kunden (z.B. nach einer Stornierung), durch die <a routerLink="/client/plugin/faq-online-payment/" fragment="pricing">Online-Zahlungsgebühr von Dr.&nbsp;Plano</a> und wenn Kunden eine Zahlung bei ihrer Bank widerrufen (z.B. eine Lastschriftzahlung) und es zu einer Rückbuchung (<a routerLink="/client/plugin/faq-online-payment/" fragment="chargeback">Chargeback</a>) kommt.</p>
+						<p i18n>Sollte übrigens dein Guthaben mal sehr niedrig sein, was die Sicherheit und Funktionalität deines Kontos einschränken könnte, wird Dr.&nbsp;Plano dein Guthaben automatisch per Lastschrifteinzug aufladen. Mehr dazu erfährst du <a routerLink="/client/plugin/faq-online-payment/" fragment="auto-debit" class="nowrap">weiter unten<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.SCROLL_DOWN" class="ml-1 small"></fa-icon></a></p>
+					</div>
+				</p-collapsible>
+
+				<p-collapsible id="misc-payments">
+					<span trigger i18n>Wieso sind einige Zahlungen nicht relevant für mein Online-Guthaben?</span>
+					<div content class="card-body">
+						<p i18n>In der Zahlungsübersicht werden auch Zahlungen aufgelistet, die nicht über die Online-Zahlungsfunktion von Dr.&nbsp;Plano abgewickelt wurden (z.B. Kassenzahlungen, die per Kassenschnittstelle registriert wurden). Solche Zahlungen sind irrelevant für dein Guthaben und es fällt bei ihnen auch keine Gebühr für die Online-Zahlung an. Um sie bei Bedarf aus der <a routerLink="/client/sales/transactions" rel="noopener" target="_blank">Zahlungsübersicht</a> rauszufiltern, benutze bitte die Filter-Funktion, die dir dort zur Verfügung stehen.</p>
+					</div>
+				</p-collapsible>
+
+				<p-collapsible id="payout">
+					<span trigger i18n>Wie bekomme ich mein Online-Guthaben ausgezahlt?</span>
+					<div content class="card-body">
+						<p i18n>Im Zuge der Aktivierung der Online-Zahlung wird für dich ein Buchungskonto bei Adyen, unserem Partner für die Online-Zahlungsfunktion, errichtet. Auf diesem Konto wird dein Online-Guthaben gesammelt. Das Guthaben wird <strong>regelmäßig & automatisch</strong> auf dein bei Adyen hinterlegtes Bankkonto ausgezahlt. Die Häufigkeit der Auszahlung kannst du <a routerLink="/client/plugin/payments" target="_blank" rel="noopener">hier</a> einstellen – es stehen dir die Optionen wöchentlich, alle zwei Wochen und monatlich zur Verfügung. Der konkrete Tag der Auszahlung kann wegen der Öffnungszeiten der Banken 2 bis 3 Tage variieren. Für jede Auszahlung erheben wir eine <a routerLink="/online-payment-pricing" target="_blank" rel="noopener" class="nowrap">geringe&nbsp;Gebühr<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.NAV_FORWARD" class="ml-1 small"></fa-icon></a></p>
+						<p i18n>Nach der Auszahlung bekommen alle Admins eine Email, die über die Auszahlungshöhe informiert. Außerdem liegt der Email ein <strong>Export</strong> aller Transaktionen bei, die seit der letzten Auszahlung erfolgt sind. Kurz gesagt: Du musst für die Auszahlung gar nicht selbst aktiv werden. Es läuft alles automatisch 👍</p>
+						<p i18n>Ein kleiner Teil deines Guthabens wird nicht ausgezahlt und sorgt als <strong>Rücklage</strong> dafür, dass du auch direkt nach einer Guthabenauszahlung genügend Guthaben hast, um z.B. Rückerstattungen an deine Kunden vornehmen zu können. Wie die Höhe der Rücklage festgelegt wird, erfährst du <a routerLink="/client/plugin/faq-online-payment/" fragment="deposit" class="nowrap">weiter unten<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.SCROLL_DOWN" class="ml-1 small"></fa-icon></a></p>
+						<p i18n>Zusätzlich kann der ausbezahlte Betrag geringfügig von dem Online-Guthaben abweichen, das dir in der <a routerLink="/client/sales/transactions" target="_blank" rel="noopener">Zahlungsübersicht</a> angezeigt wird. Der Grund dafür ist, dass dein Guthaben auch Zahlungen enthalten kann, die zwar schon verbucht sind, aber deren Wertstellung noch aussteht. Die Verbuchung einer Zahlung und ihre Wertstellung können nämlich zeitlich versetzt stattfinden. Die Buchung ist die reine Information, dass eine Zahlung beauftragt worden ist. Die Wertstellung, auch Valuta genannt, ist der Vorgang, mit dem eine Zahlung tatsächlich auf dem Konto verfügbar und somit auch auszahlbar wird.</p>
+					</div>
+				</p-collapsible>
+
+				<p-collapsible id="change-bank-account">
+					<span trigger i18n>Wie ändere ich das Bankkonto, das für Guthabenauszahlungen & -aufladungen genutzt wird?</span>
+					<div content class="card-body">
+						<p i18n>Bei der Aktivierung der Online-Zahlung gibst du unter anderem dein Bankkonto bei unserem Partner Adyen an. Deine Bankdaten sind Teil jener Daten, die im Sinne der gesetzlichen »Know Your Customer«-Erfordernis für den Zahlungsverkehr auf Korrektheit geprüft werden müssen. Diese Prüfung übernimmt unser Partner Adyen für uns und deshalb musst du dort deine Bankdaten angeben. Auf dieses Bankkonto wird regelmäßig dein Guthaben ausgezahlt. Außerdem wird auch dein Guthaben von dem Konto per Lastschrifteinzug aufgeladen, wenn es relativ niedrig sein sollte. Du kannst das Bankkonto ändern, indem du <a routerLink="/client/plugin/payments" fragment="adyen-change-data" target="_blank" rel="noopener">auf dieser Seite</a> auf den Button klickst, der dich zu deinen Daten bei Adyen führt.</p>
+					</div>
+				</p-collapsible>
+
+				<p-collapsible id="deposit">
+					<span trigger i18n>Wozu gibt es eine Rücklage und wie wird ihre Höhe berechnet?</span>
+					<div content class="card-body">
+						<p i18n>Ein kleiner Teil deines Online-Guthabens wird bei der regelmäßigen Guthabenauszahlung nicht ausgezahlt und sorgt als Sicherheitsrücklage dafür, dass du auch direkt nach einer Auszahlung genügend Guthaben hast, um z.B. <strong>Rückerstattungen an deine Kunden</strong> vornehmen zu können. Außerdem dient die Rücklage dazu, <strong>Rückbuchungen</strong> auf Grund von Zahlungsreklamationen durch deine Kunden jederzeit begleichen zu können. Die Sicherheitsrücklage hat also die Aufgabe, die Liquidität deines Online-Kontos zu gewährleisten.</p>
+						<p i18n>Die <strong>Höhe der Rücklage</strong> wird automatisch und laufend berechnet: Sie beträgt durchschnittlich 2 bis 3 % deines Umsatzes der letzten sechs Monate über die Online-Zahlung. Die Dauer von sechs Monaten ist üblich und ergibt sich aus der Tatsache, dass deine Kunden bis zu 180 Tage nach einer Zahlung diese reklamieren dürfen – je nach gewählter Zahlungsart und Bank kann diese Frist auch kürzer sein. In die Berechnung der Höhe deiner Rücklage fließen außerdem weitere sicherheitsrelevante Faktoren ein wie beispielsweise die Höhe der Zahlungsreklamationen (Chargebacks), die du in den vergangenen Monaten hattest. Eine <strong>Mindestrücklage von 300 €</strong> verbleibt stets auf deinem Konto für die Online-Zahlung und wird im Rahmen der regelmäßigen Guthabenauszahlung nicht ausgezahlt. Nach jeder Guthabenauszahlung wirst du über die genaue Höhe der einbehaltenen Sicherheitsrücklage informiert.</p>
+						<p i18n>Auch wenn deine Rücklage nicht als Guthaben an dich selbst ausgezahlt wird, kannst du sie für Rückzahlungen an deine Kunden verwenden, wenn dein Konto sonst kein Guthaben aufweist. Sollte dadurch – oder durch andere Zahlungsabgänge – deine Rücklage nur noch <mark>50 %</mark> oder weniger der vorgesehenen Rücklage betragen, erfolgt eine <strong>automatische Guthaben-Aufladung</strong> per Lastschrifteinzug. Dabei wird der fehlende Betrag von deinem Bankkonto abgebucht, damit deine Rücklage wieder aufgefüllt wird. So bleibt dein Online-Konto bei Dr.&nbsp;Plano stets liquide und du kannst deine alltäglichen Online-Zahlungen unterbrechungsfrei erledigen, ohne selbst dafür aktiv werden zu müssen. Mehr zur automatischen Aufladung erfährst du <a routerLink="/client/plugin/faq-online-payment/" fragment="auto-debit">weiter unten<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.SCROLL_DOWN" class="ml-1 small"></fa-icon></a></p>
+					</div>
+				</p-collapsible>
+
+				<p-collapsible id="auto-debit">
+					<span trigger i18n>Wie funktioniert die automatische Aufladung meines Online-Guthabens?</span>
+					<div content class="card-body">
+						<p i18n>Damit die Liquidität deines Online-Kontos sichergestellt ist und du jederzeit beispielsweise Rückerstattungen an deine Kunden vornehmen kannst, wird ein Teil deines Online-Guthabens als <strong>Rücklage</strong> auf deinem Online-Konto behalten – also bei der regelmäßigen Guthabenauszahlung ausgespart. Mehr zur Rücklage erfährst du <a routerLink="/client/plugin/faq-online-payment/" fragment="deposit">hier</a>.</p>
+						<p i18n>Sollte auch deine Rücklage mal durch beispielsweise viele Rückerstattungen in kurzer Zeit deutlich reduziert sein, erfolgt eine <strong>automatische Guthaben-Aufladung</strong> per Lastschrifteinzug. Dabei wird der fehlende Betrag von deinem Bankkonto abgebucht, damit deine Rücklage wieder aufgefüllt ist. So bleibt dein Online-Konto bei Dr.&nbsp;Plano stets liquide und du kannst deine alltäglichen Online-Zahlungen unterbrechungsfrei erledigen, ohne selbst dafür aktiv werden zu müssen. Über automatische Guthaben-Aufladungen wirst du natürlich <strong>per Email benachrichtigt</strong>. Du kannst dein Online-Guthaben nicht durch etwa eine Banküberweisung, die du selbst vornimmst, aufladen.</p>
+						<p i18n>Aus Sicherheitsgründen wird die Aufladung <strong>maximal alle 5 Tage</strong> in Auftrag gegeben und der Höchstbetrag, der pro Lastschrift eingezogen wird, beträgt <mark>500 €</mark>. Für die automatische Aufladung stellen wir dir eine geringe Gebühr in Rechnung, die Banken für Lastschriftzahlungen verlangen. Achte bitte darauf, dass deine bei Adyen hinterlegten Bankdaten korrekt sind und dass dein Bankkonto stets gedeckt ist, wenn du per Email die Ankündigung einer bevorstehenden aut. Aufladung erhältst. Sonst schlägt nämlich der Lastschriftauftrag fehl, was eine deutlich höhere Gebühr nach sich zieht. Mehr dazu findest du in unserer <a routerLink="/online-payment-pricing" target="_blank" rel="noopener" class="nowrap">Preis-Übersicht<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.NAV_FORWARD" class="ml-1 small"></fa-icon></a></p>
+					</div>
+				</p-collapsible>
+
+				<p-collapsible id="chargeback">
+					<span trigger i18n>Wie gehe ich mit Zahlungsreklamationen (Chargebacks) um?</span>
+					<div content class="card-body">
+						<p i18n>Zahlungsreklamationen – so genannte Chargebacks – kommen im Zahlungsverkehr aus verschiedenen Gründen vor. Der geläufigste Grund für einen Chargeback ist, dass der Endkunde bei der Bank die Zahlung reklamiert und zurückfordert. Gerade Lastschriftzahlungen bergen ein hohes Chargeback-Risiko, weil Endkunden bis mehrere Wochen nach der Zahlung das Ganze reklamieren können – mehr oder weniger ohne einen Beweis für ihre Reklamation vorlegen zu müssen. Manchmal werden Chargebacks auch von Banken selbst veranlasst, wenn ein Betrugsfall vorliegt. Trotz aller Sicherheitsmaßnahmen und bester Kundenkommunikation lassen sich Chargebacks leider nicht komplett vermeiden, weshalb es wichtig ist, zu wissen, wie du mit ihnen umgehen kannst. Lies dir dafür bitte diesen etwas längeren Abschnitt gründlich durch.</p>
+						<p class="font-weight-bold" i18n>Etwas vereinfacht besteht ein Chargeback aus folgenden möglichen Schritten:</p>
+						<ol>
+							<li>
+								<p i18n><strong>Zahlungsreklamation (First Chargeback):</strong> Die Reklamation geht ein. Der Zahlungsbetrag wird von deinem Buchungskonto ab- und auf das Konto des Endkunden zurückgebucht. Wir benachrichtigen dich sofort darüber.</p>
+							</li>
+							<li>
+								<p i18n><strong>Anfechtung:</strong> Ob du als Händler die Option hast, die Reklamation anzufechten (man spricht hier auch von einer »Verteidigung«), hängt sowohl von der Zahlungsart ab, die der Endkunde genutzt hatte, als auch vom Chargeback-Grund. Chargebacks von SEPA-Lastschriftzahlungen beispielsweise kannst du generell nicht anfechten. In der Email, die wir dir bei einer Reklamation schicken, informieren wir dich darüber, ob du anfechten kannst oder nicht.</p>
+								<p i18n>Solltest du die Option zur Anfechtung haben und dich dafür entscheiden, musst du innerhalb der gegebenen Frist Unterlagen einreichen, die deine Position belegen. Was du bis wann einreichen musst, werden wir dir ebenfalls schreiben. Außerdem bieten wir dir eine <a routerLink="/static/challenge_dispute_template.docx" target="_blank" rel="noopener">Vorlage<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.DOWNLOAD" class="ml-1 small"></fa-icon></a> an, die du für die Einreichung der Unterlagen nutzen kannst. Wir versuchen dir so gut zu helfen, wie wir können&nbsp;🙂</p>
+							</li>
+							<li>
+								<p i18n><strong>Rückbuchung (Chargeback reversed):</strong> Nachdem du die Reklamation angefochten hast, wird unter Umständen der strittige Betrag vorläufig wieder deinem Konto gutgeschrieben. Das bedeutet noch nicht, dass der Streitfall zu deinem Gunsten entschieden wurde. Die endgültige Entscheidung steht noch aus.</p>
+							</li>
+							<li>
+								<p i18n><strong>Prüfung der Anfechtung (Pre-arbitration):</strong> Die Bank deines Kunden prüft ggf. zusammen mit der involvierten Kreditkartenorganisation (z.B. Visa oder Mastercard) die Sachlage und entscheidet, welche Seite nun das Geld bekommt. In manchen Fällen wird auch Adyen, unser Partner für die Online-Zahlung, bei der Entscheidung einbezogen.</p>
+								<p i18n>Achtung: Wenn Kreditkartenorganisationen in diesem Schritt involviert werden, können Gebühren bis zu mehreren Hundert US-Dollar anfallen, die wir an dich weiterleiten müssen (s. <a routerLink="/online-payment-pricing" target="_blank" rel="noopener">Gebühren</a>). Von daher lohnt es sich manchmal nicht, die Reklamation anzufechten. Mehr dazu erfährt du weiter unten.</p>
+							</li>
+							<li>
+								<p i18n><strong>Rückbuchung (Second Chargeback):</strong> Ging die Entscheidung zu deinem Gunsten aus, dann bleibt das Geld auf deinem Buchungskonto oder, falls du noch keine Rückbuchung (Chargeback reversed) hattest, erhältst du das Geld in wenigen Tagen zurücküberwiesen.</p>
+								<p i18n>Solltest du allerdings die Anfechtung verlieren und vorher eine vorläufige Rückbuchung des strittigen Betrags erhalten haben, wird dieser wieder von deinem Buchungskonto ab- und auf das Konto des Endkunden zurückgebucht. Damit ist der Fall endgültig geschlossen. Natürlich informieren wir dich auch hierüber per Email.</p>
+							</li>
+						</ol>
+						<p i18n>Die meisten der oben beschriebenen Schritte im Chargeback-Verfahren sind mit Kosten verbunden. <a routerLink="/online-payment-pricing" target="_blank" rel="noopener" class="nowrap">Alle Gebühren detailliert anzeigen<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.NAV_FORWARD" class="ml-1 small"></fa-icon></a></p>
+						<p><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.MORE_INFO"></fa-icon><ng-container i18n>Der Chargeback-Prozess kann in der Praxis noch mehr Schritte durchlaufen, als die, die wir oben aufgeführt haben. Wenn du ein Chargeback-Experte werden möchtest, dann empfehlen wir dir die <a href="https://docs.adyen.com/risk-management/understanding-disputes" target="_blank" rel="noopener">Dokumentation</a> von Adyen dazu. Oder du recherchierst einfach über die Suchmaschine deiner Wahl.</ng-container></p>
+						<p class="font-weight-bold" i18n>Pro & Contra für die Anfechtung einer Reklamation</p>
+						<p i18n>👍 Anfechtung könnte sich lohnen:</p>
+						<ul>
+							<li i18n>Du hast unwiderlegbare Beweise, dass die Zahlung korrekt ist und der Kunde die Ware oder Dienstleistung erhalten hat. Das erhöht die Wahrscheinlichkeit, dass du erfolgreich sein wirst, aber gibt noch <strong>keine Garantie</strong>.</li>
+							<li i18n>Der Betrag, um den es geht, ist recht hoch.</li>
+						</ul>
+						<p i18n>Sei dir bitte bewusst, dass die Anfechtung einer Reklamation dazu führt, dass der Streitfall alle Schritte eines Chargeback-Verfahrens (s. oben) durchlaufen kann. Das dauert unter Umständen mehrere Wochen und kann kostspielig werden.</p>
+						<p i18n>👎 Anfechtung ist nicht empfehlenswert:</p>
+						<ul>
+							<li i18n>Du kannst die verlangten Unterlagen, die wir dir per Email genannt haben, nicht vollständig einreichen.</li>
+							<li i18n>Der Betrag, um den es geht, ist nicht hoch genug, um deinen Zeitaufwand und die Kosten zu rechtfertigen.</li>
+							<li i18n>Es ist sicher, dass es sich bei der Zahlung um einen Betrugsfall handelt, weil z.B. mit einer gestohlenen Kreditkarte bezahlt worden war.</li>
+							<li i18n>Dein Kunde hat die Ware zurückgeschickt oder du kannst / konntest die gebuchte Dienstleistung nicht erbringen.</li>
+						</ul>
+						<p-alert [theme]="PThemeEnum.INFO" class="d-block" i18n>Wir möchten dich darauf hinweisen, dass Dr.&nbsp;Plano zu keinem Zeitpunkt an der Entscheidung über eine Zahlungsreklamation beteiligt ist und daher <mark>keine Verantwortung</mark> übernimmt, ob deine Anfechtung positiv oder negativ ausgeht. Unsere Leistung ist, dich bestmöglich über den aktuellen Stand der Reklamation zu informieren. Falls du dich für eine Anfechtung entscheiden solltest, leiten wir die von dir eingereichten Unterlagen weiter an Adyen, unseren Partner für die Online-Zahlung, von wo aus sie an die Bank deines Kunden weitergeleitet werden. Ob du eine Reklamation anfechtest oder nicht, ist allein deine Entscheidung. Die Qualität und die Vollständigkeit der von dir eingereichten Anfechtungsunterlagen werden wir <mark>nicht prüfen</mark> und sind zu keinem Zeitpunkt verantwortlich dafür.</p-alert>
+					</div>
+				</p-collapsible>
+
+				<p-collapsible id="support">
+					<span trigger i18n>Wer macht den Kundenservice bzw. Support für die Online-Zahlung?</span>
+					<div content class="card-body">
+						<p i18n>Bei Fragen zur Online-Zahlung wende dich bitte immer an Dr.&nbsp;Plano. Die allermeisten Sachverhalte können wir selbst klären. Falls nötig, besprechen wir deine Frage auch mit Adyen, unserem Partner für die Realisierung der Online-Zahlung.</p>
+					</div>
+				</p-collapsible>
+
+				<p-collapsible id="adyen-privacy">
+					<span trigger i18n>Ist die Online-Zahlung sicher & datenschutzkonform?</span>
+					<div content class="card-body">
+						<p i18n>Nach sorgfältiger Analyse haben wir uns bei der Online-Zahlung für die Zusammenarbeit mit dem Zahlungsdienstleister <a href="https://www.adyen.com/" target="_blank" rel="noopener">Adyen N.V.</a> entschieden. Adyen ist eine niederländische Aktiengesellschaft mit Sitz in Amsterdam. Sie wurde 2006 gegründet und verfügt seit 2017 über eine europäische Banklizenz und unterliegt somit EU-Vorgaben zur Einlagensicherung. Internationale Unternehmen wie eBay, Netflix, Uber, easyJet, booking.com, Spotify, Mango, LinkedIn, Microsoft, Zalando und Etsy gehören zu Adyens Kunden.</p>
+						<p i18n>Gerade bei der Online-Zahlung hat Datenschutz eine sehr hohe Priorität und hier glänzt Adyen unter anderem mit dem Sitz in Amsterdam. Somit gelten hier die datenschutzrechtlichen Vorschriften der Europäischen Union.</p>
+						<p i18n>Außerdem überzeugen uns die umfangreichen Sicherheitsmaßnahmen des Unternehmens wie die KI-gesteuerte Betrugsprävention. Gemeinsam mit ihrer Hilfe können wir Zahlungsarten pausieren, die (temporär) eine hohe Risikobewertung erhalten und somit für euer Geschäft eine potenzielle Gefahr darstellen. Auch Endkunden, die jüngst durch Betrug aufgefallen sind, können mit Adyens Hilfe erkannt werden. Diese und weitere Sicherheitsmaßnahmen sollen einen möglichst reibungslosen Zahlungsverkehr ermöglichen. Natürlich können Tools zur Betrugsprävention keine Garantie bieten gegen jeglichen Betrug und jegliche kriminelle Handlung. Doch Adyen und wir von Dr.&nbsp;Plano arbeiten kontinuierlich an den Sicherheitsmaßnahmen, um ihren Schutz zu erhöhen.</p>
+					</div>
+				</p-collapsible>
+
+				<p-collapsible id="cancellation">
+					<span trigger i18n>Wie gehe ich vor, wenn ich die Online-Zahlung nicht mehr nutzen oder kündigen möchte?</span>
+					<div content class="card-body">
+						<p i18n>Wenn du die Online-Zahlung nicht mehr nutzen möchtest, schreib uns bitte eine <a href="mailto:service@dr-plano.com">Email</a> mit dem <strong>genauen Datum</strong>, ab wann die Online-Zahlung deaktiviert werden soll.</p>
+						<ul>
+							<li i18n>Wir werden dann zu dem angegebenen Datum dein Buchungskonto bei unserem Partner Adyen sperren.</li>
+							<li i18n>Ab der Sperrung kannst du keine Online-Zahlungen mehr empfangen oder Rückerstattung an deine Kunden vornehmen.</li>
+							<li i18n>Falls dein Buchungskonto ein Online-Guthaben aufweist, zahlen wir es dir auf dein Bankkonto aus, allerdings nur bis zur Höhe der für deinen Account vorgesehenen Sicherheitsrücklage. Über diese Auszahlung wirst du per Email informiert.</li>
+							<li i18n>Deine Sicherheitsrücklage überweisen wir dir nach der vertragsgemäß vereinbarten Frist von spätestens 180 Tagen auf dein Bankkonto. Diese Frist ist notwendig, um mögliche nachträgliche Zahlungsreklamationen (<a routerLink="/client/plugin/faq-online-payment/" fragment="chargeback" class="nowarp">Chargebacks</a>) durch deine Endkunden abdecken zu können. Über diese Auszahlung wirst du per Email informiert.</li>
+						</ul>
+						<p i18n>Dieses Prozedere wird auch bei einer Kündigung deines gesamten Dr.&nbsp;Plano-Accounts durchlaufen.</p>
+						<p i18n>Falls du zu einem späteren Zeitpunkt die Online-Zahlung wiederverwenden möchtest, lässt sich dein geschlossenes Buchungskonto in der Regel <strong>wieder reaktivieren</strong>. Für die Reaktivierung fällt eine <a routerLink="/online-payment-pricing" fragment="unsuspension" target="_blank" rel="noopener" class="nowrap">Bearbeitungsgebühr</a> an. Bei Interesse schreib uns gerne eine <a href="mailto:service@dr-plano.com">Email</a>.</p>
+					</div>
+				</p-collapsible>
+			</div>
+		</div>
+	</scroll-shadow-box>
+</div>

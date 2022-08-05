@@ -1,0 +1,163 @@
+<div hidden><span i18n #translatedAddAbsenceLabel>{shiftRefs!.length > 1 && value!.mode === generateAbsencesModesEnum.ONE_ABSENCE_FOR_EACH, select, true {Abwesenheiten} other {Abwesenheit}} eintragen</span></div>
+<p-section *ngIf="formGroup" [label]="translatedAddAbsenceLabel.textContent!" [whitespace]="SectionWhitespace.NONE">
+	<p-form-group>
+		<p-checkbox
+			[formControl]="formGroup.controls['generateItems']!"
+			valueText="Im Kalender & in der Auswertung eintragen" i18n-valueText
+		></p-checkbox>
+	</p-form-group>
+
+	<div
+		*ngIf="value && value.generateItems"
+		[@slideVertical]
+	>
+		<p-form-group
+			*ngIf="shiftRefs && shiftRefs.length > 1"
+			label="Abwesenheitseintrag pro betroffene Schicht oder für alle en bloc?" i18n-label
+		>
+			<p-radios [formControl]="formGroup.controls['mode']!">
+				<p-radios-radio
+					class="mb-2"
+					label="Pro Schicht ein Eintrag" i18n-label
+					[value]="generateAbsencesModesEnum.ONE_ABSENCE_FOR_EACH"
+				></p-radios-radio>
+				<p-radios-radio
+					class="mb-2"
+					label="Ein Eintrag für alle Schichten" i18n-label
+					[value]="generateAbsencesModesEnum.ONE_ABSENCE_FOR_ALL"
+				></p-radios-radio>
+			</p-radios>
+		</p-form-group>
+
+		<div *ngIf="showTimeBox" class="card pt-2 pr-3 pl-3">
+
+			<p-form-group
+				*ngIf="showTimeSettingInput"
+				[@slideVertical]
+				label="Zeit-Angaben" i18n-label
+			>
+				<p-radios [formControl]="formGroup.controls['timeSetting']!">
+					<div hidden><span i18n #translatedRadioLabel>{shiftRefs!.length > 1, select, true {Jeweils die } other {Die}} Schichtzeit übernehmen</span></div>
+					<p-radios-radio
+						class="mb-2"
+						[label]="translatedRadioLabel.textContent!"
+						[value]="timeSettingsEnum.TAKE_DURATION_FROM_SHIFT"
+					></p-radios-radio>
+					<p-radios-radio
+						class="mb-2"
+						label="Zeit selbst festlegen" i18n-label
+						[value]="timeSettingsEnum.OVERWRITE_DURATION"
+					></p-radios-radio>
+				</p-radios>
+			</p-form-group>
+
+			<p-form-group
+				[label]="averageWorkingTimePerDayInputLabel"
+				*ngIf="showAverageWorkingTimePerDayInput"
+				[@slideVertical]
+			>
+				<p-input
+					[type]="PApiPrimitiveTypes.Duration"
+					[durationUIType]="PApiPrimitiveTypes.Hours"
+					[formControl]="formGroup.controls['averageWorkingTimePerDay']!"
+				></p-input>
+			</p-form-group>
+
+			<div
+				*ngIf="showAbsenceStartAndEndDateInput"
+				[@slideVertical]
+			>
+				<p-grid>
+					<p-form-group
+						label="Von" i18n-label
+						class="col"
+					>
+						<p-input-date
+							[formControl]="formGroup.controls['absenceStartDate']!"
+							[max]="$any(value.absenceEndDate)"
+						></p-input-date>
+					</p-form-group>
+					<p-form-group
+						label="Bis" i18n-label
+						class="col"
+					>
+						<p-input-date
+							[formControl]="formGroup.controls['absenceEndDate']!"
+							[min]="value.absenceStartDate"
+						></p-input-date>
+					</p-form-group>
+				</p-grid>
+			</div>
+
+		</div>
+
+		<div *ngIf="showEarningsBox" class="card pt-2 pr-3 pl-3">
+
+			<p-form-group label="Vergütung" i18n-label
+				[control]="formGroup.controls['paid']!"
+			>
+				<div hidden><span i18n #translatedEarningsSettingValueText>Bezahlte {shiftRefs!.length > 1 && value.mode === generateAbsencesModesEnum.ONE_ABSENCE_FOR_EACH, select, true {Abwesenheiten} other {Abwesenheit}}</span></div>
+				<p-checkbox
+					[formControl]="formGroup.controls['paid']!"
+					[valueText]="translatedEarningsSettingValueText.textContent!"
+				></p-checkbox>
+			</p-form-group>
+
+			<p-form-group
+				label="Stundenlohn" i18n-label
+				*ngIf="showEarningSettingInput"
+				[@slideVertical]
+			>
+				<p-radios [formControl]="formGroup.controls['earningSetting']!">
+					<div hidden><span i18n #translatedTakeFromEachShiftRadioLabel>Stundenlohn der {shiftRefs!.length, plural, one {Schicht} other {jeweiligen Schicht}} übernehmen</span></div>
+					<p-radios-radio
+						class="mb-2"
+						[label]="translatedTakeFromEachShiftRadioLabel.textContent!"
+						[value]="earningSettingsEnum.TAKE_EARNING_FROM_EACH_SHIFT"
+					></p-radios-radio>
+					<p-radios-radio
+						class="mb-2"
+						label="Stundenlohn selbst festlegen" i18n-label
+						[value]="earningSettingsEnum.OVERWRITE_EARNING"
+					></p-radios-radio>
+				</p-radios>
+			</p-form-group>
+
+			<p-form-group
+				label="Stundenlohn" i18n-label
+				*ngIf="showEarningsPerHourInput"
+				[@slideVertical]
+			>
+				<p-input
+					[type]="PApiPrimitiveTypes.Currency"
+					[formControl]="formGroup.controls['earningsPerHour']!"
+				></p-input>
+			</p-form-group>
+		</div>
+
+		<div class="px-3">
+			<p-form-group
+				label="Sichtbarkeit des Abwesenheitseintrags" i18n-label
+				[control]="formGroup.controls['visibleToTeamMembers']!"
+			>
+				<p-info-circle placement="top">
+					<div style="max-width: 200px;" class="ml-2" i18n>Zur <strong>Leitung</strong> gehören User, die für eine oder mehrere Tätigkeiten, die die abwesende Person machen darf, Schreibrecht haben, sowie Admins. Zu <strong>»anderen Team-Mitgliedern«</strong> gehören alle User ohne Schreibrecht, die in mindestens einer Tätigkeit mit der abwesenden Person zusammenarbeiten dürfen oder in mindestens einer der Tätigkeiten, die die abwesende Person machen darf, ein Leserecht haben.</div>
+				</p-info-circle>
+				<p-radios
+					[valid]="!formGroup.invalid"
+					(onDismiss)="initFormGroup()"
+					[formControl]="formGroup.controls['visibleToTeamMembers']!"
+				>
+					<p-radios-radio
+						[value]="false"
+						label="Nur für die Leitung sichtbar" i18n-label
+					></p-radios-radio>
+					<p-radios-radio
+						[value]="true"
+						label="Für Leitung & andere Team-Mitglieder sichtbar" i18n-label
+					></p-radios-radio>
+				</p-radios>
+			</p-form-group>
+		</div>
+	</div>
+</p-section>

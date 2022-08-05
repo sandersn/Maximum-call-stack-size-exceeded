@@ -1,0 +1,30 @@
+// @import "variables";
+
+:host {
+	display: block;
+
+	.input-group {
+		flex-wrap: nowrap;
+	}
+}
+
+input.formatted {
+	text-align: center;
+	min-width: 110px;
+
+	&.show-time {
+		min-width: 140px;
+	}
+}
+
+button.formatted {
+	min-width: 110px;
+}
+
+[ngbDatepickerDayView] {
+	text-align: center;
+	width: 2rem;
+	height: 2rem;
+	line-height: 2rem;
+	border-radius: 0.25rem;
+}

@@ -1,0 +1,52 @@
+@import "variables";
+
+$badge-size-normal: 2rem;
+
+:host {
+	text-transform: none;
+	display: flex;
+	align-items: center;
+}
+
+.badge {
+	border-style: solid;
+	border-width: $border-width * 2;
+	color: $body-color;
+	font-family: $font-family-base;
+	letter-spacing: normal;
+	border-color: $gray-400;
+	background-color: $light;
+	font-weight: bold;
+
+	&.normal {
+		border-radius: $badge-size-normal;
+		border-width: $border-width * 2;
+		font-size: $font-size-xs;
+		height: $badge-size-normal;
+		line-height: calc(#{$badge-size-normal} - #{$font-size-xxs});
+		min-width: $badge-size-normal;
+	}
+
+	&.small {
+		border-width: $border-width;
+		font-size: $font-size-xxs;
+		line-height: 1rem;
+		padding-left: map-get($spacers, 1);
+		padding-right: map-get($spacers, 1);
+		padding-top: map-get($spacers, 1);
+		user-select: none;
+		min-width: 1.5rem;
+	}
+
+	&.is-empty {
+		background-color: $gray-600;
+		border-color: $gray-600;
+		color: $white;
+		text-align: center;
+		box-shadow: 2px 0 0 $white;
+	}
+
+	&.is-me {
+		border-color: theme-color-level("primary", 2);
+	}
+}

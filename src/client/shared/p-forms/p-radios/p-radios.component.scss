@@ -1,0 +1,27 @@
+@import "variables";
+
+:host {
+	flex-grow: 1;
+	display: block;
+}
+
+.radio-wrap {
+	/* NOTE: This needs to be 630, not 600 because of issue described in the comments of PLANO-51662 */
+	max-width: 630px;
+
+	.radio-btn {
+		margin-bottom: 0;
+		width: 100%;
+		display: flex;
+		align-items: stretch;
+		padding: map-get($spacers, 2);
+	}
+
+	&:not(.col) {
+		margin-bottom: map-get($spacers, 2);
+
+		&:last-child {
+			margin-bottom: 0;
+		}
+	}
+}

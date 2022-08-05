@@ -1,0 +1,17 @@
+@import "booking-list";
+@import "p-variables";
+
+:host {
+	display: block;
+}
+
+.bookingNumber,
+.dateOfBooking,
+.firstShiftStart,
+.participantCount {
+	font-family: $font-family-monospace;
+}
+
+.data-tupel {
+	font-size: $font-size-sm;
+}

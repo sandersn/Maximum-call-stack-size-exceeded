@@ -1,0 +1,87 @@
+<p-sidebar #sidebar
+	class="d-flex flex-column"
+	[showStickyNoteIcon]="hasImportantNoteForToday"
+	[showStickyNoteIconDot]="hasTodaysShiftDescriptionsForMember"
+	[showFilterIcon]="!filterService.isSetToShowAll"
+	[badgeContent]="badgeContent"
+>
+	<ng-template [ngIf]="!sidebar.collapsed">
+		<p-tabs
+			class="m-0 rounded-0 flex-grow-1 o-hidden"
+			[card]="false"
+			[size]="BootstrapSize.SM"
+			[tryToStickButtonsToBottom]="true"
+			[minHeaderTabBar]="46"
+			[showIconOnlyBtns]="true"
+			[darkMode]="true"
+			[noWrap]="true"
+		>
+			<p-tab
+				label="Dein Schreibtisch" i18n-label
+				class="flex-grow-1 d-flex flex-column p-3 position-relative"
+				icon="inbox"
+				[badgeContent]="badgeContent"
+				[initialActiveTab]="pSidebarService.currentTab===SidebarTab.DESK"
+				(select)="pSidebarService.currentTab=SidebarTab.DESK"
+				[size]="PTabSizeEnum.FRAMELESS"
+				[show]="true"
+				[canEdit]="true"
+			>
+				<scroll-shadow-box [backgroundStyle]="PThemeEnum.DARK">
+					<p-sidebar-desk
+						class="flex-grow-1 d-flex flex-column p-3"
+						[isLoading]="!me.isLoaded() || !api.isLoaded() || api.isLoadOperationRunning"
+						[shiftExchanges]="shiftExchangesForList"
+						(navToShiftExchanges)="navToShiftExchanges()"
+					></p-sidebar-desk>
+				</scroll-shadow-box>
+			</p-tab>
+			<p-tab
+				class="flex-grow-1 d-flex flex-column"
+				*ngIf="!config.IS_MOBILE"
+				label="Tätigkeiten" i18n-label
+				[icon]="PlanoFaIconPool.ITEMS_SHIFT_MODELS"
+				[initialActiveTab]="pSidebarService.currentTab===SidebarTab.SHIFT_MODELS"
+				(select)="pSidebarService.currentTab=SidebarTab.SHIFT_MODELS"
+				[hasFilter]="!filterService.isVisible(shiftModelsForList)"
+				[description]="!filterService.isVisible(shiftModelsForList) ? 'Filter Aktiv' : 'Filter nicht aktiv'"
+				[size]="PTabSizeEnum.FRAMELESS"
+				[show]="true"
+				[canEdit]="true"
+			>
+				<p-sidebar-shiftmodels
+					class="flex-grow-1 d-flex flex-column"
+					[shiftModels]="shiftModelsForList"
+					[changeDetection]="pSidebarService.currentTab===SidebarTab.SHIFT_MODELS"
+					[isLoading]="!api.isLoaded() || !me.isLoaded()"
+					(onSelectRelatedShifts)="onSelectShiftsRelatedToShiftModel($event.id)"
+					[hideMultiSelectBtn]="hideMultiSelectBtn"
+				></p-sidebar-shiftmodels>
+			</p-tab>
+			<p-tab
+				class="flex-grow-1 d-flex flex-column"
+				*ngIf="!config.IS_MOBILE"
+				label="User" i18n-label
+				icon="users"
+				[initialActiveTab]="pSidebarService.currentTab===SidebarTab.MEMBERS"
+				(select)="pSidebarService.currentTab=SidebarTab.MEMBERS"
+				[hasFilter]="!filterService.isVisible(membersForList)"
+				[description]="!filterService.isVisible(membersForList) ? 'Filter Aktiv' : 'Filter nicht aktiv'"
+				[size]="PTabSizeEnum.FRAMELESS"
+				[show]="true"
+				[canEdit]="true"
+			>
+				<p-sidebar-members
+					class="flex-grow-1 d-flex flex-column"
+					[members]="membersForList"
+					[accountingPeriods]="api.data.accountingPeriods"
+					[changeDetection]="pSidebarService.currentTab===SidebarTab.MEMBERS"
+					[isLoading]="!api.isLoaded() || !me.isLoaded()"
+					(onSelectRelatedShifts)="onSelectShiftsRelatedToMember($event.id)"
+					[hideMultiSelectBtn]="hideMultiSelectBtn"
+				></p-sidebar-members>
+			</p-tab>
+		</p-tabs>
+		<div class="sidebar-dr"></div>
+	</ng-template>
+</p-sidebar>

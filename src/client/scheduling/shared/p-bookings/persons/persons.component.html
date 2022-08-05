@@ -1,0 +1,58 @@
+<p-grid>
+	<div
+		[class.col]="!CONFIG.IS_MOBILE"
+		[class.col-12]="CONFIG.IS_MOBILE"
+	>
+		<label class="mb-0" [class.d-inline]="CONFIG.IS_MOBILE" [class.text-style-reset-to-body]="CONFIG.IS_MOBILE" i18n>Anzahl</label>
+		<ng-container *ngIf="CONFIG.IS_MOBILE">:&nbsp;</ng-container>
+		<div [class.d-inline]="CONFIG.IS_MOBILE">{{ count ? count : '-' }}</div>
+	</div>
+	<div
+		*ngIf="ageMin && ageMax"
+		[class.col]="!CONFIG.IS_MOBILE"
+		[class.col-12]="CONFIG.IS_MOBILE"
+	>
+		<label class="mb-0" [class.d-inline]="CONFIG.IS_MOBILE" [class.text-style-reset-to-body]="CONFIG.IS_MOBILE" i18n>Alter</label>
+		<ng-container *ngIf="CONFIG.IS_MOBILE">:&nbsp;</ng-container>
+		<div [class.d-inline]="CONFIG.IS_MOBILE">Von {{ ageMin ? ageMin : '-' }} bis {{ ageMax ? ageMax : '-' }} <ng-template [ngIf]="ageLimitWarning"><ng-container *ngTemplateOutlet="birthDateLimitWarningTemplate; context: {$implicit: ageLimitWarning}"></ng-container></ng-template></div>
+	</div>
+	<div
+		[class.col]="!CONFIG.IS_MOBILE"
+		[class.col-12]="CONFIG.IS_MOBILE"
+	>
+		<label class="mb-0" [class.d-inline]="CONFIG.IS_MOBILE" [class.text-style-reset-to-body]="CONFIG.IS_MOBILE" i18n>Tarif</label>
+		<ng-container *ngIf="CONFIG.IS_MOBILE">:&nbsp;</ng-container>
+		<div [class.d-inline]="CONFIG.IS_MOBILE">{{ tariffName ? tariffName : '-' }}&nbsp;<p-info-circle
+			*ngIf="tariffNotAvailableThatTime"
+			icon="exclamation-triangle"
+			[theme]="PThemeEnum.WARNING"
+			i18n
+		>Dieser Tarif gilt nicht zum gewählten Angebotsdatum.</p-info-circle></div>
+	</div>
+	<div
+		*ngIf="price"
+		[class.col]="!CONFIG.IS_MOBILE"
+		[class.col-12]="CONFIG.IS_MOBILE"
+	>
+		<label class="mb-0" [class.d-inline]="CONFIG.IS_MOBILE" [class.text-style-reset-to-body]="CONFIG.IS_MOBILE" i18n>Preis</label>
+		<ng-container *ngIf="CONFIG.IS_MOBILE">:&nbsp;</ng-container>
+		<div [class.d-inline]="CONFIG.IS_MOBILE"><code>{{ price ? (price | currency) : '-' }}</code></div>
+	</div>
+	<div
+		*ngIf="additionalFieldLabel && additionalFieldValue"
+		[class.col-4]="!CONFIG.IS_MOBILE"
+		[class.col-12]="CONFIG.IS_MOBILE"
+		[class.mb-2]="CONFIG.IS_MOBILE"
+	>
+		<label class="mb-0" [class.d-inline]="CONFIG.IS_MOBILE" [class.text-style-reset-to-body]="CONFIG.IS_MOBILE">{{ additionalFieldLabel }}</label>
+		<ng-container *ngIf="CONFIG.IS_MOBILE">:&nbsp;</ng-container>
+		<div [class.d-inline]="CONFIG.IS_MOBILE"><code style="user-select: all;">{{ additionalFieldValue }}</code></div>
+	</div>
+</p-grid>
+
+<ng-template #birthDateLimitWarningTemplate let-text>
+	<p-info-circle
+		icon="exclamation-triangle"
+		[theme]="PThemeEnum.WARNING"
+	>{{text}}</p-info-circle>
+</ng-template>

@@ -1,0 +1,48 @@
+<div class="border-top">
+	<ng-template [ngIf]="shiftDescriptionsForList.length">
+		<ng-template [ngIf]="!visibleDescriptions.length">
+			<blockquote class="p-1 text-center text-muted bg-light"><small i18n>Kein Kommentar für deine Schichten</small></blockquote>
+		</ng-template>
+		<ng-template
+			ngFor let-todaysShiftDescription
+			[ngForOf]="shiftDescriptionsForList.iterableSortedBy('shiftStart')"
+		>
+			<ng-template [ngIf]="showAllDescriptions || todaysShiftDescription.isRequesterAssigned">
+				<p-shift-comment
+					class="border-bottom rounded-left o-hidden"
+					[class.bg-light]="!todaysShiftDescription.isRequesterAssigned"
+					[class.bg-white]="todaysShiftDescription.isRequesterAssigned"
+					[todaysShiftDescription]="todaysShiftDescription"
+					[userCanWrite]="!!userCanWrite(todaysShiftDescription)"
+				></p-shift-comment>
+			</ng-template>
+		</ng-template>
+		<ng-template [ngIf]="hasMoreComments">
+			<ng-template [ngTemplateOutlet]="onlyMyItemsToggleBtn"></ng-template>
+		</ng-template>
+	</ng-template>
+	<ng-template [ngIf]="shiftsForList.length">
+		<ng-template
+			ngFor let-shift
+			[ngForOf]="shiftsForList.iterableSortedBy('start')"
+		>
+			<ng-template [ngIf]="showAllDescriptions || shift.assignedMemberIds.contains(me.data.id)">
+				<p-shift-comment
+					class="border-bottom rounded o-hidden bg-light"
+					[class.bg-light]="!shift.assignedMemberIds.contains(me.data.id)"
+					[class.bg-white]="shift.assignedMemberIds.contains(me.data.id)"
+					[shift]="shift"
+					[userCanWrite]="!!userCanWrite(shift)"
+				></p-shift-comment>
+			</ng-template>
+		</ng-template>
+	</ng-template>
+</div>
+
+<ng-template #onlyMyItemsToggleBtn>
+	<button type="button" (click)="onToggleShowAll()" class="w-100 btn btn-light btn-frameless border-top text-center d-flex justify-content-center align-items-center rounded">
+		<fa-icon [fixedWidth]="true" [icon]="showAllDescriptions ? PlanoFaIconPool.COLLAPSIBLE_OPEN : PlanoFaIconPool.COLLAPSIBLE_CLOSE" class="mr-2"></fa-icon>
+		<small *ngIf="!showAllDescriptions" i18n>{{ hasMoreComments }} {hasMoreComments, plural, one {Kommentar} other {Kommentare}} in Schichten anderer</small>
+		<small *ngIf="showAllDescriptions" i18n>Nur meine Schichtkommentare anzeigen</small>
+	</button>
+</ng-template>

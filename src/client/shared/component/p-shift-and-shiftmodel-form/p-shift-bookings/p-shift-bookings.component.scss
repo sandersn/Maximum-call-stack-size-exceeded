@@ -1,0 +1,16 @@
+@import "p-variables";
+
+:host {
+	display: block;
+}
+
+.stemp {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	z-index: 1;
+	font-size: $font-size-lg;
+	transform: translateX(-50%) translateY(-50%) rotate(-12deg);
+	text-transform: uppercase;
+	font-weight: bold;
+}

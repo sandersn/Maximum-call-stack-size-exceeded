@@ -1,0 +1,26 @@
+<span
+	[class.text-danger]="cannot"
+	[class.text-warning]="can"
+	[class.text-success]="want"
+	[class.text-white]="wish === undefined"
+	[title]="title"
+>
+	<ng-template [ngIf]="wish !== undefined">
+		<ng-template [ngIf]="hasAnswer" [ngIfElse]="noAnswer">
+			<i class="fas fa-heart"></i>
+		</ng-template>
+		<ng-template #noAnswer>
+			<img
+				alt="Durchgestrichenes Herz" i18n-alt
+				width="13px"
+				src="images/icons/heart.png"
+			/>
+		</ng-template>
+	</ng-template>
+	<ng-template [ngIf]="!(wish !== undefined)">
+		<i
+			style="color:#ced4da"
+			class="far fa-heart"
+		></i>
+	</ng-template>
+</span>

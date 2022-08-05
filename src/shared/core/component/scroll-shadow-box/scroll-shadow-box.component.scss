@@ -1,0 +1,113 @@
+/* stylelint-disable csstools/use-nesting */
+@import "p-variables";
+@import "~bootstrap/scss/bootstrap-grid.scss";
+
+$shadow-height: 8px;
+
+.overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+
+	&.has-fixed-footer {
+		display: flex;
+		flex-direction: column;
+	}
+}
+
+.content {
+	display: flex;
+	flex-direction: column;
+
+	.content-inner {
+		flex-grow: 1;
+	}
+}
+
+.no-fixed-footer .content {
+	// NOTE: Position will be set tynamically in template
+	// position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	-webkit-overflow-scrolling: touch;
+	overflow-y: auto;
+	overflow-x: hidden;
+
+	.content-inner {
+		flex-grow: 1;
+		display: flex;
+		flex-direction: column;
+
+		// Ensure that a seperate paint layer is created for the content so the content does not
+		// need to be repainted during scrolling. See e.g. "Paint flashing" and "Scrolling performance issueses"
+		// in chrome DevTools under "Rendering" when doind scrolling.
+		will-change: transform;
+	}
+
+	// NOTE: the will-change breaks the logic of scrollbox layers
+	// With will-change: transform; on .content the shadows will always be visible
+
+	// PLANO-7908
+	//&.always-show-scrollbar {
+	//	// TODO: This is necessary for the alignment of the bar that shows weekdays. See comments in PLANO-7908
+	//	overflow-y: scroll;
+	//}
+}
+
+.has-fixed-footer .content {
+	-webkit-overflow-scrolling: touch;
+	overflow-y: auto;
+	overflow-x: hidden;
+	flex-direction: column;
+	flex-grow: 0;
+	flex-shrink: 1;
+	overflow: auto;
+}
+
+.shadow-container {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	z-index: 3;
+}
+
+.radial-shadow-top,
+.radial-shadow-bottom {
+	position: absolute;
+	left: 0;
+	z-index: 1;
+	width: inherit;
+	height: $shadow-height;
+	background-repeat: no-repeat;
+	background-size: 100% $shadow-height;
+}
+
+.radial-shadow-top {
+	top: 0;
+	background: radial-gradient(farthest-side at 50% 0%, $darken-04, rgba(0, 0, 0, 0)) 100% 0;
+}
+
+.radial-shadow-bottom {
+	bottom: 0;
+	background: radial-gradient(farthest-side at 50% 100%, $darken-04, rgba(0, 0, 0, 0)) 0 100%;
+}
+
+.shadow-cover-top,
+.shadow-cover-bottom {
+	position: sticky;
+	z-index: 4;
+	flex-shrink: 0;
+	background: $white;
+	height: $shadow-height;
+	width: 100%;
+	background-size: 100% 12px;
+	background-repeat: no-repeat;
+}

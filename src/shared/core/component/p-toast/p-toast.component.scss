@@ -1,0 +1,55 @@
+@import "variables";
+
+:host {
+	display: block;
+}
+
+.toast {
+	min-width: 200px;
+	overflow: hidden;
+}
+
+.toast-header {
+	color: $body-color;
+	opacity: 0.9;
+	background-color: transparent;
+	padding: map-get($spacers, 2);
+	border: none;
+}
+
+.toast-body {
+	padding: map-get($spacers, 2);
+
+	.close {
+		float: right;
+	}
+}
+
+.alert-warning {
+	background: $warning;
+	border-color: $warning;
+}
+
+.alert-success {
+	background: $success;
+	border-color: $success;
+}
+
+.alert-info {
+	background: $info;
+	border-color: $info;
+}
+
+.alert-danger {
+	background: $danger;
+	border-color: $danger;
+}
+
+.alert-primary {
+	background: $primary;
+	border-color: $primary;
+}
+
+.clearfix {
+	clear: both;
+}

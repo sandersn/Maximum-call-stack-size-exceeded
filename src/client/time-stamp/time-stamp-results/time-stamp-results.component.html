@@ -1,0 +1,54 @@
+<div class="card">
+	<div class="card-header">
+		<div
+			*ngIf="!!api.data.selectedItem && !!api.data.selectedItem.name && !!start"
+			class="d-flex justify-content-between">
+			<strong>{{ api.data.selectedItem.name }}</strong>
+			<span class="text-monospace text-right ml-2">{{ formattedDateTimePipe.getFormattedDateInfo(start, end).full }}</span>
+		</div>
+		<div *ngIf="!(!!api.data.selectedItem && !!api.data.selectedItem.name && !!start)" i18n>Deine Schicht</div>
+	</div>
+	<table class="table mb-0">
+		<tr>
+			<td i18n>Beginn</td>
+			<td>
+				<span *ngIf="!!start">{{ start | date:'shortTime' }}</span>
+			</td>
+		</tr>
+		<tr [class.highlight]="api.isWorking">
+			<td i18n>Arbeitsdauer</td>
+			<td>
+				<div [innerHTML]="workingTimeDuration | pDurationTime"></div>
+			</td>
+		</tr>
+		<tr [class.highlight]="api.isWorking">
+			<td i18n>Pause</td>
+			<td>
+				<p-pause-duration
+					*ngIf="regularPauseDuration || automaticPauseDuration"
+					[duration]="regularPauseDuration"
+					[automaticPauseDuration]="automaticPauseDuration"
+					[merged]="false"
+					[tooltipTemplate]="tooltipAutomaticPauseDurationTemplate"
+				></p-pause-duration>
+			</td>
+		</tr>
+		<tr>
+			<td i18n>Ende</td>
+			<td>
+				<span *ngIf="!!end">{{ end | date:'shortTime' }} <span
+					class="text-warning"
+					*ngIf="automaticPauseDuration"
+
+					[popover]="tooltipAutomaticPauseDurationTemplate"
+					placement="bottom"
+				><span>+</span><span
+					[innerHTML]="automaticPauseDuration | pDurationAsHours: false"
+				></span></span>
+				</span>
+			</td>
+		</tr>
+		<ng-template #tooltipAutomaticPauseDurationTemplate i18n>Diese Zeit wurde automatisch hinzugefügt, da die eingetragene Pause <strong [innerHTML]="regularPauseDuration | pDurationAsHours: false"></strong> unter dem gesetzlichen Minimum liegt.</ng-template>
+	</table>
+
+</div>

@@ -1,0 +1,10 @@
+@import "variables";
+
+:host {
+	margin-right: map-get($spacers, 2);
+	display: inline;
+
+	span {
+		font-weight: normal;
+	}
+}

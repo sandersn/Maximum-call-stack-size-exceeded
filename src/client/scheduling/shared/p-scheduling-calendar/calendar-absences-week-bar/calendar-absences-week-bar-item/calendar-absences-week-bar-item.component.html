@@ -1,0 +1,10 @@
+<p-all-day-items-list
+	[startOfDay]="weekday"
+	[heightOfLine]="heightOfLine"
+	[popperPlacement]="NgxPopperjsPlacements.BOTTOMSTART"
+	[readMode]="readMode"
+
+	[absences]="absencesOfDay(weekday)"
+	[holidays]="holidaysOfDay(weekday)"
+	[birthdays]="birthdaysOfDay(weekday)"
+></p-all-day-items-list>

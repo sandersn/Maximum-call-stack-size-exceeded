@@ -1,0 +1,23 @@
+@import "p-variables";
+@import "variables";
+
+.title {
+	font-size: $font-size-base;
+	/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+	margin-bottom: 0.7rem;
+	font-weight: bold;
+}
+
+.description {
+	color: $text-muted;
+}
+
+.video-container {
+	/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+	margin-bottom: 2rem;
+}
+
+p-youtube {
+	/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+	margin-bottom: 1rem;
+}

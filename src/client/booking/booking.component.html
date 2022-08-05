@@ -1,0 +1,103 @@
+<p-subheader [isNewItem]="item?.isNewItem()" (onNavBack)="pRouterService.scrollToSelector($any('#scroll-target-id-'+routeId?.toString()))">
+	<div hidden><span i18n #translatedDeleteBookingLabel>Buchung löschen</span></div>
+	<div hidden><span i18n #translatedDeleteBookingDescription>Du kannst Buchungen stornieren, aber nicht löschen.</span></div>
+	<p-dropdown
+		[dropdownType]="DropdownTypeEnum.BUTTONS"
+		label="Aktionen" i18n-label
+		[icon]="PlanoFaIconPool.MORE_ACTIONS"
+		[size]="BootstrapSize.SM"
+		[showActiveItem]="false"
+		[canEdit]="api.data.bookings.attributeInfoThis.canEdit"
+		[show]="api.data.bookings.attributeInfoThis.canEdit"
+	>
+		<p-dropdown-item
+			[show]="true"
+			[disabled]="true"
+			(onClick)="onRemoveClick()"
+			[description]="translatedDeleteBookingDescription.textContent!"
+			[label]="translatedDeleteBookingLabel.textContent!"
+			[icon]="PlanoFaIconPool.DELETE"
+			[theme]="PBtnThemeEnum.OUTLINE_DANGER"
+		></p-dropdown-item>
+		<p-dropdown-item
+			*ngIf="showFaqBtn"
+			[show]="true"
+			[disabled]="false"
+			[icon]="PlanoFaIconPool.AREA_FAQ"
+			(onClick)="navToFaq()"
+			label="FAQ Online-Zahlung" i18n-label
+		></p-dropdown-item>
+	</p-dropdown>
+</p-subheader>
+
+<div class="flex-grow-1 d-flex position-relative pl-2">
+	<scroll-shadow-box class="flex-grow-1">
+		<div class="container pb-tawk">
+			<ng-template [ngIf]="!item && !!routeId">
+				<p-no-item *ngIf="!api.isBackendOperationRunning; else spinnerTemplate"></p-no-item>
+			</ng-template>
+
+			<div *ngIf="!!item" class="card mt-1 mb-4 o-hidden position-relative">
+				<p-color-marker
+					[isLoading]="!api.isLoaded()"
+					[item]="item.model"
+					[hexColor]="item.model?.color ? '#' + item.model!.color : null"
+					[title]="item.model ? item.model.name : undefined"
+				></p-color-marker>
+				<div
+					class="d-flex justify-content-between align-items-center w-100 p-2 pl-3"
+					[class.align-items-center]="!CONFIG.IS_MOBILE"
+					[class.flex-column]="CONFIG.IS_MOBILE"
+				>
+					<ng-template [ngIf]="item.isNewItem()">
+						<h2 class="m-0 title" i18n>Neue Buchung</h2>
+					</ng-template>
+					<ng-template [ngIf]="!item.isNewItem()">
+						<ng-template [ngIf]="api.isLoaded() && !!item.rawData">
+							<h2 class="m-0 text-left" i18n>Buchung Nr. {{ item.bookingNumber }}</h2>
+							<div
+								[class.text-left]="CONFIG.IS_MOBILE"
+								[class.text-right]="!CONFIG.IS_MOBILE"
+							>
+								<h6 class="small m-0"><ng-container i18n>Buchungsdatum</ng-container>: {{ item.dateOfBooking | date:'shortDate' }}</h6>
+							</div>
+						</ng-template>
+						<ng-template [ngIf]="!(api.isLoaded() && item.rawData)">
+							<h2 class="m-0" i18n>Buchung bearbeiten</h2>
+						</ng-template>
+					</ng-template>
+				</div>
+			</div>
+			<div *ngIf="!!item && item.isNewItem()" class="mb-3">
+				<p-form-group
+					label="Buchung für" i18n-label
+				>
+				<ng-template
+					[ngIf]="!!shiftModelsForDropdown.length"
+					[ngIfElse]="noShiftModels"
+				>
+					<p-input-shiftmodel-id
+						[items]="shiftModelsForDropdown"
+						[ngModel]="item.shiftModelId"
+						(ngModelChange)="onSelectShiftModelId($event)"
+					></p-input-shiftmodel-id>
+				</ng-template>
+				<ng-template #noShiftModels>
+					<div class="card"><div class="card-body" i18n>Es steht keine buchbare Tätigkeiten zur Auswahl.</div></div>
+				</ng-template>
+				</p-form-group>
+			</div>
+			<detail-form
+				class="mb-5"
+				#detailForm
+				[item]="item"
+				(onAddItem)="saveNewItem($event)"
+			></detail-form>
+
+		</div>
+	</scroll-shadow-box>
+</div>
+
+<ng-template #spinnerTemplate>
+	<p-spinner [size]="BootstrapSize.LG" class="m-3"></p-spinner>
+</ng-template>

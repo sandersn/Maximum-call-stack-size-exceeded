@@ -1,0 +1,9 @@
+<div class="d-flex border-right">
+	<button
+		type="button"
+		class="btn btn-outline-secondary border-left btn-frameless title"
+		style="flex: 1"
+		*ngFor="let weekday of weekdays"
+		(click)="onDayClick.emit(weekday)"
+	>{{ weekday | date:'EEEE' }}</button>
+</div>

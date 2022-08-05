@@ -1,0 +1,32 @@
+<p-basic-info
+	[name]="name"
+	[start]="start"
+	[end]="end"
+	[showDate]="false"
+	[showTime]="true"
+	[showEndTime]="true"
+	[dateTimeHasDanger]="false"
+	[oneLine]="true"
+>
+	<div class="badges-stack ml-2" *ngIf="!!assignedMembers && !!assignedMembers?.length">
+
+		<ng-template
+			ngFor let-assignedMember
+			[ngForOf]="assignedMembers.iterable()"
+			let-i="index"
+		>
+			<p-member-badge
+				class="badges-stack-item"
+				[style.z-index]="assignedMembers.length - i"
+				[style.position]="'relative'"
+				size="small"
+				[memberId]="assignedMember.id"
+				[firstName]="assignedMember.firstName"
+				[lastName]="assignedMember.lastName"
+				[isMe]="isMe(assignedMember)"
+			></p-member-badge>
+		</ng-template>
+
+	</div>
+</p-basic-info>
+

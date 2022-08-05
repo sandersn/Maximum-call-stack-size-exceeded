@@ -1,0 +1,139 @@
+<ng-template [ngIf]="isLoaded">
+	<ng-template
+		[ngIf]="showAsList"
+		[ngIfElse]="timelineItem"
+	>
+		<!-- HACK: we need *ngIf="shift.rawData" here because when one navigates fast through calendar, i get errors like: Cannot read 'name' of undefined -->
+		<p-shift-item-list
+			*ngIf="shift && !!shift.rawData"
+
+			[isLoading]="isLoading"
+			[readMode]="readMode"
+			[shift]="shift"
+			[assignedMembers]="assignedMembers"
+			[muteItem]="muteItem"
+			[isInThePast]="isInThePast"
+
+			[shiftIsSelectable]="shiftIsSelectable"
+			[selectable]="selectable"
+
+			[process]="process"
+			(onClickEdit)="openShiftItem($event)"
+			[meIsAssignable]="meIsAssignable"
+			[showAssignMeButton]="showAssignMeButton"
+			[showMultiSelectCheckbox]="showMultiSelectCheckbox"
+			[showProcessStatusIcon]="showProcessStatusIcon"
+			[showCourseInfo]="showCourseInfo"
+
+			(selectedChange)="selectedChange.emit($event)"
+			(onClick)="onClick.observers.length ? onClick.emit($event) : undefined"
+			[viewStyle]="viewStyle"
+			[processStatusIconTemplate]="processStatusIconTemplate"
+			[memberBadgesTemplate]="memberBadgesTemplate"
+			[quickAssignmentTemplate]="quickAssignmentTemplate"
+			[shiftExchangeIconsTemplate]="shiftExchangeIconsTemplate"
+			[linkedCourseInfoTemplate]="linkedCourseInfoTemplate"
+		></p-shift-item-list>
+	</ng-template>
+	<ng-template #timelineItem>
+		<!-- HACK: we need *ngIf="shift.rawData" here because when one navigates fast through calendar, i get errors like: -->
+		<!-- Cannot read 'name' of undefined -->
+		<p-shift-item-timeline
+			class="h-100"
+			*ngIf="shift && shift.rawData && layout.getLayout(shift).show"
+
+			[isLoading]="isLoading"
+			[readMode]="readMode"
+			[shift]="shift"
+			[assignedMembers]="assignedMembers"
+			[muteItem]="muteItem"
+			[isInThePast]="isInThePast"
+
+			[shiftIsSelectable]="shiftIsSelectable"
+			[selectable]="selectable"
+
+			[process]="process"
+			(onClickEdit)="openShiftItem($event)"
+			[meIsAssignable]="meIsAssignable"
+			[showAssignMeButton]="showAssignMeButton"
+			[showMultiSelectCheckbox]="showMultiSelectCheckbox"
+			[showProcessStatusIcon]="showProcessStatusIcon"
+			[showCourseInfo]="showCourseInfo"
+
+			(selectedChange)="selectedChange.emit($event)"
+			[processStatusIconTemplate]="processStatusIconTemplate"
+			[memberBadgesTemplate]="memberBadgesTemplate"
+			[quickAssignmentTemplate]="quickAssignmentTemplate"
+			[shiftExchangeIconsTemplate]="shiftExchangeIconsTemplate"
+			[linkedCourseInfoTemplate]="linkedCourseInfoTemplate"
+		></p-shift-item-timeline>
+	</ng-template>
+
+	<ng-template #processStatusIconTemplate>
+		<p-assignment-process-icon
+			*ngIf="showProcessStatusIcon && process"
+			class="small p-1 pr-0 align-items-center d-flex"
+			[class.text-muted]="true"
+			[process]="process"
+			[state]="process.state !== states.NEEDING_APPROVAL ? process.state : states.APPROVE"
+			[isOwner]="!!rightsService.isOwner"
+		></p-assignment-process-icon>
+	</ng-template>
+
+	<ng-template #memberBadgesTemplate>
+		<p-member-badges
+			*ngIf="shift"
+			class="mr-1 ml-1"
+			[members]="shift.assignedMembers"
+			[emptyMemberSlots]="emptyMemberSlots"
+
+			[shiftStart]="shift.start"
+			[shiftEnd]="shift.end"
+			[shiftId]="shift.id"
+
+			[myId]="meService.isLoaded() ? meService.data.id : null"
+		></p-member-badges>
+	</ng-template>
+
+	<ng-template #quickAssignmentTemplate>
+		<ng-template [ngIf]="emptyMemberSlots > 0">
+			<section>
+				<p-quick-assignment
+					*ngIf="shift"
+					[size]="BootstrapSize.SM"
+					[readMode]="readMode"
+					[shift]="shift"
+				></p-quick-assignment>
+			</section>
+		</ng-template>
+	</ng-template>
+
+	<ng-template #shiftExchangeIconsTemplate>
+		<div class="d-flex align-items-center text-muted small" *ngIf="showShiftExchangeIcon || showIllnessIcon">
+			<fa-icon *ngIf="showShiftExchangeIcon" class="mr-1 ml-1" [fixedWidth]="true" icon="hands-helping" title="Ersatzsuche vorhanden" i18n-title></fa-icon>
+			<fa-icon *ngIf="showIllnessIcon" class="mr-1 ml-1" [fixedWidth]="true" icon="briefcase-medical" title="Krankmeldung vorhanden" i18n-title></fa-icon>
+		</div>
+	</ng-template>
+
+	<ng-template #linkedCourseInfoTemplate>
+		<section *ngIf="shift && shift.isCourse">
+			<button
+				type="button"
+				class="btn btn-sm btn-frameless w-100 d-flex justify-content-center"
+				[class.btn-outline-secondary]="!readMode"
+				(click)="!readMode ? openShiftItem({shift: shift, event: $event, openTab: ShiftAndShiftModelFormTabs.bookingsettings}) : undefined"
+			>
+				<p-course-info
+					[isCourse]="shift.isCourse"
+					[isCourseCanceled]="shift.isCourseCanceled"
+					[currentCourseParticipantCount]="shift.currentCourseParticipantCount"
+					[minCourseParticipantCount]="shift.minCourseParticipantCount"
+					[maxCourseParticipantCount]="shift.maxCourseParticipantCount"
+					[courseType]="shift.model ? shift.model.courseType : undefined!"
+					[isCourseOnline]="shift.isCourseOnline"
+					[onlyWholeCourseBookable]="shift.model!.onlyWholeCourseBookable"
+				></p-course-info>
+			</button>
+		</section>
+	</ng-template>
+</ng-template>

@@ -1,0 +1,10 @@
+<section class="card-body pl-2 pt-1 pr-2 pb-1"
+	*ngIf="packetShiftsLength! > 1"
+>
+	<div class="d-flex align-items-center justify-content-start text-monospace">
+		<small><fa-icon
+			class="header-fa-icon"
+			[fixedWidth]="true" [icon]="PlanoFaIconPool.ITEMS_SHIFTS"
+		></fa-icon>&nbsp;<ng-container i18n>{{shiftIndex! + 1}} von {{packetShiftsLength}}</ng-container></small>
+	</div>
+</section>

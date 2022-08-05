@@ -1,0 +1,41 @@
+@import "variables";
+
+.payments img {
+	max-width: 100%;
+	padding: map-get($spacers, 3);
+}
+
+.iframe-settings {
+	border-top: $border-width solid $dark;
+	background: $dark;
+}
+
+.adyen-fee {
+	color: $darken-05;
+	white-space: nowrap;
+}
+
+.adyen-fee-hint {
+	color: $darken-05;
+}
+
+.pricing-card-list {
+	.fa-li {
+		/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+		padding-top: 2px;
+	}
+}
+
+.adyen-agreement-checkbox-description {
+	word-break: break-word;
+}
+
+.mb-90 {
+	/* stylelint-disable-next-line */
+	margin-bottom: 90px;
+}
+
+.pt-2px {
+	/* stylelint-disable-next-line */
+	padding-top: 2px;
+}

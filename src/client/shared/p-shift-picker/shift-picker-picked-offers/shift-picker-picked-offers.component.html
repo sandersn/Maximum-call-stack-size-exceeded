@@ -1,0 +1,91 @@
+<ng-content></ng-content>
+
+<p-alert
+	*ngFor="let alert of alerts"
+	class="mb-2 small"
+	[theme]="alert.type"
+	[dismissable]="alert.dismissable"
+>{{ alert.text }}</p-alert>
+
+<scroll-shadow-box
+	class="flex-grow-1 d-flex flex-column position-relative p-2 border-top"
+	[fixedFooterTemplate]="footerTemplate"
+>
+	<div *ngIf="!offers.length" class="card text-muted">
+		<div class="card-body p-2 text-center">
+			<small i18n>Noch nichts hinzugefügt.</small>
+		</div>
+	</div>
+	<ng-template [ngIf]="offerTemplate" [ngIfElse]="defaultOfferTemplate">
+		<ng-template
+			[ngTemplateOutlet]="offerTemplate"
+			[ngTemplateOutletContext]="{$implicit : offers}"
+		></ng-template>
+	</ng-template>
+	<ng-template #defaultOfferTemplate>
+		<ng-template [ngIf]="isShiftExchangeShiftRefs" [ngIfElse]="otherTemplate">
+			<p-picked-offer
+				*ngIf="offers.length"
+				class="mb-3"
+				[selectedOffer]="offerSelected(offers)"
+				[affectedOffer]="offerAffected(offers)"
+				[offer]="shiftRefs!"
+				[addToOfferBtnDisabled]="!!addToOfferBtnDisabled(shiftExchangeShiftRefs!)"
+				(addToOffer)="addToOffer.emit($event)"
+				(onRemoveOffer)="onRemoveOffer.emit($event)"
+				(onRemoveFromOffer)="removeFromOffer($event, offers)"
+			></p-picked-offer>
+		</ng-template>
+		<ng-template #otherTemplate>
+			<p-picked-offer
+				*ngFor="let offer of offers.iterable(); let i = index"
+				class="mb-3"
+				[selectedOffer]="offerSelected(offer)"
+				[affectedOffer]="offerAffected(offer)"
+				[style.margin-top]="i !== 0 ? '-1px' : ''"
+				[offer]="offer"
+				[addToOfferBtnDisabled]="!!addToOfferBtnDisabled(offer)"
+				(addToOffer)="addToOffer.emit($event)"
+				(onRemoveOffer)="onRemoveOffer.emit($event)"
+				(onRemoveFromOffer)="removeFromOffer($event, offer)"
+			></p-picked-offer>
+		</ng-template>
+	</ng-template>
+</scroll-shadow-box>
+
+<ng-template #footerTemplate>
+	<div
+		*ngIf="!hideAddToOffersBtn"
+		class="d-flex mb-2 mt-2"
+		[popover]="addToOffersBtnPopover"
+		placement="top"
+	>
+		<button
+			type="button"
+			[title]="addToOffersBtnLabel"
+			class="btn flex-grow-1"
+			[class.btn-secondary]="addToOffersBtnDisabled"
+			[class.btn-success]="!addToOffersBtnDisabled"
+			[class.disabled]="addToOffersBtnDisabled"
+			[disabled]="addToOffersBtnDisabled"
+			(click)="!addToOffersBtnDisabled ? addToOffers.emit() : undefined"
+		><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon> {{ addToOffersBtnLabel }}</button>
+	</div>
+	<div
+		*ngIf="showBoundShiftOfferSetBtn"
+		class="d-flex mb-2"
+		[popover]="boundShiftOfferSetBtnPopover"
+		placement="top"
+	>
+		<button
+			type="button"
+			title="Schichten gebündelt hinzufügen" i18n-title
+			class="btn flex-grow-1"
+			[class.btn-secondary]="boundShiftOfferSetBtnDisabled"
+			[class.btn-success]="!boundShiftOfferSetBtnDisabled"
+			[class.disabled]="boundShiftOfferSetBtnDisabled"
+			[disabled]="boundShiftOfferSetBtnDisabled"
+			(click)="!boundShiftOfferSetBtnDisabled ? addSelectedShiftsAsPacket.emit() : undefined"
+		><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon>&nbsp;<ng-container i18n>Schichten gebündelt hinzufügen</ng-container></button>
+	</div>
+</ng-template>

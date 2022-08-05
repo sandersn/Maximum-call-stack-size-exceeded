@@ -1,0 +1,96 @@
+<ng-template [ngIf]="!showOnlyItemsForDesk">
+	<li class="list-headline-bar">
+		<div class="flex-grow-1 d-flex justify-content-between small nowrap"
+			[class.detailed]="showDetails"
+			[class.not-detailed]="!showDetails"
+		>
+			<p-list-headline-item
+				class="col-shiftRefs ml-3"
+				label="Angebote" i18n-label
+				[isLoading]="!api.isLoaded()"
+				(onToggle)="pShiftExchangeListService.setSortBy('shiftRefs')"
+				[sortDirection]="pShiftExchangeListService.key!=='shiftRefs' ? ListSortDirection.INACTIVE : (pShiftExchangeListService.reverse ? ListSortDirection.DOWN : ListSortDirection.UP)"
+			></p-list-headline-item>
+			<p-list-headline-item
+				class="col-result"
+				[isLoading]="!api.isLoaded()"
+				label="Hinweise & Ergebnis" i18n-label
+			></p-list-headline-item>
+			<p-list-headline-item
+				class="col-state"
+				label="Status" i18n-label
+				[isLoading]="!api.isLoaded()"
+				(onToggle)="pShiftExchangeListService.setSortBy('state')"
+				[sortDirection]="pShiftExchangeListService.key!=='state' ? ListSortDirection.INACTIVE : (pShiftExchangeListService.reverse ? ListSortDirection.DOWN : ListSortDirection.UP)"
+			></p-list-headline-item>
+			<p-list-headline-item
+				class="col-lastUpdate"
+				label="Update" i18n-label
+				[isLoading]="!api.isLoaded()"
+				(onToggle)="pShiftExchangeListService.setSortBy('lastUpdate')"
+				[sortDirection]="pShiftExchangeListService.key!=='lastUpdate' ? ListSortDirection.INACTIVE : (pShiftExchangeListService.reverse ? ListSortDirection.DOWN : ListSortDirection.UP)"
+			></p-list-headline-item>
+		</div>
+		<span class="card-option" style="opacity: 0;"></span>
+		<span class="card-option" style="opacity: 0;"></span>
+	</li>
+</ng-template>
+
+<p-list class="card border-0">
+	<ng-template [ngIf]="showOnlyItemsForDesk">
+		<list-headline
+			class="rounded-top o-hidden"
+			text="Tauschbörse" i18n-text
+			textTooltipHtml="Hier im Schreibtisch werden dir nur Einträge angezeigt, auf die du reagieren musst oder bei denen du eine Antwort erwartest" i18n-textTooltipHtml
+		>
+			<button
+				*ngIf="!hideAddBtn"
+				type="button"
+				class="card-option btn btn-sm btn-outline-secondary pt-1 pb-1 d-flex align-items-center justify-content-center"
+				[disabled]="!api.isLoaded()"
+				(click)="createNewShiftExchange()"
+			><fa-icon [icon]="PlanoFaIconPool.ADD"></fa-icon></button>
+		</list-headline>
+	</ng-template>
+
+	<ng-template [ngIf]="!api.isLoaded()" [ngIfElse]="loadedTemplate">
+		<p-list-item size="frameless">
+			<div class="flex-grow-1 d-flex align-items-center justify-content-center"><p-spinner [size]="BootstrapSize.LG" class="p-3"></p-spinner></div>
+		</p-list-item>
+	</ng-template>
+	<ng-template #loadedTemplate>
+		<ng-template [ngIf]="!!shiftExchangesForList.length" [ngIfElse]="noShiftExchanges">
+			<p-list-item
+				*ngFor="let shiftExchange of shiftExchangesForList.iterable()"
+				size="frameless"
+				class="border-left-0"
+			>
+				<!-- [@slideVertical] -->
+				<p-shift-exchange-list-item
+					id="scroll-target-id-{{addItemIds ? (shiftExchange?.id?.toString() ?? 'null') : 'null'}}"
+					[class.muted-item]="isMuted(shiftExchange)"
+					[class.bg-light]="isMuted(shiftExchange)"
+
+					[detailed]="showDetails"
+					[shiftExchange]="shiftExchange"
+					(calendarBtnClick)="onCalendarBtnClick($event)"
+				>
+					<!-- [class.bg-light]="shiftExchange.isClosed || isMuted(shiftExchange)" -->
+				</p-shift-exchange-list-item>
+			</p-list-item>
+		</ng-template>
+		<ng-template #noShiftExchanges>
+			<p-list-item size="frameless">
+				<div class="flex-grow-1 text-center text-muted small" [class.p-2]="!showDetails" [class.p-4]="showDetails">
+					<span *ngIf="!showDetails; else textForShowDetails" i18n>Hier geht’s um Schichttausch oder Krankmeldungen. Aktuell gibt’s aber keine relevanten Einträge für dich.</span>
+					<ng-template #textForShowDetails>
+						<span i18n>Für den ausgewählten Zeitraum gibt es keine Ersatzsuche oder Krankmeldung.</span>
+					</ng-template>
+				</div>
+			</p-list-item>
+		</ng-template>
+	</ng-template>
+	<p-list-item size="frameless" *ngIf="showOnlyItemsForDesk">
+		<ng-content></ng-content>
+	</p-list-item>
+</p-list>

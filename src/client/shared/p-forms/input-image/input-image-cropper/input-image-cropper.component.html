@@ -1,0 +1,111 @@
+<!-- <div class="custom-control d-none">
+	<input type="file" class="custom-form-control" (change)="fileChangeEvent($event)" id="validatedCustomFile" required>
+	<label class="custom-file-label" for="validatedCustomFile">{!!croppedImage, select, 1 {✓} other {Wähle Datei…}}</label>
+</div> -->
+
+<p-alert
+	*ngIf="imageMinWidthError"
+	[theme]="PThemeEnum.DANGER"
+	i18n
+>{{imageMinWidthError.actual}} Pixel ist zu schmal. Das Original-Bild muss mindestens {{imageMinWidthError['expected']}} Pixel breit sein.</p-alert>
+<p-alert
+	*ngIf="imageMinHeightError"
+	[theme]="PThemeEnum.DANGER"
+	i18n
+>{{imageMinHeightError.actual}} Pixel ist zu flach. Das Original-Bild muss mindestens {{imageMinHeightError['expected']}} Pixel hoch sein.</p-alert>
+
+<!-- <ng-template
+	ngFor let-error
+	[ngForOf]="errors"
+>
+	<p-validation-hint
+		[control]="control"
+		[isInvalid]="true"
+		[validationName]="error.key"
+		[errorValue]="error.value"
+		[checkTouched]="false"
+	></p-validation-hint>
+</ng-template> -->
+
+
+<!-- <div class="form-group">
+	<label for="">Rotation</label>
+	<input class="form-control" [(ngModel)]="rotation" placeholder="Rotation" type="number" (keyup)="updateRotation()" />
+</div>
+<button class="btn btn-outline-secondary" (click)="zoomOut()">Zoom -</button>
+<button class="btn btn-outline-secondary" (click)="zoomIn()">Zoom +</button>
+-->
+
+<ng-template [ngIf]="!imageMinWidthError && !imageMinHeightError">
+<div class="mb-3">
+	<!-- [disabled]="!aspectRatio" -->
+	<image-cropper
+		class="cropper"
+		[imageChangedEvent]="imageChangedEvent"
+		[imageFile]="imageFile"
+		[maintainAspectRatio]="!!aspectRatio"
+		[containWithinAspectRatio]="false"
+		[aspectRatio]="aspectRatio!"
+		[resizeToWidth]="resizeToWidth!"
+		[resizeToHeight]="resizeToHeight"
+		[cropperMinWidth]="cropperMinWidth"
+		[disabled]="croppingIsDisabled"
+
+		[onlyScaleDown]="true"
+		[roundCropper]="false"
+		[canvasRotation]="canvasRotation"
+		[transform]="transform"
+		[alignImage]="'left'"
+		[style.display]="showCropperComponent ? null : 'none'"
+		format="png"
+		(imageCropped)="imageCropped($event)"
+		(imageLoaded)="imageLoaded($event)"
+		(cropperReady)="cropperReady($event)"
+		(loadImageFailed)="loadImageFailed()"
+		[imageQuality]="100"
+	></image-cropper>
+</div>
+
+<div class="d-flex mb-3">
+	<!-- <div class="btn-group flex-grow-1 mr-2">
+		<button class="btn btn-outline-secondary" (click)="rotate('left')"><fa-icon [icon]="'undo'"></fa-icon> Rotate left</button>
+		<button class="btn btn-outline-secondary" (click)="rotate('right')"><fa-icon [icon]="'redo'"></fa-icon> Rotate right</button>
+	</div> -->
+	<p-button [attributeInfo]="null"
+		class="flex-grow-1 mx-2"
+		[theme]="PThemeEnum.DARK"
+		(triggerClick)="flipVertical()"
+	><fa-icon [icon]="'arrows-alt-v'"></fa-icon>&nbsp;<ng-container i18n>Vertikal spiegeln</ng-container></p-button>
+	<p-button [attributeInfo]="null"
+		class="flex-grow-1 mx-2"
+		[theme]="PThemeEnum.DARK"
+		(triggerClick)="flipHorizontal()"
+	><fa-icon [icon]="'arrows-alt-h'"></fa-icon>&nbsp;<ng-container i18n>Horizontal spiegeln</ng-container></p-button>
+	<!-- <div class="btn-group flex-grow-1 ml-2">
+		<button class="btn btn-outline-secondary" (click)="resetImage()"><fa-icon [icon]="PlanoFaIconPool.SYNCING"></fa-icon> Reset</button>
+	</div> -->
+</div>
+
+<!-- <ng-template [ngIf]="!!CONFIG.DEBUG">
+	<fieldset>
+		<legend>Debug data (only visible in debug mode)</legend>
+		<pre>
+			control.value: {{control.value}}
+			debugData: {{debugData}}
+		</pre>
+
+		<ng-template [ngIf]="!!croppedImage" [ngIfElse]="croppedImagePlaceholder">
+			<img
+				[src]="croppedImage"
+				[style.border]="croppedImage ? '1px solid black' : 'none'"
+				alt="Ergebnis-Vorschau der Bild-Bearbeitung"
+				alt-text
+			/>
+		</ng-template>
+		<ng-template #croppedImagePlaceholder>
+			<div class="cropped-image-placeholder"></div>
+		</ng-template>
+	</fieldset>
+</ng-template> -->
+
+</ng-template>

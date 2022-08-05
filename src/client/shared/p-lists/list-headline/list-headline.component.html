@@ -1,0 +1,59 @@
+<!-- style="background: linear-gradient(#f0f0f0, #e0e0e0)" -->
+<li
+	class="card-options p-0 border-0"
+	[class.list-group-item]="hasOnClickBinding"
+	[class.list-group-item-action]="hasOnClickBinding"
+	[class.bg-light]="!hasOnClickBinding"
+	(click)="onClick.emit($event)"
+>
+	<h6
+		class="p-1 pl-2 pr-2 w-100 d-flex align-items-center justify-content-center"
+		[class.btn-light]="hasOnClickBinding"
+		style="min-height:27px"
+	><ng-content select="[headline-icon]"></ng-content><span
+		[class.flex-grow-1]="headlineIconAlign === 'left'"
+		[class.text-danger]="theme === PThemeEnum.DANGER"
+	>{{ text }} <p-info-circle *ngIf="textTooltipHtml" class="pl-2" placement="bottom"><div [innerHTML]="textTooltipHtml"></div></p-info-circle></span></h6>
+
+	<ng-content></ng-content>
+	<span *ngIf="showHearts" class="card-option pt-0 pb-0 d-flex align-items-center justify-content-center"
+	[tooltip]="tooltipHeart"
+	><fa-icon [fixedWidth]="true" icon="heart"></fa-icon></span>
+	<!-- placement="bottom" -->
+	<ng-template #tooltipHeart>
+		<div class="d-block clickable card m-0 text-left o-hidden">
+			<div class="card-body p-1 pl-2 pr-2">
+				<div i18n>Schichtwünsche deiner Mitarbeitenden, die von Dr.&nbsp;Plano bei der automatischen Verteilung berücksichtigt werden. Auch du kannst sie nutzen, wenn du jemanden händisch für eine Schicht eintragen möchtest.</div>
+			</div>
+		</div>
+	</ng-template>
+	<ng-template [ngIf]="showMembersHeadlineCardOptions">
+
+		<span class="card-option pt-0 pb-0 d-flex align-items-center justify-content-center pl-1 pr-1"
+			[tooltip]="tooltipDarf"
+			i18n
+		>darf</span>
+		<!-- placement="bottom" -->
+		<ng-template #tooltipDarf>
+			<div class="d-block clickable card m-0 text-left o-hidden"
+			>
+				<div class="card-body p-1 pl-2 pr-2">
+					<div i18n>Wähle die Personen, die diese Tätigkeit generell ausüben dürfen. Sie werden bei der automatischen Schichtverteilung von Dr.&nbsp;Plano berücksichtigt.</div>
+				</div>
+			</div>
+		</ng-template>
+
+		<span class="card-option pt-0 pb-0 d-flex align-items-center justify-content-center pl-1 pr-1"
+			[tooltip]="tooltipMacht"
+			i18n
+		>macht</span>
+		<ng-template #tooltipMacht>
+			<div class="d-block clickable card m-0 text-left o-hidden"
+			>
+				<div class="card-body p-1 pl-2 pr-2">
+					<div i18n>Bestimme, ob diese Tätigkeit immer von einer bestimmten Person ausgeführt werden soll. Dr.&nbsp;Plano berücksichtigt das bei der automatischen Schichtverteilung.</div>
+				</div>
+			</div>
+		</ng-template>
+	</ng-template>
+</li>

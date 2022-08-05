@@ -1,0 +1,82 @@
+<p-subheader [isNewItem]="!!item && item.isNewItem()" (onNavBack)="onNavBack()">
+	<ng-container *ngIf="!!item">
+		<p-dropdown
+			*ngIf="showDeleteButton"
+			[dropdownType]="DropdownTypeEnum.BUTTONS"
+			label="Aktionen" i18n-label
+			[icon]="PlanoFaIconPool.MORE_ACTIONS"
+			[size]="BootstrapSize.SM"
+			[showActiveItem]="false"
+		>
+			<div hidden><span i18n #translatedBtnLabel>Löschen{cancellationSettingsIsPossible, select, true {&ngsp;&&ngsp;Stornieren}}</span></div>
+			<p-dropdown-item
+				(onClick)="onRemoveClick(modalContent)"
+				[disabled]="false"
+				[label]="translatedBtnLabel.textContent!"
+				[icon]="PlanoFaIconPool.DELETE"
+				[theme]="PBtnThemeEnum.OUTLINE_DANGER"
+				[attributeInfo]="null"
+				></p-dropdown-item>
+		</p-dropdown>
+
+		<ng-template #modalContent let-c="close" let-d="dismiss">
+			<p-change-selectors-modal
+				[showApplyToShiftModelCheckbox]="false"
+				[shiftChangeSelector]="api.data.shiftChangeSelector"
+				[close]="c"
+				[dismiss]="d"
+				[shift]="item!"
+				[shiftModel]="item.model"
+				[defaultStart]="(item ? item.start : undefined)"
+				[isForDeletion]="true"
+				[members]="api.data.members"
+			></p-change-selectors-modal>
+		</ng-template>
+	</ng-container>
+
+</p-subheader>
+
+<div class="flex-grow-1 d-flex position-relative">
+	<scroll-shadow-box class="flex-grow-1">
+		<div class="container pb-tawk">
+			<ng-template [ngIf]="itemNotFound" [ngIfElse]="detailFormTemplate">
+				<p-no-item></p-no-item>
+			</ng-template>
+			<ng-template #detailFormTemplate>
+				<ng-template [ngIf]="showShiftModelInputSection">
+					<p-tabs>
+						<p-tab
+							[label]="basissettingsTabLabel"
+						>
+							<div class="row d-flex align-items-center ng-star-inserted justify-content-center">
+								<ng-template [ngIf]="!writableShiftModelsForMember.length" [ngIfElse]="shiftsAreAvailable">
+									<p-alert [theme]="PThemeEnum.WARNING" i18n>Neue Schichten basieren auf Tätigkeiten. Lege bitte erst eine Tätigkeit an. Anschließend kannst du sie als Vorlage für neue Schichten benutzen.</p-alert>
+								</ng-template>
+								<ng-template #shiftsAreAvailable>
+									<p-form-group
+										label="Wähle eine Tätigkeit als Vorlage für deine Schicht" i18n-label
+									>
+										<p-input-shiftmodel-id-modal
+											class="flex-grow-1"
+											[shiftModels]="writableShiftModelsForMember"
+											[ngModel]="selectedShiftModelToCopy"
+											(ngModelChange)="onSelectShiftModel($event)"
+										></p-input-shiftmodel-id-modal>
+									</p-form-group>
+								</ng-template>
+							</div>
+						</p-tab>
+					</p-tabs>
+				</ng-template>
+
+				<detail-form
+					*ngIf="showShiftModelInputSection === false"
+					[isLoading]="!item"
+					[item]="item ?? null"
+					(onAddItem)="saveNewItem($event)"
+					[writableShiftModelsForMember]="writableShiftModelsForMember"
+				></detail-form>
+			</ng-template>
+		</div>
+	</scroll-shadow-box>
+</div>

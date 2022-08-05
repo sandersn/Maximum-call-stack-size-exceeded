@@ -1,0 +1,31 @@
+<div #shiftsWrap class="shifts-wrap" [class.show-numbers]="!insideWeekView">
+	<ng-container *ngFor="let parentName of shiftModelsForList.parentNames">
+		<p-timeline-shiftmodel-parent-column
+			[name]="parentName"
+			*ngIf="layout.getLayout(parentName).show"
+			[style.left]="layout.getLayout(parentName).x + 'px'"
+			[style.top]="layout.getLayout(parentName).y + 'px'"
+			[style.z-index]="layout.getLayout(parentName).z.toString()"
+			[style.width]="layout.getLayout(parentName).width + 'px'"
+			[style.height]="layout.getLayout(parentName).height + 'px'">
+		</p-timeline-shiftmodel-parent-column>
+	</ng-container>
+
+	<ng-template [ngIf]="!insideWeekView">
+		<ng-container *ngFor="let shift of shiftsForDay.iterable()">
+			<p-shift-item
+				[shift]="shift"
+				[emptyMemberSlots]="shift.emptyMemberSlots"
+				[showAsList]="false"
+				[selectable]="selectable"
+			></p-shift-item>
+		</ng-container>
+	</ng-template>
+
+	<p-timeline-now-line #nowLineRef *ngIf="!insideWeekView"></p-timeline-now-line>
+</div>
+
+<p-timeline-separators
+	#timelineSeparatorsRef
+	[showNumbers]="!insideWeekView"
+></p-timeline-separators>

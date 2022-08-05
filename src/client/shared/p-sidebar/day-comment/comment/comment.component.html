@@ -1,0 +1,73 @@
+<div class="position-relative">
+	<div class="d-block">
+		<ng-template [ngIf]="!api.isLoaded()" [ngIfElse]="loaded">
+			<p-spinner class="p-3"></p-spinner>
+		</ng-template>
+		<ng-template #loaded>
+			<div class="card-options"
+				*ngIf="userCanEditMemos"
+			>
+				<ng-template [ngIf]="hasMemo" [ngIfElse]="noMemoBtnTemplate">
+					<button type="button"
+						*ngIf="userCanEditMemos"
+						class="hidden-without-hover card-option btn btn-sm btn-light btn-outline-danger ml-auto"
+						[disabled]="!api.isLoaded()"
+						(click)="removeMemoPrompt(removeMemoModalContent)"
+					><fa-icon [fixedWidth]="true" icon="trash"></fa-icon></button>
+				</ng-template>
+				<ng-template #noMemoBtnTemplate>
+					<button type="button"
+						*ngIf="userCanEditMemos"
+						class="card-option btn btn-sm btn-outline-secondary btn-light ml-auto"
+						[disabled]="!api.isLoaded()"
+						(click)="userCanEditMemos ? openMemo(modalContent) : undefined"
+					><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon></button>
+				</ng-template>
+			</div>
+			<div
+				class="w-100 text-left d-block m-0 small p-0"
+				[class.card]="!blockquoteIsClickable"
+				[class.clickable]="blockquoteIsClickable"
+				[class.btn-frameless]="blockquoteIsClickable"
+				[class.btn-light]="blockquoteIsClickable"
+				(click)="blockquoteIsClickable ? openMemo(modalContent) : undefined"
+			>
+				<blockquote class="m-0" [class.text-muted]="!hasMemo">
+					<div class="p-2" *ngIf="hasMemo; else noMemoTemplate">
+						<span class="pt-3" [innerHTML]="textToHtml(memo!.message)"></span>
+					</div>
+					<ng-template #noMemoTemplate>
+						<div class="p-1 text-center" i18n>Kein Tageskommentar heute</div>
+					</ng-template>
+				</blockquote>
+			</div>
+		</ng-template>
+	</div>
+</div>
+
+<ng-template #modalContent let-c="close" let-d="dismiss">
+	<p-memo-modal-content
+		class="modal-content"
+		[memo]="memo"
+		[memoModalDay]="memo!.start"
+		[showDateInput]="showDateInput"
+		(onClose)="c($event)"
+		(dismiss)="d()"
+		[userCanEditMemos]="userCanEditMemos"
+	></p-memo-modal-content>
+</ng-template>
+
+<ng-template #removeMemoModalContent let-c="close" let-d="dismiss">
+	<p-modal-content
+		[theme]="PThemeEnum.DANGER"
+		modalTitle="Tageskommentar löschen?" i18n-modalTitle
+		closeBtnLabel="Ja, löschen" i18n-closeBtnLabel
+		dismissBtnLabel="Abbrechen" i18n-dismissBtnLabel
+		(onDismiss)="d('Cross click')"
+		(onClose)="c('Started');"
+	>
+		<p-modal-content-body>
+			<p class="m-0" i18n>Soll der Kommentar für {{ memo!.start | date:'EEEE' }}, den {{ memo!.start | date:'shortDate' }} wirklich gelöscht werden?</p>
+		</p-modal-content-body>
+	</p-modal-content>
+</ng-template>

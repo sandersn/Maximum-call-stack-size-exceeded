@@ -1,0 +1,87 @@
+<p-subheader [containerSize]="BootstrapSize.SM" [isNewItem]="false"></p-subheader>
+
+<div class="flex-grow-1 d-flex position-relative">
+	<scroll-shadow-box class="flex-grow-1">
+		<div class="container-sm pb-tawk pl-6 pr-6">
+			<h2><img src="images/boulderado.png" alt="{{ posName }}"></h2>
+			<div class="mb-4" i18n>Die Schnittstelle zu <a href="http://www.boulderado.de" rel="noopener" target="_blank">Boulderado</a> ist eine wertvolle Ergänzung des Buchungssystems von Dr.&nbsp;Plano. Sie ermöglicht es dem Kassenpersonal, Buchungen deiner Angebote auch an der Kasse einzusehen und ggf. den Buchungspreis per Kassenzahlung entgegenzunehmen. Mehr zu den Funktionen erfährst du unten in der Rubrik <a (click)="scrollToElement(qaa)">»Fragen & Antworten«</a>.</div>
+
+			<p-checkbox
+				class="mb-4"
+				[pEditable]="true"
+				[api]="api"
+
+				[ngModel]="posSystemIsActive"
+				(ngModelChange)="activatePosSystem($event)"
+				[valueText]="valueText"
+				[disabled]="otherPosSystemIsActive"
+				[readMode]="false"
+			></p-checkbox>
+
+			<p-alert
+				*ngIf="showUnlinkHint"
+				[theme]="PThemeEnum.WARNING"
+				[dismissable]="false"
+				i18n
+			>Um die Verbindung vollständig zu trennen, musst du auch bei {{posName}} die hinterlegten Benutzerdaten entfernen.</p-alert>
+
+			<p-alert
+				*ngIf="otherPosSystemIsActive"
+				[theme]="PThemeEnum.INFO"
+				[dismissable]="false"
+				i18n
+			>Es kann nur eine Kassenschnittstelle verwendet werden. Schalte die Schnittstelle {{activePosSystemName}} ab, um diese hier einschalten zu können.</p-alert>
+
+			<ng-template [ngIf]="posSystemIsActive">
+				<div class="mb-4" i18n>Mit folgenden Daten stellst du bei {{ posName }} die Verbindung zu Dr.&nbsp;Plano her:</div>
+				<div class="row mb-5" *ngIf="accountApi.isLoaded()">
+					<div class="col-6">
+						<p-form-group label="Benutzername" i18n-label>
+							<p-input-copy-string
+								[valueToCopy]="meService.data.clientId.toString()"
+							></p-input-copy-string>
+						</p-form-group>
+					</div>
+					<div class="col-6">
+						<p-form-group label="Passwort" i18n-label>
+							<p-input-copy-string
+							[type]="PApiPrimitiveTypes.Password"
+							[valueToCopy]="accountApi.data.posSystemPassword"
+							></p-input-copy-string>
+						</p-form-group>
+					</div>
+				</div>
+			</ng-template>
+
+			<div>
+				<span><h3 class="text-center" #qaa i18n>Fragen & Antworten</h3></span>
+				<p-collapsible>
+					<span trigger i18n>Was kann die Schnittstelle zu {{ posName }}?</span>
+					<div content class="card-body">
+						<ul>
+							<li i18n>Gebuchte Angebote, Anzahl der gebuchten Teilnehmenden und deren Zahlungsstatus werden mit der Kassensoftware synchronisiert.</li>
+							<li i18n>Umgekehrt wird mit Dr.&nbsp;Plano kommuniziert, wenn Kunden ihre Buchung an der Kasse bezahlen.</li>
+							<li i18n>Die Daten der Personen können in der Mitgliederverwaltung der Kassensoftware übernommen werden, um die Registrierung neuer Kunden zu beschleunigen.</li>
+							<li i18n>Die Kontierung der Angebote gewährleistet die richtige Zuordnung der Buchungserlöse in der Kassensoftware.</li>
+						</ul>
+					</div>
+				</p-collapsible>
+				<p-collapsible>
+					<span trigger i18n>Wie richte ich die Schnittstelle ein?</span>
+					<div content class="card-body">
+						<ul>
+							<li i18n>Damit die Schnittstelle läuft, musst du deinen <span class="nowrap">Dr.&nbsp;Plano-Account</span> in deiner Kasse authentifizieren. Wo du die Authentifizierung in deiner Kasse vornehmen kannst, erfährst du bei deinem Anbieter. Sobald die Authentifizierung erfolgt ist, können die Daten übermittelt werden.</li>
+							<li><ng-container i18n>Aktiviere dafür oben die Benutzung von der Schnittstelle. Anschließend erscheinen der Benutzername und das dazugehörige Passwort, die du zur Authentifizierung in der Kasse benötigst. Zusätzlich musst du in der Kasse unter Verwaltung > Einstellungen > Kursmodul bei »URL für Kurse« und »URL für Buchungen« den folgenden Link eingeben:</ng-container>
+								<p-input-copy-string
+									class="mt-2"
+									[valueToCopy]="Config.BACKEND_URL + '/pos/v1/purchasable_items'"
+								></p-input-copy-string>
+							</li>
+						</ul>
+					</div>
+				</p-collapsible>
+				<p-q-and-a-possystem></p-q-and-a-possystem>
+			</div>
+		</div>
+	</scroll-shadow-box>
+</div>

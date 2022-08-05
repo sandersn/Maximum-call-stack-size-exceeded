@@ -1,0 +1,28 @@
+<ng-template [ngIf]="isCourse">
+	<div class="o-hidden d-flex justify-content-start align-items-center" style="height: 2rem;">
+		<div class="pl-1 nowrap">
+			<ng-template [ngIf]="isCourseCanceled" [ngIfElse]="notCanceled">
+				<span class="badge-danger badge-pill" i18n>fällt aus</span>
+			</ng-template>
+			<ng-template #notCanceled>
+				<ng-template [ngIf]="isOpenCourse" [ngIfElse]="typeBookable">
+					<span class="badge-{{participantsCountStyle}} badge-pill ml-1 mr-1" i18n>offen</span>
+				</ng-template>
+				<ng-template #typeBookable>
+					<span *ngIf="minCourseParticipantCount" class="mr-1">{{ minCourseParticipantCount }}</span>
+					<span class="badge-{{participantsCountStyle}} badge-pill">
+						<span>{{ currentCourseParticipantCount }}</span>
+					</span>
+					<span class="ml-1">{!!maxCourseParticipantCount, select, true {{{maxCourseParticipantCount}}} other {∞}}</span>
+				</ng-template>
+			</ng-template>
+
+			<fa-icon [size]="'sm'" [fixedWidth]="true" [icon]="PlanoFaIconPool.ITEMS_PARTICIPANT" class="ml-1 users-icon"></fa-icon>
+		</div>
+		<p-led
+			class="ml-1 mr-1"
+			[size]="BootstrapSize.SM"
+			[off]="ledOff"
+		></p-led>
+	</div>
+</ng-template>

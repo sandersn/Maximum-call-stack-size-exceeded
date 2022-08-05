@@ -1,0 +1,12 @@
+@import "variables";
+
+:host {
+	display: block;
+}
+
+.member-working-times-details {
+	border-bottom: $border-width solid $gray-300;
+	// border-bottom: 1px solid $light;
+	text-align: right;
+	padding: map-get($spacers, 1) map-get($spacers, 3);
+}

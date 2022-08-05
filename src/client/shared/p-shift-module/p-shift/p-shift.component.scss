@@ -1,0 +1,8 @@
+@import "variables";
+
+:host {
+	display: flex;
+	align-items: stretch;
+	justify-content: flex-start;
+	border: $card-border-width solid $card-border-color;
+}

@@ -1,0 +1,186 @@
+<div style=" position: relative;z-index: 1;"
+	[class.lastActionTime-spacer]="showLastActionTime"
+>
+	<ng-template [ngIf]="communications" [ngIfElse]="singleMemberTemplate">
+		<div class="d-flex align-items-left"
+			[class.nowrap]="!showNames"
+			[class.flex-column]="showNames"
+		>
+			<div class="badges d-flex align-items-center flex-grow-0 flex-shrink-1 pr-3 position-relative"
+				[class.o-hidden]="!showNames"
+				[class.flex-wrap]="showNames"
+			>
+				<ng-template
+					ngFor let-communicationsCommunication
+					[ngForOf]="communications.iterable().slice(0, showNames ? (communications.length + 1) : maxMemberBadgeItems!)"
+				>
+					<div
+						[style.margin-right.px]="showNames ? 10 : -10"
+						class="d-flex align-items-center nowrap"
+						[class.p-2]="showNames"
+						[class.bg-light]="showNames"
+						[class.rounded]="showNames"
+						[class.clickable]="communications.length > 1 && !showNames"
+						[class.mb-2]="showNames"
+						(click)="communications.length > 1 ? showNames=true : undefined"
+					>
+						<p-member-badge
+							*ngIf="communicationsCommunication.communicationPartner"
+							[memberId]="communicationsCommunication.communicationPartner.id"
+							[firstName]="communicationsCommunication.communicationPartner.firstName"
+							[lastName]=" communicationsCommunication.communicationPartner.lastName"
+							[isMe]="isMe(communicationsCommunication.communicationPartner)!"
+							size="normal"
+						></p-member-badge>
+						<div *ngIf="showNames || communications.length === 1" class="ml-2 title">{{communicationsCommunication.communicationPartner!.firstName}} {{communicationsCommunication.communicationPartner!.lastName}}</div>
+					</div>
+				</ng-template>
+				<div class="too-long-list-shadow"></div>
+			</div>
+			<!-- <div
+				*ngIf="communications.length > maxMemberBadgeItems && !showNames"
+				class="pl-3"
+				[style.margin-right.px]="-10"
+			>…und {{communications.length - maxMemberBadgeItems}} weitere</div> -->
+
+			<a
+				*ngIf="communications.length > 1"
+				class="text-primary small clickable nowrap"
+				[class.align-self-start]="showNames"
+				[class.mb-2]="showNames"
+				(click)="showNames=!showNames"
+				style="margin-left: 20px; line-height: 1.5em;"
+			><fa-icon [fixedWidth]="true" [icon]="showNames ? 'eye-slash' : 'eye'"></fa-icon>&nbsp;<ng-container i18n>{communications.length > maxMemberBadgeItems! && !showNames, select, true {Alle }}Namen {showNames, select, true {verbergen} other {anzeigen}}</ng-container></a>
+
+		</div>
+	</ng-template>
+	<ng-template #singleMemberTemplate>
+		<div class="d-flex align-items-center">
+			<p-member-badge
+				[memberId]="communication.communicationPartner ? communication.communicationPartner.id : null"
+				[firstName]="communication.communicationPartner ? communication.communicationPartner.firstName : undefined"
+				[lastName]="communication.communicationPartner ? communication.communicationPartner.lastName : undefined"
+				[isMe]="isMe(communication.communicationPartner)!"
+				size="normal"
+			></p-member-badge>
+			<div class="ml-2 title">{{communication.communicationPartner!.firstName}} {{communication.communicationPartner!.lastName}}</div>
+		</div>
+	</ng-template>
+</div>
+<div style=" position: relative;z-index: 0;" class="card bg-light shadow-sm communication-card mb-0">
+	<ng-template [ngIf]="!!communication.hasTodo">
+		<div
+			*ngIf="!!badgeIcon; else badgeTextTemplate"
+			class="todo-badge badge badge-light border"
+			[class.border-danger]="badgeIcon === 'times'"
+			[class.text-danger]="badgeIcon === 'times'"
+			[class.border-success]="badgeIcon === 'check'"
+			[class.text-success]="badgeIcon === 'check'"
+			[class.border-primary]="badgeIcon === 'question'"
+			[class.text-primary]="badgeIcon === 'question'"
+			[class.align-left]="badgeAlign === 'left'"
+			[class.align-right]="badgeAlign === 'right'"
+		>
+			<fa-icon [fixedWidth]="true" [icon]="badgeIcon" style="font-size: 0.6rem;"></fa-icon>
+		</div>
+		<ng-template #badgeTextTemplate>
+			<div
+				class="todo-badge badge badge-danger border-danger"
+				[class.align-left]="badgeAlign === 'left'"
+				[class.align-right]="badgeAlign === 'right'"
+			>
+				<code class="text-white">1</code>
+			</div>
+		</ng-template>
+	</ng-template>
+
+	<div
+		*ngIf="showLastActionTime"
+		class="badge badge-light border last-action-time"
+	>Update: {{ communication.lastActionTime | pTimeAgo }}</div>
+	<div [class.p-4]="!CONFIG.IS_MOBILE" [class.p-3]="CONFIG.IS_MOBILE">
+		<div class="d-block d-md-flex align-items-center mr-4">
+			<ng-container *ngTemplateOutlet="stateInfo"></ng-container>
+			<div *ngIf="!!needsReview" class="badge badge-warning mr-4">{{ needsReviewLabel }}</div>
+
+			<ng-template [ngIf]="showComment">
+				<div class="d-block d-md-flex align-items-center mt-3 mt-md-0">
+					<label class="mb-0 mr-3" i18n>Kommentar an {!!indisposedMemberPerformedLastAction, select, true {{{communication.communicationPartner!.firstName}}} other {{{shiftExchange!.indisposedMember!.firstName}}}}:</label>
+					<blockquote [class.clickable]="!lastActionCommentIsDisabled && !showTextarea" (click)="onStartEditComment()"><span [class.text-muted]="!communication.lastActionComment">{!!communication.lastActionComment, select, true {{{ communication.lastActionComment }}} other {-}}</span> <fa-icon class="ml-2" [fixedWidth]="true" icon="pen" title="Bearbeiten" i18n-title *ngIf="!lastActionCommentIsDisabled && !showTextarea"></fa-icon></blockquote>
+				</div>
+			</ng-template>
+		</div>
+		<ng-template [ngIf]="(showTextarea && mePerformedLastAction)">
+			<div hidden><span i18n #translatedLastActionCommentLabel>Kommentar an {!!indisposedMemberPerformedLastAction, select, true {{{communication.communicationPartner!.firstName}}} other {{{shiftExchange!.indisposedMember!.firstName}}}}</span></div>
+			<p-form-group
+				class="mt-3"
+				[label]="translatedLastActionCommentLabel.textContent!"
+			>
+				<p-textarea
+					[pEditable]="!shiftExchange!.isNewItem()"
+					[api]="api"
+					(onDismiss)="showTextarea=false"
+					(onSaveSuccess)="showTextarea=false"
+
+					[(ngModel)]="communication.lastActionComment"
+					[disabled]="lastActionCommentIsDisabled"
+				></p-textarea>
+			</p-form-group>
+		</ng-template>
+		<!-- <ng-template [ngTemplateOutlet]="shiftInfoTemplate"></ng-template> -->
+	</div>
+</div>
+
+<ul class="p-0 ml-3 mr-3 mt-0 shadow-sm rounded-bottom d-flex align-items-stretch flex-row border-bottom border-left border-right row" *ngIf="availableActionDataArray.length">
+	<button
+		type="button"
+		*ngFor="let availableActionData of availableActionDataArray; let i = index"
+		class="action-button btn btn-outline-secondary btn-frameless d-flex justify-content-start align-items-center"
+		[class.col-12]="CONFIG.IS_MOBILE"
+		[class.col]="!CONFIG.IS_MOBILE"
+		[class.btn-lg]="CONFIG.IS_MOBILE"
+		[class.justify-content-start]="CONFIG.IS_MOBILE"
+		[class.justify-content-center]="!CONFIG.IS_MOBILE"
+		[class.border-left]="i!==0 && !CONFIG.IS_MOBILE"
+		[class.border-top]="i!==0 && CONFIG.IS_MOBILE"
+		(click)="onPerformAction(availableActionData)"
+	>
+		<fa-icon
+			*ngIf="availableActionIcon(availableActionData.action)"
+			class="mr-2 flex-grow-0"
+			[class.text-success]="availableActionIconStyle(availableActionData.action) === 'success'"
+			[class.text-danger]="availableActionIconStyle(availableActionData.action) === 'danger'"
+			[fixedWidth]="true"
+			[icon]="availableActionIcon(availableActionData.action)!"
+		></fa-icon>
+		<span class="text-left">{{ availableActionText(availableActionData.action, shiftExchange!) }}</span>
+	</button>
+</ul>
+
+<ng-template #stateInfo>
+	<p-shift-exchange-state-badge
+		class="d-flex mr-4"
+		*ngIf="!shiftExchange!.isNewItem()"
+		[shiftExchange]="shiftExchange!"
+		[communication]="communication"
+		[text]="lastActionStateText"
+		[theme]="stateTheme"
+	></p-shift-exchange-state-badge>
+</ng-template>
+
+<!-- <ng-template #shiftInfoTemplate>
+	<ng-template ngFor let-swapOffer [ngForOf]="communication.swapOffers.iterable()" let-i="index">
+		<p-shifts-info
+			*ngIf="swapOffer.shiftRefs.length"
+			class="border-top bg-white"
+			[class.border-bottom]="!!communication.lastActionComment && i === communication.swapOffers.length - 1"
+			[shiftRefs]="swapOffer.shiftRefs"
+		>
+			<p-shift-info-content-right
+				*ngIf="communication.indisposedMembersSelectedSOId.equals(swapOffer.id)"
+			>
+				<fa-icon class="mr-2 text-success" [fixedWidth]="true" [icon]="PlanoFaIconPool.SUCCESS"></fa-icon>
+			</p-shift-info-content-right>
+		</p-shifts-info>
+	</ng-template>
+</ng-template> -->

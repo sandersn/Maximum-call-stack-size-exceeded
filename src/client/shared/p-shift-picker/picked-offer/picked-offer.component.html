@@ -1,0 +1,16 @@
+<p-shift-refs
+	[readMode]="readMode"
+	class="mt-2"
+	[selectedOffer]="selectedOffer"
+	[affectedOffer]="affectedOffer"
+	[selectable]="false"
+	[offer]="offer"
+	[addToOfferBtnDisabled]="addToOfferBtnDisabled"
+	(onAddToOffer)="addToOffer.emit($event)"
+	(onRemoveOffer)="onRemoveOffer.emit($event)"
+	(onRemoveFromOffer)="onRemoveFromOffer.emit($event)"
+></p-shift-refs>
+<p-warnings
+	class="mt-0 mb-1 mr-3 ml-3 rounded-bottom small shadow-sm"
+	[warnings]="warnings"
+></p-warnings>

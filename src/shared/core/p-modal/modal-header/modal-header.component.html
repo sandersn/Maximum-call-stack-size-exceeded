@@ -1,0 +1,17 @@
+<div class="modal-header pl-3 position-relative">
+	<div class="d-flex justify-content-between align-items-center w-100">
+		<div class="mr-auto w-100" *ngIf="title || item">
+			<h4 *ngIf="title"
+				[class.text-white]="textWhite"
+				[class.text-danger]="hasDanger"
+			>{{ title }}</h4>
+			<ng-template [ngIf]="item">
+				<span class="text-monospace nowrap mt-2" [class.text-white]="textWhite" *ngIf="start">{{ start | date:'shortDate' }} | {{ start | date:'shortTime' }}</span>
+			</ng-template>
+		</div>
+		<ng-content></ng-content>
+		<button type="button" class="close" aria-label="Close" (click)="onClose.emit($event)">
+			<span aria-hidden="true" [class.text-white]="textWhite">&times;</span>
+		</button>
+	</div>
+</div>

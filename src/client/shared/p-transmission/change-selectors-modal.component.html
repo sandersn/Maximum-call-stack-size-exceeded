@@ -1,0 +1,355 @@
+<p-modal-header
+	[title]="title"
+	(onClose)="dismissModal()"
+></p-modal-header>
+
+<ng-template [ngIf]="componentInitialized && (!!(shift && shiftChangeSelector) || (!!shiftModel || !shift))">
+<div class="modal-body pb-0">
+	<section class="form">
+		<ng-wizard [config]="config" (stepChanged)="stepChanged($event)">
+			<ng-wizard-step title="Übertragung" i18n-title
+				#changeSelectorStep
+				[canEnter]="isValidTypeBoolean"
+				[canExit]="isValidFunctionReturnsBoolean.bind(this)"
+			>
+				<!-- When wizard opens with this step unfortunately "currentStepChange" is undefined. -->
+				<ng-container *ngIf="!currentStepChange || currentStepChange.step.index === changeSelectorStep.index">
+					<p-form-group>
+						<p-radios
+							class="max-width-600"
+							[ngModel]="addChangeSelectors"
+							(ngModelChange)="setAddChangeSelectors($event)"
+							[inline]="false"
+						>
+						<!-- [inline]="false" -->
+							<p-radios-radio
+								[value]="false"
+								[label]="translatedAddChangeSelectorsRadioValue"
+							></p-radios-radio>
+							<p-radios-radio
+								[value]="true"
+								label="Ja, auf weitere Bereiche übertragen…" i18n-label
+								[disabled]="typeOfChange===PTypeOfChange.CANCEL"
+								cannotEditHint="Bei dieser Aktion steht die Übertragung aus technischen Gründen leider noch nicht zur Verfügung. Wenn du doch viele Stornierungen auf einmal vornehmen möchtest, könntest du die dazugehörigen Schichten löschen und das Löschen übertragen – falls Löschen eine Option ist."
+							></p-radios-radio>
+						</p-radios>
+					</p-form-group>
+
+					<div *ngIf="addChangeSelectors">
+
+						<div *ngIf="addChangeSelectors && customWarning" class="mb-3">
+							<div class="max-width-600 mt-3">
+								<p-alert class="mt-3">{{ customWarning }}</p-alert>
+							</div>
+						</div>
+
+						<!-- we decided to get rid of this option. But we've to wait and see if clients will complain.
+						<div *ngIf="showApplyToShiftModelCheckbox" class="mb-3">
+							<hr>
+							<p-checkbox
+								class="max-width-600"
+								[ngModel]="optionToShiftModel"
+								(ngModelChange)="toggleOptionToShiftModel()"
+								valueText="Auf die Vorlage {{shiftModel!.name}}" i18n-valueText
+							></p-checkbox>
+						</div>
+						-->
+
+						<hr class="mt-3 mb-0">
+						<p-grid>
+							<ng-template [ngIf]="!shift">
+								<div class="col pt-3">
+									<div class="max-width-600">
+										<p-form-group>
+											<label class="m-0" i18n>Auf alle mit der Vorlage <code>{{ shiftModel!.name }}</code> erstellten Schichten ab</label>
+											<p-form-control-switch
+												[group]="formGroup!"
+												[attributeInfo]="shiftModel!.changeSelector.attributeInfoStart"
+												[placeholder]="changeSelectorStartPlaceholder"
+												[readMode]="false"
+												[supportsUndefined]="false"
+												[showEraseValueBtn]="false"
+											></p-form-control-switch>
+										</p-form-group>
+									</div>
+								</div>
+							</ng-template>
+							<ng-template [ngIf]="!!shift">
+								<div class="col pt-3">
+									<div class="max-width-600">
+										<p-section [whitespace]="SectionWhitespace.NONE" label="Auf bereits erstellte Schichten…" i18n-label>
+
+											<div class="mb-3" *ngIf="showApplyToShiftPacketCheckbox">
+												<p-checkbox
+													[readMode]="false"
+													[disabled]="applyToShiftPacketCheckboxIsDisabled"
+													[ngModel]="optionShiftsOfPacket"
+													(ngModelChange)="setOptionShiftsOfPacket(!optionShiftsOfPacket)"
+													valueText="Aus diesem Schicht-Paket" i18n-valueText
+												></p-checkbox>
+											</div>
+											<div class="mb-3" *ngIf="showApplyToShiftsOfSeriesCheckbox">
+												<p-checkbox
+													[readMode]="false"
+													[disabled]="shiftChangeSelector!.shiftsOfPacketIndex === null && shiftChangeSelector!.shiftsOfSeriesId === null && shiftChangeSelector!.shiftsOfShiftModelId !== null"
+													[ngModel]="optionShiftsOfSeries"
+													(ngModelChange)="setOptionShiftsOfSeries(!optionShiftsOfSeries)"
+													valueText="Aus dieser Wiederholung" i18n-valueText
+												></p-checkbox>
+											</div>
+											<div class="mb-3">
+												<p-checkbox
+													[ngModel]="optionShiftsOfModel"
+													(ngModelChange)="setOptionShiftsOfModel(!optionShiftsOfModel)"
+													valueText="Mit der Vorlage »{{ shiftModel!.name }}«" i18n-valueText
+												></p-checkbox>
+											</div>
+										</p-section>
+										<p-section [whitespace]="SectionWhitespace.NONE" *ngIf="shiftChangeSelector!.shiftsOfShiftModelId !== null && showDateRangeSelection" label="Übertragungszeitraum" i18n-label>
+											<p-grid>
+												<div class="col-12 col-lg-6">
+													<p-form-control-switch
+														[theme]="formGroup!.controls[shiftChangeSelector!.attributeInfoStart.id]?.value === 0 ? PThemeEnum.PRIMARY : null"
+														label="Von einschließlich" i18n-label
+														[group]="formGroup!"
+														[attributeInfo]="shiftChangeSelector!.attributeInfoStart"
+														[placeholder]="changeSelectorStartPlaceholder"
+														eraseValueBtnLabel="Ohne Begrenzung" i18n-eraseValueBtnLabel
+														[supportsUndefined]="true"
+														(valueChange)="getAffectedShifts()"
+													></p-form-control-switch>
+												</div>
+												<div class="col-12 col-lg-6">
+													<p-form-control-switch
+														[theme]="formGroup!.controls[shiftChangeSelector!.attributeInfoEnd.id]?.value === 0 ? PThemeEnum.PRIMARY : null"
+														label="Bis einschließlich" i18n-label
+														[group]="formGroup!"
+														[attributeInfo]="shiftChangeSelector!.attributeInfoEnd"
+														[placeholder]="changeSelectorEndPlaceholder"
+														eraseValueBtnLabel="Ohne Begrenzung" i18n-eraseValueBtnLabel
+														[supportsUndefined]="true"
+														(valueChange)="getAffectedShifts()"
+														[readMode]="false"
+													></p-form-control-switch>
+												</div>
+											</p-grid>
+										</p-section>
+									</div>
+								</div>
+							</ng-template>
+							<div class="col-12 col-lg-6 pt-3 pb-3 bg-light border-left"
+								*ngIf="showTransmissionPreview"
+							>
+								<p-section [whitespace]="SectionWhitespace.NONE" label="Betroffene Schichten" i18n-label>
+									<p-transmission-preview
+										[isLoading]="transmissionPreviewIsLoading"
+										[disabled]="!!formGroup?.invalid"
+										[timestamp]="shift ? shift!.start : today"
+										(timestampChanged)="transmissionPreviewTimestampChanged($event)"
+										[affectedShifts]="affectedShifts"
+										[shiftModel]="shiftModel ? shiftModel : shift!.model!"
+										[members]="members"
+										[myId]="meService.isLoaded() ? meService.data.id : null"
+									></p-transmission-preview>
+								</p-section>
+							</div>
+						</p-grid>
+					</div>
+				</ng-container>
+			</ng-wizard-step>
+
+			<!-- cspell:ignore storno -->
+			<ng-wizard-step
+				*ngIf="showCancellationSettings"
+				title="Storno" i18n-title
+				#stornoStep
+				[canExit]="isValidFunctionReturnsBoolean.bind(this)"
+			>
+				<ng-container *ngIf="currentStepChange?.step!.index === stornoStep.index">
+					<ng-container *ngIf="!!amountOfBookingsToCancelOrDecline; else dontShowCancellationSettingsTemplate">
+						<p-section [ngSwitch]="typeOfChange">
+							<p *ngSwitchCase="PTypeOfChange.DELETE">Durch das Löschen {affectedShiftsApiService.data.bookingsCanceledCount, plural, one {wird} other {werden}}&nbsp;<mark>{{ affectedShiftsApiService.data.bookingsCanceledCount }}</mark>&nbsp;<strong>{affectedShiftsApiService.data.bookingsCanceledCount, plural, one {Buchung} other {Buchungen}} storniert</strong>.<span *ngIf="affectedShiftsApiService.data.bookingsDeclinedCount > 0">&ngsp;Und <mark>{{ affectedShiftsApiService.data.bookingsDeclinedCount }}</mark><strong> {affectedShiftsApiService.data.bookingsDeclinedCount, plural, one {Anfrage wird} other {Anfragen werden}} abgelehnt</strong>.</span>&ngsp;Hier kannst du damit zusammenhängende Einstellungen vornehmen.</p>
+							<p *ngSwitchCase="PTypeOfChange.CANCEL">Durch die Stornierung des Angebots {affectedShiftsApiService.data.bookingsCanceledCount, plural, one {wird} other {werden}}&nbsp;<mark>{{ affectedShiftsApiService.data.bookingsCanceledCount }}</mark>&nbsp;<strong>{affectedShiftsApiService.data.bookingsCanceledCount, plural, one {Buchung} other {Buchungen}} storniert</strong>.<span *ngIf="affectedShiftsApiService.data.bookingsDeclinedCount > 0">&ngsp;Und <mark>{{ affectedShiftsApiService.data.bookingsDeclinedCount }}</mark>&nbsp;<strong>{affectedShiftsApiService.data.bookingsDeclinedCount, plural, one {Anfrage wird} other {Anfragen werden}} abgelehnt</strong>.</span>&ngsp;Hier kannst du damit zusammenhängende Einstellungen vornehmen.</p>
+							<p *ngSwitchDefault><p-alert>Error</p-alert></p>
+						</p-section>
+						<p-section
+							label="Stornogebühren" i18n-label
+							*ngIf="api.data.automaticBookingCancellationSettings.attributeInfoNoCancellationFees.show"
+						>
+							<p i18n>Falls Stornogebühren in Dr.&nbsp;Plano hinterlegt sind, können diese bei den zu stornierenden Buchungen angerechnet werden. Bei kostenlosen Buchungen oder Stornierungen innerhalb der hinterlegten Widerrufsfrist werden generell keine Stornogebühren angerechnet.</p>
+							<p-form-control-switch
+								[group]="formGroup!"
+								[attributeInfo]="api.data.automaticBookingCancellationSettings.attributeInfoNoCancellationFees"
+							>
+								<p-form-control-switch-item
+									label="Hinterlegte Stornogebühren anrechnen" i18n-label
+									[value]="false"
+								></p-form-control-switch-item>
+								<p-form-control-switch-item
+									label="Keine Stornogebühren" i18n-label
+									[value]="true"
+								></p-form-control-switch-item>
+							</p-form-control-switch>
+						</p-section>
+						<p-section
+							label="Automatische Online-Rückerstattung" i18n-label
+							*ngIf="api.data.automaticBookingCancellationSettings.attributeInfoAutomaticOnlineRefund.show"
+						>
+							<p i18n>Das ist nur bei Buchungen möglich, die per Online-Zahlung bezahlt worden sind und genügend Guthaben aufweisen, um den gesamten zu erstattenden Betrag zurückzuzahlen. Dabei wird die vom Kunden bereits bezahlte Gebühr – abzüglich der ggf. anfallenden Stornogebühren – automatisch an die buchende Person zurückgezahlt. Für Rückerstattungen fallen <a routerLink="/client/plugin/faq-online-payment" fragment="pricing" rel="noopener" target="_blank">Gebühren</a> an.</p><p i18n><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.MORE_INFO"></fa-icon>&nbsp;Online-Zahlungen, die vor mehr als 180 Tagen getätigt worden sind, können nicht zurückerstattet werden, da die Bank sie nicht mehr akzeptiert – Dr.&nbsp;Plano siebt so alte Zahlungen automatisch aus.</p>
+							<p-form-control-switch
+								[group]="formGroup!"
+								[attributeInfo]="api.data.automaticBookingCancellationSettings.attributeInfoAutomaticOnlineRefund"
+							>
+								<p-form-control-switch-item
+									label="Automatisch rückerstatten, falls nötig" i18n-label
+									description="Rückerstattungen erfolgen nur bei ausreichendem Online-Guthaben. Nach der Ausführung erhältst du eine Email darüber, welche Buchungen erstattet werden konnten." i18n-description
+									[value]="true"
+								></p-form-control-switch-item>
+								<p-form-control-switch-item
+									label="Keine automatische Rückerstattung" i18n-label
+									[value]="false"
+								></p-form-control-switch-item>
+							</p-form-control-switch>
+						</p-section>
+						<p-section class="pb-5">
+							<p-form-control-switch
+								label="Interne Notiz für die Rückzahlung" i18n-label
+								description="Interne Notizen werden bei der Zahlung abgespeichert und können nur von Admins oder Usern eingesehen werden, die Buchungen verwalten dürfen. Außerdem werden die Notizen im Excel-Export der Zahlungen mit exportiert und können so für die Kommunikation mit der Buchhaltung verwendet werden." i18n-description
+								[group]="formGroup!"
+								[attributeInfo]="api.data.automaticBookingCancellationSettings.attributeInfoTransactionInternalComment"
+								[type]="FormControlSwitchType.TEXTAREA"
+							></p-form-control-switch>
+						</p-section>
+					</ng-container>
+					<ng-template #dontShowCancellationSettingsTemplate>
+						<p-section>
+							<p-alert [theme]="PThemeEnum.INFO">Bei den von dir beabsichtigten Änderungen werden <mark>keine Buchungen betroffen</mark> sein. Daher gibt es hier nichts zu tun und du kannst weiter zum nächsten Schritt.</p-alert>
+						</p-section>
+					</ng-template>
+				</ng-container>
+			</ng-wizard-step>
+
+			<ng-wizard-step
+				title="Zusammenfassung" i18n-title
+				#overviewStep
+				[state]="STEP_STATE.normal"
+			>
+				<ng-container *ngIf="currentStepChange?.step?.index === overviewStep.index">
+					<p-section class="summery-section">
+						<ng-container [ngSwitch]="typeOfChange">
+							<h4 *ngSwitchCase="PTypeOfChange.CANCEL">Angebote stornieren</h4>
+							<h4 *ngSwitchCase="PTypeOfChange.DELETE">Schichten löschen</h4>
+							<h4 *ngSwitchDefault>Zu ändernde Schichten</h4>
+						</ng-container>
+
+						<ng-container *ngIf="typeOfChange===PTypeOfChange.CANCEL; else listForNonCancelTemplate">
+							<ul class="list-unstyled">
+								<li *ngIf="!shift!.packetShifts.length"><fa-icon [icon]="typeRelatedIcon" [theme]="typeRelatedIconTheme"></fa-icon>&ngsp;<ng-container i18n>{{ shift!.model!.name }}  <mark>{{ shift!.start | date:'veryShortDate' }}, {{ shift!.start | date:AngularDatePipeFormat.SHORT_TIME }}</mark></ng-container></li>
+								<li *ngFor="let packetShift of shift!.packetShifts.iterable()"><fa-icon [icon]="typeRelatedIcon" [theme]="typeRelatedIconTheme"></fa-icon>&ngsp;<ng-container i18n>{{ shift!.model!.name }}  <mark>{{ packetShift.start | date:'veryShortDate' }}</mark></ng-container></li>
+							</ul>
+
+							<p-alert *ngIf="!!shift!.packetShifts.length" i18n>Es werden <mark>alle Schichten des Pakets</mark> storniert. Wenn du einen einzelnen Termin stornieren möchtest, dann lösche die Schicht statt sie zu stornieren.</p-alert>
+						</ng-container>
+						<ng-template #listForNonCancelTemplate>
+
+							<ul *ngIf="!shift" class="list-unstyled">
+								<li><fa-icon [icon]="typeRelatedIcon" [theme]="typeRelatedIconTheme"></fa-icon>&ngsp;<ng-container i18n>Die Vorlage <mark>{{ shiftModel!.name }}</mark></ng-container></li>
+								<li *ngIf="!!shiftModel!.changeSelector.start"><fa-icon [icon]="typeRelatedIcon" [theme]="typeRelatedIconTheme"></fa-icon>&ngsp;<ng-container i18n>Bereits erstellte Schichten <mark>mit der Vorlage {{ shiftModel!.name }}</mark></ng-container>&ngsp;<ng-template [ngTemplateOutlet]="durationTemplate" [ngTemplateOutletContext]="{start: shiftModel!.changeSelector.start}"></ng-template></li>
+							</ul>
+							<ul *ngIf="!!shift" class="list-unstyled">
+								<li><fa-icon [icon]="typeRelatedIcon" [theme]="typeRelatedIconTheme"></fa-icon>&ngsp;<ng-container i18n>{{ shiftModel!.name }}  <mark>{{ shift!.start | date:'veryShortDate' }}, {{ shift!.start | date:AngularDatePipeFormat.SHORT_TIME }}</mark></ng-container></li>
+								<li *ngIf="!!optionToShiftModel"><fa-icon [icon]="typeRelatedIcon" [theme]="typeRelatedIconTheme"></fa-icon>&ngsp;<ng-container i18n>Die Vorlage <mark>{{ shiftModel!.name }}</mark></ng-container></li>
+								<li *ngIf="showApplyToShiftPacketCheckbox && !!optionShiftsOfPacket"><fa-icon [icon]="typeRelatedIcon" [theme]="typeRelatedIconTheme"></fa-icon>&ngsp;<ng-container i18n>Bereits erstellte Schichten <mark>aus demselben Schicht-Paket</mark></ng-container>&ngsp;<ng-template [ngTemplateOutlet]="durationTemplate" [ngTemplateOutletContext]="{start: shiftChangeSelector!.start, end: shiftChangeSelector!.end}"></ng-template></li>
+								<li *ngIf="!!optionShiftsOfSeries"><fa-icon [icon]="typeRelatedIcon" [theme]="typeRelatedIconTheme"></fa-icon>&ngsp;<ng-container i18n>Bereits erstellte Schichten <mark>aus derselben Wiederholung</mark></ng-container>&ngsp;<ng-template [ngTemplateOutlet]="durationTemplate" [ngTemplateOutletContext]="{start: shiftChangeSelector!.start, end: shiftChangeSelector!.end}"></ng-template></li>
+								<li *ngIf="!!optionShiftsOfModel"><fa-icon [icon]="typeRelatedIcon" [theme]="typeRelatedIconTheme"></fa-icon>&ngsp;<ng-container i18n>Bereits erstellte Schichten <mark>mit der Vorlage »{{ shiftModel!.name }}«</mark></ng-container>&ngsp;<ng-template [ngTemplateOutlet]="durationTemplate" [ngTemplateOutletContext]="{start: shiftChangeSelector!.start, end: shiftChangeSelector!.end}"></ng-template></li>
+							</ul>
+						</ng-template>
+
+						<ng-template #durationTemplate let-start="start" let-end="end">
+							<ng-container *ngIf="start!==0">&ngsp;<ng-container i18n>ab</ng-container>&ngsp;<mark>{{start | date:'veryShortDate'}}</mark></ng-container>
+							<ng-container *ngIf="!!end && end!==-1">&ngsp;<ng-container i18n>bis</ng-container>&ngsp;<mark>{{end - 1 | date:'veryShortDate'}}</mark></ng-container>
+						</ng-template>
+
+					</p-section>
+
+					<p-section *ngIf="showCancellationSettings" class="summery-section" label="Buchungen stornieren" i18n-label>
+						<ul class="list-unstyled">
+							<li><fa-icon [icon]="!affectedShiftsApiService.data.bookingsCanceledCount ? 'minus' : PlanoFaIconPool.CANCELED" [theme]="!affectedShiftsApiService.data.bookingsCanceledCount ? null : PThemeEnum.DANGER"></fa-icon>&ngsp;<span *ngIf="affectedShiftsApiService.data.bookingsCanceledCount > 0"><mark>{{ affectedShiftsApiService.data.bookingsCanceledCount }}</mark></span> {affectedShiftsApiService.data.bookingsCanceledCount, plural, =0 {Es werden keine Buchungen} one {Buchung wird} other {Buchungen werden}} storniert.</li>
+							<li *ngIf="affectedShiftsApiService.data.bookingsDeclinedCount > 0"><fa-icon [icon]="!affectedShiftsApiService.data.bookingsDeclinedCount ? 'minus' : PlanoFaIconPool.CANCELED" [theme]="!affectedShiftsApiService.data.bookingsDeclinedCount ? null : PThemeEnum.DANGER"></fa-icon>&ngsp;<mark>{{ affectedShiftsApiService.data.bookingsDeclinedCount }}</mark> {affectedShiftsApiService.data.bookingsDeclinedCount, plural, one {Anfrage wird} other {Anfragen werden}} abgelehnt.</li>
+						</ul>
+					</p-section>
+					<p-section *ngIf="showCancellationSettings && !!affectedShiftsApiService.data.bookingsCanceledCount" class="summery-section" label="Gebühren & Rückerstattungen" i18n-label>
+						<ul class="list-unstyled">
+							<li *ngIf="!api.data.automaticBookingCancellationSettings.attributeInfoNoCancellationFees.value; else noCancellationFeeResultTemplate"><fa-icon [icon]="PlanoFaIconPool.SUCCESS" [theme]="PThemeEnum.SUCCESS"></fa-icon>&ngsp;<ng-container i18n>Hinterlegte Stornogebühren werden angerechnet.</ng-container></li>
+							<ng-template #noCancellationFeeResultTemplate>
+								<li><fa-icon [icon]="'minus'"></fa-icon>&ngsp;<ng-container i18n>Es werden keine Stornogebühren angerechnet.</ng-container></li>
+							</ng-template>
+							<li *ngIf="!!api.data.automaticBookingCancellationSettings.attributeInfoAutomaticOnlineRefund.value; else automaticOnlineRefundTemplate"><fa-icon [icon]="PlanoFaIconPool.SUCCESS" [theme]="PThemeEnum.SUCCESS"></fa-icon>&ngsp;<ng-container i18n>Automatische Online-Rückerstattung erfolgt bei Buchungen, wo es nötig ist.</ng-container><span i18n class="form-text">Rückerstattungen erfolgen nur bei ausreichendem Online-Guthaben. Nach der Ausführung erhältst du eine Email darüber, welche Buchungen erstattet werden konnten.</span></li>
+							<ng-template #automaticOnlineRefundTemplate>
+								<li><fa-icon [icon]="'minus'"></fa-icon>&ngsp;<ng-container i18n>Es erfolgt keine automatische Rückerstattung.</ng-container></li>
+							</ng-template>
+						</ul>
+					</p-section>
+
+					<p-section *ngIf="showNotificationCheckbox" label="User Informieren" i18n-label>
+						<!-- <ul class="list-unstyled">
+							<li *ngIf="api.data.notificationsConf.sendEmail"><fa-icon [icon]="PlanoFaIconPool.PUSH_NOTIFICATION" [theme]="PThemeEnum.PRIMARY"></fa-icon>&ngsp;<ng-container i18n>Ja</ng-container></li>
+							<li *ngIf="!api.data.notificationsConf.sendEmail"><fa-icon [icon]="PlanoFaIconPool.NO_PUSH_NOTIFICATION"></fa-icon>&ngsp;<ng-container i18n>Nein</ng-container></li>
+						</ul> -->
+
+						<div class="row">
+							<div class="col-12 col-lg-6">
+								<p-notification-conf-form
+									class="mb-3 d-block"
+									[(ngModel)]="api.data.notificationsConf.sendEmail"
+									[api]="api"
+									[shift]="shift"
+								></p-notification-conf-form>
+							</div>
+						</div>
+						<p-alert [theme]="PThemeEnum.INFO" *ngIf="typeOfChange===PTypeOfChange.CANCEL && api.data.notificationsConf.sendEmail" i18n>Eingeteilte User werden aus ihren Schichten <mark>nicht</mark> entfernt, sondern lediglich über die Stornierung informiert.</p-alert>
+					</p-section>
+
+					<p-section [background]="PThemeEnum.DARK" class="card unlock-section mb-5 mx-md-5" *ngIf="!!showCaptureRequest">
+						<fa-icon [icon]="'lock'" class="unlock mr-2 align-self-center"></fa-icon>
+						<label class="capture-request-hint" i18n>Tippe hier <strong>»{{ captureRequest }}«</strong> ein, um die Ausführung freizuschalten</label>
+						<p-input [(ngModel)]="captureInput"></p-input>
+					</p-section>
+				</ng-container>
+			</ng-wizard-step>
+		</ng-wizard>
+	</section>
+</div>
+</ng-template>
+
+<div #ngContent [class.d-none]="!hasNgContent" class="mt-3">
+	<ng-content></ng-content>
+</div>
+
+<div class="modal-footer">
+	<button type="button" class="btn btn-outline-secondary" (click)="dismissModal()"><span i18n>Änderung verwerfen</span></button>
+
+	<div class="btn-group">
+		<button
+			[disabled]="currentStepChange?.position === undefined || currentStepChange?.position === STEP_POSITION.first"
+			type="button" class="btn btn-outline-secondary ml-auto"
+			(click)="showPreviousStep()"
+			i18n
+		>Zurück</button>
+		<button
+			*ngIf="currentStepChange?.position !== STEP_POSITION.final"
+			type="button" class="btn btn-primary ml-auto"
+			[disabled]="currentStepChange?.step?.state===STEP_STATE.error || !!addChangeSelectors && !someOptionIsSelected"
+			(click)="showNextStep()"
+			i18n
+		>Weiter</button>
+		<button
+			*ngIf="currentStepChange?.position === STEP_POSITION.final"
+			type="button" class="btn btn-success ml-auto"
+			[disabled]="submitBtnIsDisabled"
+			(click)="submit();"
+			i18n
+		>Ausführen</button>
+	</div>
+
+</div>

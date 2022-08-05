@@ -1,0 +1,72 @@
+@use "sass:math";
+
+@import "variables";
+@import "~bootstrap/scss/mixins/breakpoints";
+@import "../../../client/shared/p-transactions/transaction-list/transaction-list";
+
+.balanceInfoButton {
+	flex-grow: 0;
+	margin-top: map-get($map: $spacers, $key: 3);
+	white-space: nowrap;
+	width: fit-content;
+}
+
+.plano-adyen-logos {
+	margin-bottom: map-get($map: $spacers, $key: 3);
+	> div {
+		margin-bottom: map-get($map: $spacers, $key: 3);
+	}
+}
+
+@include media-breakpoint-up(xs) {
+	.plano-adyen-logos {
+		width: 340px;
+		height: 120px;
+		/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+		margin: 0 auto;
+		margin-top: map-get($map: $spacers, $key: 3);
+
+		.plano-adyen-logos--plano {
+			/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+			margin-bottom: 60px; text-align: left;
+		}
+
+		.plano-adyen-logos--adyen {
+			position: absolute; right: 0; bottom: 0;
+		}
+
+	}
+}
+
+.plano-adyen-logos {
+	&.adyen-is-not-active {
+		filter: grayscale(1) blur(2px);
+	}
+}
+
+hr {
+	margin: 0;
+	padding: 0;
+}
+
+$triangle-size: 16px;
+.arrow-up {
+	width: $triangle-size;
+	height: $triangle-size;
+	/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+	margin-top: -(math.div($triangle-size, 2));
+	margin-left: auto;
+	margin-right: auto;
+	background-color: $white;
+	border-left: $border-width solid transparent;
+	border-top: $border-width solid $border-color;
+	border-bottom: $border-width solid transparent;
+	border-right: $border-width solid $border-color;
+	transform: rotate(135deg);
+}
+
+/*	Padding for the small description text directly under the buttons within the filter modal.
+	The padding ensures that the text and the eye icon are aligned. */
+p-button + .form-text {
+	padding-left: map-get($spacers, 3);
+}

@@ -1,0 +1,65 @@
+<p-report-row
+	[class.border-bottom]="false"
+	[headline]="false"
+	[ruler]="true"
+	[duration]="null"
+	[workingTime]="null"
+	[absence]="absence"
+	(onEdit)="openItem()"
+	[hideEditBtn]="!rightsService.userCanWriteAbsences"
+	[min]="min"
+	[max]="max"
+	[class.bg-light]="false"
+>
+	<div report-row-title class="title d-flex align-items-center justify-content-between flex-grow-1">
+		<div [class.d-flex]="!CONFIG.IS_MOBILE" class="title">
+			<ng-template [ngTemplateOutlet]="titleTemplate"></ng-template>
+			<ng-template [ngTemplateOutlet]="dateAndTimeTemplate"></ng-template>
+		</div>
+	</div>
+	<strong report-row-earnings>{{ absence.totalEarningsBetween(min, max) | currency:undefined:'symbol':'1.2-2' }}</strong>
+</p-report-row>
+
+<ng-template #titleTemplate>
+	<span class="mr-3"><fa-icon [fixedWidth]="true" [icon]="absence.typeIconName"></fa-icon> {{ title | localize }}</span>
+</ng-template>
+
+<ng-template #dateAndTimeTemplate>
+	<div class="d-flex title" [class.small]="CONFIG.IS_MOBILE">
+		<ng-template [ngTemplateOutlet]="dateTemplate"></ng-template>
+		<ng-template [ngTemplateOutlet]="timeTemplate"></ng-template>
+	</div>
+</ng-template>
+
+<ng-template #dateTemplate>
+	<span class="text-monospace mr-3">
+		<span
+			[tooltip]="min > absence.time.start ? tooltipOutOfRange : undefined"
+			#pop="bs-tooltip"
+			placement="bottom"
+
+			[class.text-muted]="min > absence.time.start"
+		>{{ getDateInfo(absence).start }}</span>
+		{{ getDateInfo(absence).separator }}<span
+			[tooltip]="absenceIsOutsideRange ? tooltipOutOfRange : undefined"
+			#pop="bs-tooltip"
+			placement="bottom"
+
+			[class.text-muted]="absenceIsOutsideRange"
+		>{{ getDateInfo(absence).end }}</span></span>
+
+	<ng-template #tooltipOutOfRange>
+		<div class="d-block clickable card m-0 text-left o-hidden"
+			(click)="pop.hide()"
+		>
+			<div class="card-body p-1 pl-2 pr-2">
+				<div i18n>Dieses Datum liegt außerhalb des Zeitraums {{ min | date:'shortDate' }} – {{ max - 1 | date:'shortDate' }}, der für diese Auswertung eingestellt wurde. Dauer der Arbeit/Abwesenheit und Verdienst werden deshalb anteilig berechnet.</div>
+			</div>
+		</div>
+	</ng-template>
+</ng-template>
+
+<ng-template #timeTemplate>
+	<span class="text-monospace title" *ngIf="absence.workingTimePerDay === null"
+	>{{ absence.time.start | date:'veryShortTime' }} – {{ absence.time.end | date:'shortTime' }}</span>
+</ng-template>

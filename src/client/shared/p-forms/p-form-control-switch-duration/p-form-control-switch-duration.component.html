@@ -1,0 +1,25 @@
+<p-form-control-switch
+	[pEditable]="false"
+	[api]="attributeInfo.api!"
+
+	[type]="FormControlSwitchType.INPUT"
+	[label]="label"
+	[description]="description"
+	[placeholder]="placeholder"
+	[inputGroupAppendIcon]="inputGroupAppendIcon"
+	[group]="group"
+	[attributeInfo]="attributeInfo"
+	#startInputRef
+	[durationUIType]="dropdownValue"
+	[maxDecimalPlacesCount]="maxDecimalPlacesCount"
+	[supportsUndefined]="true"
+
+	[(dropdownValue)]="dropdownValue"
+	[readMode]="false"
+>
+	<p-form-control-switch-item
+		*ngFor="let option of options"
+		[label]="option.text | localize"
+		[value]="option.value"
+	></p-form-control-switch-item>
+</p-form-control-switch>

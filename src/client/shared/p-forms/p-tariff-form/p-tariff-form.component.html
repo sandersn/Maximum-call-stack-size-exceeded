@@ -1,0 +1,208 @@
+<form *ngIf="!!formGroup" [formGroup]="$any(formGroup)">
+	<p-form-group [control]="formGroup.controls['name']!">
+		<label i18n>Name</label>
+		<p-input
+			[formControl]="formGroup.controls['name']!"
+			placeholder="z. B. »Studierende«" i18n-placeholder
+		></p-input>
+	</p-form-group>
+	<p-form-group [control]="formGroup.controls['description']!">
+		<label i18n>Beschreibung</label>
+		<p-textarea
+			[wysiwyg]="true"
+			[formControl]="formGroup.controls['description']!"
+			placeholder="z. B. »Zahlung innerhalb von 14 Tagen nach Rechnungsstellung«" i18n-placeholder
+		></p-textarea>
+	</p-form-group>
+	<p-form-group>
+		<p-checkbox
+			*ngIf="shiftModel!.onlyWholeCourseBookable"
+			[formControl]="formGroup.controls['hasPerPersonFee']!"
+			[valid]="!formGroup.controls['fees']!.invalid"
+			valueText="Preis pro Person" i18n-valueText
+		></p-checkbox>
+		<h4
+			*ngIf="!shiftModel!.onlyWholeCourseBookable"
+			class="mb-3"
+			[class.text-danger]="formGroup.controls['fees']!.invalid"
+			i18n
+		>Preis pro Person</h4>
+	</p-form-group>
+	<div class="row pb-4"
+		*ngIf="formGroup.controls['hasPerPersonFee']!.value && pShiftmodelTariffService.getFancyFeeFormGroup(formGroup.controls['fees']!)"
+	>
+		<div class="col-12 col-md-6">
+			<p-form-group
+				[control]="pShiftmodelTariffService.getFancyFeeFormGroup(formGroup.controls['fees']!)!.controls['fee']!"
+				label="Brutto-Preis" i18n-label
+				[hasDanger]="pShiftmodelTariffService.getFancyFeeFormGroup(formGroup.controls['fees']!)!.controls['fee']!.invalid || formGroup.controls['fees']!.invalid"
+			>
+				<p-input
+					[type]="PApiPrimitiveTypes.Currency"
+
+					[formControl]="pShiftmodelTariffService.getFancyFeeFormGroup(formGroup.controls['fees']!)!.controls['fee']!"
+					[disabled]="!formGroup.controls['hasPerPersonFee']!.value"
+
+					placeholder="z. B. 10" i18n-placeholder
+				></p-input>
+				<p-alert
+					*ngIf="booking && !booking.isNewItem() && pShiftmodelTariffService.getFancyFeeFormGroup(formGroup.controls['fees']!)!.controls['fee']!.dirty"
+					class="mt-2"
+				><ng-container *ngTemplateOutlet="popTemplateChangeText"></ng-container></p-alert>
+			</p-form-group>
+		</div>
+		<div class="col-12 col-md-6">
+			<p-form-group
+				[control]="pShiftmodelTariffService.getFancyFeeFormGroup(formGroup.controls['fees']!)!.controls['taxPercentage']!"
+			>
+				<label i18n>MwSt.</label>
+				<p-tax-dropdown
+					[control]="pShiftmodelTariffService.getFancyFeeFormGroup(formGroup.controls['fees']!)!.controls['taxPercentage']!"
+					[disabled]="!formGroup.controls['hasPerPersonFee']!.value"
+				></p-tax-dropdown>
+			</p-form-group>
+		</div>
+	</div>
+
+	<p-section [whitespace]="SectionWhitespace.NONE">
+		<h4 class="mb-3"><ng-container i18n>Zusätzliche Kunden-Info</ng-container>&nbsp;<p-info-circle i18n>Wählt ein Kunde diesen Tarif, hast du die Möglichkeit, ihn/sie um eine tarifabhängige Info zu bitten,  bspw. um eine Mitgliedsnummer. Für die Abfrage wird im Buchungsformular ein Pflicht-Textfeld eingeblendet, dessen Titel du hier bestimmen kannst – je kürzer und aussagekräftiger desto besser.</p-info-circle></h4>
+		<p-grid>
+			<p-form-group
+				class="col-12 col-md-6"
+				label="Abfrage im Buchungsformular" i18n-label
+			>
+				<p-checkbox
+					[ngModel]="formGroup.controls['additionalFieldLabel']!.enabled"
+					(ngModelChange)="toggleDisabledStateOfAdditionalFieldLabel($event)"
+					[ngModelOptions]="{standalone: true}"
+					[disabled]="!!booking"
+					[readMode]="false"
+					valueText="Pflicht-Textfeld anzeigen" i18n-valueText
+				></p-checkbox>
+			</p-form-group>
+			<p-form-group
+				label="Titel des Textfelds" i18n-label
+				class="col-12 col-md-6"
+				[control]="formGroup.controls['additionalFieldLabel']!"
+			>
+				<p-input
+					placeholder="z.B. »Mitgliedsnummer«" i18n-placeholder
+					[formControl]="formGroup.controls['additionalFieldLabel']!"
+					[disabled]="formGroup.controls['additionalFieldLabel']!.disabled || !!booking"
+					[readMode]="false"
+				></p-input>
+			</p-form-group>
+		</p-grid>
+	</p-section>
+
+	<div class="d-flex justify-content-start align-items-center mt-4"
+		*ngIf="shiftModel!.onlyWholeCourseBookable"
+	>
+		<h5
+			[class.text-danger]="formGroup.controls['fees']!.invalid"
+		><span i18n>Gebühren</span> <p-info-circle [class.ml-2]="Config.IS_MOBILE" i18n>Gebühren werden zum »Preis pro Person« addiert. Sie eignen sich besonders für Gruppen: z. B. {{100 | currency}} pro 6 Personen für Kurs-Leitende. Du kannst auch nur Gebühren definieren und den »Preis pro Person« ganz weglassen.</p-info-circle></h5>
+	</div>
+	<p-form-group *ngIf="shiftModel!.onlyWholeCourseBookable">
+		<ng-template ngFor let-fee [ngForOf]="pFormsService.getIterableFormGroups(formGroup.controls['fees']!)" let-i="index">
+			<ng-template [ngIf]="!formGroup.controls['hasPerPersonFee']!.value || !isFancyFee(fee.controls['reference'].value)">
+				<p-editable-box
+					[pEditable]="false"
+					[api]="api"
+					[valid]="!formGroup.controls['fees']!.invalid"
+					(onDismiss)="dismissFeeBox.emit()"
+
+					[disabled]="!userCanWrite"
+				>
+					<p-editable-box-header>
+						<div class="card-options">
+							<div class="d-flex align-items-center justify-content-between pl-3 pr-3 pt-2 pb-2 w-100">
+								<h5 class="m-0" i18n>{!!fee.controls['name'].value, select, true {{{fee.controls['name'].value}}} other {Gebühr}}</h5>
+								<span>{fee.controls['fee'].value !== undefined && !!(+fee.controls['fee'].value === 0 || +fee.controls['fee'].value), select, true {{{fee.controls['fee'].value | currency}}} other {-}} / {!!fee.controls['perXParticipants'].value, select, true {{{fee.controls['perXParticipants'].value}}} other {-}}<fa-icon class="ml-1" [fixedWidth]="true" [icon]="'users'"></fa-icon></span>
+							</div>
+							<div class="d-flex align-items-stretch">
+								<button
+									type="button"
+									class="btn btn-danger card-option p-2 rounded-right nowrap"
+									(click)="pShiftmodelTariffService.removeTariffFee(formGroup.controls['fees']!, formGroup.controls['reference']!.value, fee.controls['reference'].value, booking)"
+								>
+									<span><fa-icon [fixedWidth]="true" icon="trash"></fa-icon>&nbsp;<ng-container i18n>löschen</ng-container></span>
+								</button>
+							</div>
+						</div>
+					</p-editable-box-header>
+					<p-editable-box-form>
+						<p-grid>
+							<div class="col-12 col-md-6">
+								<p-form-group label="Name der Gebühr" i18n-label
+									[control]="fee.controls['name']"
+								>
+									<p-input
+										[formControl]="$any(fee.controls['name'])"
+										placeholder="z. B. »Verpflegung«" i18n-placeholder
+									>
+									</p-input>
+								</p-form-group>
+							</div>
+							<div class="col-12 col-md-6">
+								<p-form-group label="Brutto-Preis" i18n-label
+									[control]="fee.controls['fee']"
+								>
+									<p-input
+										[type]="PApiPrimitiveTypes.Currency"
+										[formControl]="$any(fee.controls['fee'])"
+										placeholder="z. B. 10" i18n-placeholder
+									>
+									</p-input>
+								</p-form-group>
+							</div>
+							<div class="col-12 col-md-6">
+								<p-form-group label="Pro X Personen" i18n-label
+									[control]="fee.controls['perXParticipants']"
+								>
+									<p-input
+										[type]="PApiPrimitiveTypes.number"
+										[formControl]="$any(fee.controls['perXParticipants'])"
+										placeholder="z. B. »4«" i18n-placeholder
+									>
+										<p-input-prepend>
+											<span class="input-group-text"><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ITEMS_PARTICIPANT"></fa-icon></span>
+										</p-input-prepend>
+									</p-input>
+								</p-form-group>
+							</div>
+							<div class="col-12 col-md-6">
+								<p-form-group label="MwSt." i18n-label
+									[control]="fee.controls['taxPercentage']"
+								>
+									<p-tax-dropdown
+										[control]="$any(fee.controls['taxPercentage'])"
+									></p-tax-dropdown>
+								</p-form-group>
+							</div>
+
+						</p-grid>
+
+					</p-editable-box-form>
+				</p-editable-box>
+
+			</ng-template>
+		</ng-template>
+
+		<div *ngIf="userCanWrite" class="d-flex justify-content-center">
+			<button
+				type="button"
+				class="btn btn-lg mb-0 w-100"
+				[class.btn-outline-secondary]="!formGroup.controls['fees']!.invalid"
+				[class.btn-outline-danger]="formGroup.controls['fees']!.invalid"
+
+				(click)="onClickAddTariffFee()"
+				[disabled]="!formGroup.controls['fees']!.invalid && formGroup.invalid"
+			><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon>&nbsp;<ng-container i18n>Gebühr hinzufügen</ng-container></button>
+		</div>
+	</p-form-group>
+
+</form>
+
+<ng-template #popTemplateChangeText>
+	<span i18n><strong>Änderst du das,</strong> werden buchende & teilnehmende Personen informiert, <strong>falls</strong> du automatische Emails aktiviert hast.</span>
+</ng-template>

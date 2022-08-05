@@ -1,0 +1,107 @@
+<div class="btn-group w-100 raw" role="group"
+	[style.opacity]="hovered || settingExistsForThisArea ? 1 : 0.3"
+	(mouseover)="hovered=true"
+	(mouseout)="hovered=false"
+>
+	<ng-template
+		[ngIf]="isMemberRightGroup"
+		[ngIfElse]="showNotificationToggle"
+	>
+		<button type="button"
+			class="btn col"
+			pEditableInstantSaveButton
+			[class.btn-primary]="rightGroup.shiftModelRights.getByItem(item) ? rightGroup.shiftModelRights.getByItem(item)!.canRead : false"
+			[class.btn-outline-secondary]="rightGroup.shiftModelRights.getByItem(item) ? !rightGroup.shiftModelRights.getByItem(item)!.canRead : true"
+			(triggerClick)="toggleCanRead()"
+			[disabled]="!api.isLoaded() || disabled"
+			title="Leserecht" i18n-title
+		>
+			<ng-container *ngTemplateOutlet="eyeIcon"></ng-container>
+		</button>
+		<button type="button"
+			class="btn col"
+			pEditableInstantSaveButton
+			[class.btn-primary]="rightGroup && rightGroup.shiftModelRights.getByItem(item) ? rightGroup.shiftModelRights.getByItem(item)!.canWriteBookings : false"
+			[class.btn-outline-secondary]="rightGroup && rightGroup.shiftModelRights.getByItem(item) ? !rightGroup.shiftModelRights.getByItem(item)!.canWriteBookings : true"
+			(triggerClick)="toggleCanManageBookings()"
+			[disabled]="!api.isLoaded() || disabled"
+			title="Buchungen verwalten" i18n-title
+		>
+			<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ITEMS_SALES"></fa-icon>
+		</button>
+		<button type="button"
+			class="btn col"
+			pEditableInstantSaveButton
+			[class.btn-primary]="rightGroup && rightGroup.shiftModelRights.getByItem(item) ? rightGroup.shiftModelRights.getByItem(item)!.canWrite : false"
+			[class.btn-outline-secondary]="rightGroup && rightGroup.shiftModelRights.getByItem(item) ? !rightGroup.shiftModelRights.getByItem(item)!.canWrite : true"
+			(triggerClick)="toggleCanWrite()"
+			[disabled]="!api.isLoaded() || disabled"
+			title="Schreibrecht" i18n-title
+		>
+			<ng-container *ngTemplateOutlet="editIcon"></ng-container>
+		</button>
+		<button type="button"
+			class="btn col"
+			pEditableInstantSaveButton
+			[class.btn-primary]="rightGroup && rightGroup.shiftModelRights.getByItem(item) ? rightGroup.shiftModelRights.getByItem(item)!.canOnlineRefund : false"
+			[class.btn-outline-secondary]="rightGroup && rightGroup.shiftModelRights.getByItem(item) ? !rightGroup.shiftModelRights.getByItem(item)!.canOnlineRefund : true"
+			(triggerClick)="toggleCanOnlineRefund()"
+			[disabled]="!api.isLoaded() || disabled"
+			title="Online-Rückerstattung" i18n-title
+		>
+			<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.BOOKING_PAYMENT_STATUS"></fa-icon>
+		</button>
+	</ng-template>
+	<ng-template #showNotificationToggle>
+		<button type="button"
+			class="btn col btn-primary"
+			[class.disabled]="true"
+
+			[tooltip]="tooltipAdminNotEditable"
+			placement="bottom"
+			title="Leserecht" i18n-title
+		>
+			<ng-container *ngTemplateOutlet="eyeIcon"></ng-container>
+		</button>
+		<button type="button"
+			class="btn col btn-primary"
+			[class.disabled]="true"
+
+			[tooltip]="tooltipAdminNotEditable"
+			placement="bottom"
+			title="Schreibrecht" i18n-title
+		>
+			<ng-container *ngTemplateOutlet="editIcon"></ng-container>
+		</button>
+	</ng-template>
+	<button type="button"
+		class="btn col"
+		pEditableInstantSaveButton
+		[disabled]="!api.isLoaded() || disabled"
+		[class.btn-primary]="rightGroup && rightGroup.canGetManagerNotificationByItem(item)"
+		[class.btn-outline-secondary]="rightGroup && !rightGroup.canGetManagerNotificationByItem(item)"
+		(triggerClick)="toggleCanGetManagerNotifications()"
+		title="Benachrichtigungen für Bereichsleitende" i18n-title
+	>
+		<ng-container *ngTemplateOutlet="envelopeIcon"></ng-container>
+	</button>
+</div>
+
+<ng-template #tooltipAdminNotEditable>
+	<div class="d-block clickable card m-0 text-left o-hidden"
+	>
+		<div class="p-3">
+			<div i18n>Aktuell dürfen Admins alles sehen und editieren 🎉&nbsp; Eine Differenzierung ist noch nicht möglich.</div>
+		</div>
+	</div>
+</ng-template>
+
+<ng-template #eyeIcon>
+	<fa-icon [fixedWidth]="true" [icon]="['far','eye']"></fa-icon>
+</ng-template>
+<ng-template #editIcon>
+	<fa-icon [fixedWidth]="true" icon="pen"></fa-icon>
+</ng-template>
+<ng-template #envelopeIcon>
+	<fa-icon [fixedWidth]="true" icon="envelope"></fa-icon>
+</ng-template>

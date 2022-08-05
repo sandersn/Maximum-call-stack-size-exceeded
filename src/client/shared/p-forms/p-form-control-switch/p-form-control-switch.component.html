@@ -1,0 +1,269 @@
+<p-form-group
+	*ngIf="show"
+	[label]="label"
+	[description]="description"
+>
+	<div [ngSwitch]="typeOfUIFormControl">
+		<div *ngSwitchCase="'CHECKBOX'">
+			<p-checkbox
+				[pEditable]="isEditable"
+				[api]="attributeInfo.api!"
+				[valid]="valid"
+				[saveChangesHook]="saveChangesHook"
+				(onSaveStart)="onSaveStart.emit($event)"
+				(onSaveSuccess)="onSaveSuccess.emit($event)"
+				(onDismiss)="onDismiss.emit($event)"
+				(onLeaveCurrent)="onLeaveCurrent.emit($event)"
+				(editMode)="editMode.emit($event)"
+
+				[valueText]="valueText"
+				[attributeInfo]="attributeInfo"
+				[theme]="theme"
+
+				[readMode]="readMode"
+				[formControl]="control"
+				[ngModel]="attributeInfo.value"
+				(ngModelChange)="valueChange.emit($event)"
+				[disabled]="!canEdit"
+				[checkTouched]="!!checkTouched"
+			>
+				<ng-template [ngTemplateOutlet]="ngContentRef"></ng-template>
+			</p-checkbox>
+			<!-- XXX: Not implemented yet -->
+			<!-- [cannotEditHint]="'Lorem Ipsum'" -->
+		</div>
+		<div *ngSwitchCase="'TEXTAREA'">
+			<p-textarea
+				[pEditable]="isEditable"
+				[api]="attributeInfo.api!"
+				[valid]="valid"
+				[saveChangesHook]="saveChangesHook"
+				(onSaveStart)="onSaveStart.emit($event)"
+				(onSaveSuccess)="onSaveSuccess.emit($event)"
+				(onDismiss)="onDismiss.emit($event)"
+				(onLeaveCurrent)="onLeaveCurrent.emit($event)"
+				(editMode)="editMode.emit($event)"
+
+				[readMode]="readMode"
+				[formControl]="control"
+				[ngModel]="attributeInfo.value"
+				(ngModelChange)="valueChange.emit($event)"
+				[attributeInfo]="attributeInfo"
+
+				[placeholder]="placeholder"
+				[disabled]="!canEdit"
+				[checkTouched]="!!checkTouched"
+			>
+				<ng-template [ngTemplateOutlet]="ngContentRef"></ng-template>
+			</p-textarea>
+			<!-- XXX: Not implemented yet -->
+			<!-- [cannotEditHint]="'Lorem Ipsum'" -->
+		</div>
+		<div *ngSwitchCase="'DATE_PICKER'">
+			<p-input-date
+				class="{{theme !== undefined ? 'btn-'+theme : undefined}}"
+				[pEditable]="isEditable"
+				[api]="attributeInfo.api!"
+				[valid]="valid"
+				[saveChangesHook]="saveChangesHook"
+				(onSaveStart)="onSaveStart.emit($event)"
+				(onSaveSuccess)="onSaveSuccess.emit($event)"
+				(onDismiss)="onDismiss.emit($event)"
+				(onLeaveCurrent)="onLeaveCurrent.emit($event)"
+				(editMode)="editMode.emit($event)"
+
+				[readMode]="readMode"
+				[formControl]="control"
+				[ngModel]="attributeInfo.value"
+				(ngModelChange)="valueChange.emit($event)"
+				[attributeInfo]="attributeInfo"
+
+				[placeholder]="placeholder"
+				[disabled]="!canEdit"
+				[isExclusiveEnd]="isExclusiveEnd"
+				[showTimeInput]="showTimeInput"
+				[checkTouched]="!!checkTouched"
+				[type]="inputDateType"
+				[eraseValueBtnLabel]="eraseValueBtnLabel"
+				[supportsUndefined]="supportsUndefined"
+				[showEraseValueBtn]="showEraseValueBtn !== undefined ? showEraseValueBtn : true"
+			>
+				<ng-template [ngTemplateOutlet]="ngContentRef"></ng-template>
+			</p-input-date>
+			<!-- XXX: Not implemented yet -->
+			<!-- [cannotEditHint]="'Lorem Ipsum'" -->
+		</div>
+		<div *ngSwitchCase="'RADIOS'">
+			<p-radios
+				[pEditable]="isEditable"
+				[api]="attributeInfo.api!"
+				[valid]="valid"
+				[saveChangesHook]="saveChangesHook"
+				(onSaveStart)="onSaveStart.emit($event)"
+				(onSaveSuccess)="onSaveSuccess.emit($event)"
+				(onDismiss)="onDismiss.emit($event)"
+				(onLeaveCurrent)="onLeaveCurrent.emit($event)"
+				(editMode)="editMode.emit($event)"
+
+				[readMode]="readMode"
+				[formControl]="control"
+				[attributeInfo]="attributeInfo"
+				[ngModel]="attributeInfo.value"
+				(ngModelChange)="valueChange.emit($event)"
+				[disabled]="!canEdit"
+				[checkTouched]="!!checkTouched"
+
+				[hideRadioCircles]="hideRadioCircles"
+				[cannotEditHint]="cannotEditHint"
+			>
+				<ng-template
+					ngFor let-item
+					[ngForOf]="items"
+				>
+					<p-radios-radio
+						[value]="item.value"
+						[icon]="item.icon"
+						[label]="item.label"
+						[description]="item.description"
+						[active]="item.active"
+						[disabled]="item.disabled"
+						[cannotEditHint]="item.cannotEditHint"
+						(onClick)="onInputItemClick(item, $event)"
+					></p-radios-radio>
+				</ng-template>
+				<ng-template [ngTemplateOutlet]="ngContentRef"></ng-template>
+			</p-radios>
+			<!-- XXX: Not implemented yet -->
+			<!-- [cannotEditHint]="'Lorem Ipsum'" -->
+		</div>
+		<div *ngSwitchCase="'DROPDOWN'">
+			<p-dropdown
+				[pEditable]="isEditable"
+				[api]="attributeInfo.api!"
+				[valid]="valid"
+				[saveChangesHook]="saveChangesHook"
+				(onSaveStart)="onSaveStart.emit($event)"
+				(onSaveSuccess)="onSaveSuccess.emit($event)"
+				(onDismiss)="onDismiss.emit($event)"
+				(onLeaveCurrent)="onLeaveCurrent.emit($event)"
+				[label]="placeholder"
+				(editMode)="editMode.emit($event)"
+
+				[readMode]="readMode"
+				[formControl]="control"
+				[ngModel]="attributeInfo.value"
+				(ngModelChange)="valueChange.emit($event)"
+				[disabled]="!canEdit"
+				[checkTouched]="!!checkTouched"
+			>
+				<ng-template
+					ngFor let-item
+					[ngForOf]="items"
+				>
+					<p-dropdown-item
+						[value]="item.value"
+						[icon]="$any(item.icon)"
+
+						[label]="item.label"
+						[description]="item.description"
+						[active]="item.active"
+						[disabled]="item.disabled"
+						[cannotEditHint]="item.cannotEditHint"
+						[attributeInfo]="null"
+					></p-dropdown-item>
+				</ng-template>
+				<ng-template [ngTemplateOutlet]="ngContentRef"></ng-template>
+			</p-dropdown>
+			<!-- XXX: Not implemented yet -->
+			<!-- [cannotEditHint]="'Lorem Ipsum'" -->
+		</div>
+		<div *ngSwitchCase="'IMAGE_UPLOAD'">
+			<!--
+			[active]="isEditable"
+			[saveChangesHook]="saveChangesHook"
+			(onSaveStart)="onSaveStart.emit($event)"
+			(onSaveSuccess)="onSaveSuccess.emit($event)"
+			(onDismiss)="onDismiss.emit($event)"
+			(onLeaveCurrent)="onLeaveCurrent.emit($event)"
+			(editMode)="editMode.emit($event)" -->
+			<!-- [checkTouched]="checkTouched" -->
+			<!-- [ngModel]="attributeInfo.value" Two way binding is not allowed in i-input-image -->
+
+			<p-input-image
+				[pEditable]="isEditable"
+				[api]="attributeInfo.api!"
+				[valid]="valid"
+
+				[readMode]="readMode"
+				[formControl]="control"
+				[attributeInfo]="attributeInfo"
+
+				[previewTemplate]="previewTemplate"
+			>
+				<ng-template [ngTemplateOutlet]="ngContentRef"></ng-template>
+			</p-input-image>
+
+			<!-- XXX: Not implemented yet -->
+			<!-- [cannotEditHint]="'Lorem Ipsum'" -->
+		</div>
+		<div *ngSwitchDefault>
+			<p-input
+				[pEditable]="isEditable"
+				[api]="attributeInfo.api!"
+				[valid]="valid"
+
+				[saveChangesHook]="saveChangesHook"
+				(onSaveStart)="onSaveStart.emit($event)"
+				(onSaveSuccess)="onSaveSuccess.emit($event)"
+				(onDismiss)="onDismiss.emit($event)"
+				(onLeaveCurrent)="onLeaveCurrent.emit($event)"
+				(editMode)="editMode.emit($event)"
+
+				[type]="pInputType"
+				[readMode]="readMode"
+				[disabled]="!canEdit"
+				[formControl]="control"
+				[ngModel]="attributeInfo.value"
+				(ngModelChange)="valueChange.emit($event)"
+				[dropdownValue]="dropdownValue"
+				(dropdownValueChange)="dropdownValue=$event;dropdownValueChange.emit($event)"
+				[attributeInfo]="attributeInfo"
+
+				[placeholder]="placeholder"
+				[durationUIType]="durationUIType"
+				[maxDecimalPlacesCount]="maxDecimalPlacesCount"
+				[supportsUndefined]="supportsUndefined"
+				[checkTouched]="!!checkTouched"
+
+				[showPasswordMeter]="showPasswordMeter"
+				[inputGroupAppendText]="inputGroupAppendText"
+				[inputGroupAppendIcon]="inputGroupAppendIcon"
+			>
+				<ng-template
+					ngFor let-item
+					[ngForOf]="items"
+				>
+					<p-dropdown-item
+						[value]="item.value"
+						[icon]="$any(item.icon)"
+
+						[label]="item.label"
+						[description]="item.description"
+						[active]="item.active"
+						[disabled]="item.disabled"
+						[cannotEditHint]="item.cannotEditHint"
+						[attributeInfo]="null"
+						(onClick)="onInputItemClick(item, $event)"
+					></p-dropdown-item>
+				</ng-template>
+				<ng-template [ngTemplateOutlet]="ngContentRef"></ng-template>
+			</p-input>
+			<!-- XXX: Not implemented yet -->
+			<!-- [cannotEditHint]="'Lorem Ipsum'" -->
+		</div>
+	</div>
+</p-form-group>
+
+<ng-template #ngContentRef>
+	<ng-content></ng-content>
+</ng-template>

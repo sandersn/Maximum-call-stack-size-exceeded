@@ -1,0 +1,18 @@
+<div class="sticky-top border-bottom">
+	<div class="navbar navbar-dark bg-light">
+		<div class="container p-0 pl-md-2 pr-md-2"
+			[class.container]="!containerSize"
+			[class.container-sm]="containerSize==='sm'"
+		>
+			<button type="button" class="btn btn-sm btn-outline-secondary mr-auto" (click)="navBack()">
+				<fa-icon
+					[fixedWidth]="true"
+					[icon]="isNewItem ? PlanoFaIconPool.DELETE : PlanoFaIconPool.NAV_BACK"
+					[class.text-danger]="isNewItem">
+				</fa-icon>
+				{{ text }}
+			</button>
+			<ng-content></ng-content>
+		</div>
+	</div>
+</div>

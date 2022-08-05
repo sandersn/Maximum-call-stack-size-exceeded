@@ -1,0 +1,12 @@
+@import "variables";
+
+pre {
+	padding: map-get($spacers, 3);
+	background: #eee;
+	border-radius: $border-radius;
+}
+
+img {
+	max-width: 100%;
+	padding: map-get($spacers, 3);
+}

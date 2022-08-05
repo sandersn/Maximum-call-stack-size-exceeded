@@ -1,0 +1,144 @@
+<div class="card-options"
+	dropdown
+	[autoClose]="true"
+	[isDisabled]="false"
+>
+	<button type="button"
+		pEditableModalButton
+		[centered]="true"
+		[icon]="!!rightGroup ? PlanoFaIconPool.EDIT : undefined"
+
+		[pEditable]="editableIsActive"
+		[api]="api"
+		[valid]="!!rightGroup && !!rightGroup.name"
+
+		class="btn btn-outline-secondary btn-frameless border-0 rounded d-flex justify-content-between align-items-center title w-100"
+		[class.btn-dark]="!!rightGroup"
+		[class.text-white]="!!rightGroup"
+	>
+		<p-editable-modal-button-header>
+			<ng-container *ngTemplateOutlet="rightGroupTitleAndDesc; context: {$implicit: rightGroup}"></ng-container>
+		</p-editable-modal-button-header>
+		<p-editable-modal-button-form>
+			<ng-template [ngIf]="rightGroup">
+				<ng-template [ngTemplateOutlet]="formTemplate"></ng-template>
+			</ng-template>
+		</p-editable-modal-button-form>
+	</button>
+
+	<button
+		*ngIf="hasRightGroupChangeBinding"
+		dropdownToggle
+		type="button" class="card-option btn btn-frameless border-bottom-0"
+		[class.btn-dark]="!!rightGroup"
+		[class.btn-primary]="!rightGroup"
+		[class.btn-light]="!!rightGroup"
+
+	><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.COLLAPSIBLE_CLOSE" [class.text-white]="!!rightGroup"></fa-icon></button>
+	<ul
+		*dropdownMenu
+		class="dropdown-menu dropdown-menu-right w-100 text-left"
+	>
+		<ng-template
+			ngFor let-rightGroupItem
+			[ngForOf]="rightGroups.iterableSortedBy('name')"
+		>
+			<ng-template [ngIf]="!rightGroupItem.isNewItem()">
+				<li>
+					<button type="button"
+						class="btn dropdown-item clickable w-100 title d-flex align-items-center rounded-0"
+						[class.bg-primary]="rightGroup && rightGroup.id.equals(rightGroupItem.id)"
+						[class.text-white]="rightGroup && rightGroup.id.equals(rightGroupItem.id)"
+						(click)="selectRightGroup(rightGroupItem)"
+					><fa-icon [fixedWidth]="true" [icon]="rightGroup && rightGroup.id.equals(rightGroupItem.id) ? ['far','dot-circle'] : PlanoFaIconPool.RADIO_UNSELECTED" class="mr-2"></fa-icon> <ng-container *ngTemplateOutlet="rightGroupTitleAndDesc; context: {$implicit: rightGroupItem}"></ng-container></button>
+				</li>
+			</ng-template>
+		</ng-template>
+
+		<li>
+			<hr class="m-1" />
+		</li>
+
+		<li>
+			<a class="dropdown-item clickable"
+				(click)="addRightGroup(rightGroupDetailModalContent)"
+			><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon> <span i18n>Neue Gruppe</span></a>
+		</li>
+	</ul>
+
+
+</div>
+
+<ng-template #formTemplate>
+	<div hidden><span i18n #translatedLabelForName>Name der {rightGroup!.isNewItem(), select, true {neuen }}Gruppe</span></div>
+	<p-form-group [label]="translatedLabelForName.textContent!">
+		<p-input [(ngModel)]="rightGroup!.name"></p-input>
+	</p-form-group>
+
+	<p-form-group [label]="translatedLabelForRole">
+		<p-radios
+			[readMode]="false"
+			[(ngModel)]="rightGroup!.role"
+			[disabled]="lastExistingAdminGroup(rightGroup!)"
+		>
+			<p-radios-radio
+				label="Admins" i18n-label
+				[value]="schedulingApiRightGroupRole.CLIENT_OWNER"
+			></p-radios-radio>
+			<p-radios-radio
+				[popover]="lastExistingAdminGroup(rightGroup!) ? 'Deine Halle braucht mindestens eine Admin-Gruppe. Dies ist die letzte existierende Admin-Gruppe.' : undefined"
+				placement="top"
+
+				label="Mitarbeitende" i18n-label
+				[value]="schedulingApiRightGroupRole.CLIENT_DEFAULT"
+			></p-radios-radio>
+		</p-radios>
+		<div class="form-text" i18n>Admins haben Lese- und Schreibrecht für alle Tätigkeiten. Außerdem haben sie Zugriff auf Angestellten- und Firmendaten, Rechteverteilung sowie weitere sensible Bereiche.</div>
+	</p-form-group>
+</ng-template>
+
+<ng-template #rightGroupDetailModalContent let-c="close" let-d="dismiss">
+	<ng-template [ngIf]="rightGroup">
+		<div hidden><span i18n #translatedModalHeader>{rightGroup.isNewItem(), select, true {Gruppe anlegen} other {Name der Gruppe ändern}}</span></div>
+		<p-modal-header
+			[title]="translatedModalHeader.textContent!"
+			(onClose)="d('Cross click')"
+		></p-modal-header>
+		<div class="modal-body">
+			<ng-template [ngTemplateOutlet]="formTemplate"></ng-template>
+		</div>
+		<div
+			[pEditable]="!rightGroup.isNewItem()"
+			[api]="api"
+			[valid]="!!rightGroup.name && !!rightGroup.name.length"
+		>
+			<div class="modal-footer">
+				<button type="button"
+					*ngIf="rightGroup.isNewItem()"
+					class="btn btn-light"
+					(click)="d('Close click')"
+					i18n
+				>Abbrechen</button>
+				<button type="button"
+					class="btn ml-auto"
+
+					pEditableInstantSaveButton
+					(click)="c('Close click')"
+
+					[class.btn-primary]="rightGroup.name && rightGroup.name.length"
+					[class.btn-light]="!(rightGroup.name && rightGroup.name.length)"
+					[disabled]="!(rightGroup.name && rightGroup.name.length)"
+
+					i18n
+				>{rightGroup.isNewItem(), select, true {Anlegen} other {Bearbeitung abschließen}}</button>
+			</div>
+		</div>
+	</ng-template>
+</ng-template>
+
+
+<ng-template #rightGroupTitleAndDesc let-rightGroup>
+	<span class="title text-left flex-grow-1" style="flex-shrink: 1;"
+		[title]="getTitleForRightGroup(rightGroup)"
+	>{{ getTitleForRightGroup(rightGroup) }}<br><small class="text-muted">{{ getTitleForTypeOfRightGroup(rightGroup) }}</small></span>
+</ng-template>

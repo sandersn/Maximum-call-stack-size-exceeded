@@ -1,0 +1,32 @@
+<p-input
+	[ngModel]="valueToCopy"
+	[type]="type"
+	(focus)="onFocus($event)"
+	[disabled]="false"
+	[readMode]="false"
+	[readonly]="true"
+>
+	<p-input-append>
+		<p-button
+			[attributeInfo]="null"
+			(triggerClick)="copyString(valueToCopy!)"
+			[textStyle]="copiedToClipboard === valueToCopy ? PThemeEnum.SUCCESS : null"
+
+			[tooltip]="copyInfo"
+			#pop="bs-tooltip"
+			placement="bottom"
+
+			[rounded]="BootstrapRounded.RIGHT"
+		><fa-icon [fixedWidth]="true" [spin]="iconSpinning" [icon]="icon"></fa-icon></p-button>
+	</p-input-append>
+</p-input>
+
+<ng-template #copyInfo>
+	<div class="d-block clickable card m-0 text-left o-hidden"
+		(click)="pop.hide()"
+	>
+		<div class="p-3">
+			<div i18n>In Zwischenablage kopieren.</div>
+		</div>
+	</div>
+</ng-template>

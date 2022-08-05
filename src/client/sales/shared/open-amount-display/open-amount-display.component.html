@@ -1,0 +1,17 @@
+<span [ngSwitch]="state">
+	<ng-container *ngSwitchCase="'needsRefund'">
+		<span i18n>Fällige Rückerstattung</span>
+		<div class="mt-1 ml-2 ml-lg-0 mr-2"><span class="h5 text-monospace font-weight-bold text-{{textTheme}}">{{ (openAmount && -openAmount ? -openAmount : 0) | currency }}</span></div>
+	</ng-container>
+	<ng-container *ngSwitchCase="'isPayed'">
+		<span i18n>Fälliger Restbetrag</span>
+		<div class="mt-1 ml-2 ml-lg-0 mr-2"><span class="h5 text-monospace font-weight-bold text-{{textTheme}}">{{ (openAmount ? openAmount : 0) | currency }}</span></div>
+	</ng-container>
+	<ng-container *ngSwitchCase="'needsPayment'">
+		<span i18n>Offene Kundenzahlung</span>
+		<div class="mt-1 ml-2 ml-lg-0 mr-2"><span class="h5 text-monospace font-weight-bold text-{{textTheme}}">{{ (openAmount ? openAmount : 0) | currency }}</span></div>
+	</ng-container>
+	<ng-container *ngSwitchDefault>
+		<p-alert>Error</p-alert>
+	</ng-container>
+</span>

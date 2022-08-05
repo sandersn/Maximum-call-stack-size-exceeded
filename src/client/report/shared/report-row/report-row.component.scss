@@ -1,0 +1,63 @@
+/* stylelint-disable csstools/use-nesting */
+@import "variables";
+// @import "~bootstrap/scss/mixins/breakpoints";
+
+:host {
+	display: flex;
+	align-items: stretch;
+	min-height: 60px;
+	transition: box-shadow 0.3s, background-color 0.3s;
+
+	&.clickable.collapsed:hover {
+		background: $light;
+	}
+}
+
+@media (hover: hover) {
+	:host {
+		&.clickable.collapsed:hover {
+			background: $light;
+		}
+	}
+}
+
+.line {
+	border-bottom: $border-width * 2 solid transparent;
+	border-top: $border-width * 2 solid transparent;
+
+	> * {
+		padding-right: map-get($spacers, 3);
+		white-space: nowrap;
+
+		// @include media-breakpoint-down(md) {
+		// 	padding-right: map-get($spacers, 2);
+		// }
+	}
+
+	:last-child {
+		padding-right: 0;
+	}
+}
+
+@media (hover: hover) {
+	.line {
+		&.ruler:hover {
+			border-bottom: $border-width * 2 dashed #eee;
+			border-top: $border-width * 2 dashed #eee;
+			// font-size: 1.05em;
+		}
+	}
+
+	.modal-trigger:hover {
+		background: rgba(0, 0, 0, 0.1);
+	}
+}
+
+:host.headline {
+	border: $border-width solid $gray-300;
+	border-width: $border-width 0 0 0;
+}
+
+textarea {
+	min-height: 100px;
+}

@@ -1,0 +1,39 @@
+<div class="d-flex justify-content-between align-items-md-center mt-md-3 mb-3 mb-xl-0 flex-column-reverse flex-md-row">
+	<div class="d-md-flex mb-md-0 align-items-center">
+		<h6 class="m-0 mr-3 d-none d-md-inline" i18n>Summe ein- und abgegangener Zahlungen</h6>
+		<h6 class="m-0 mr-3 d-inline d-md-none" i18n>Ein- und abgegangene Zahlungen</h6>
+		<p-badge
+			[isLoading]="incomingPayments===null"
+			class="mr-2 flex-shrink-0"
+			[theme]="PThemeEnum.SUCCESS"
+			[size]="BootstrapSize.LG"
+			[content]="incomingPayments!==null ? (incomingPayments | currency:undefined:undefined:undefined:undefined:undefined:true) : '██.██'"
+			popover="Summe aller unten aufgelisteten Gutschriften (Transaktionen mit einem positiven Betrag). Für Online-Zahlungen angefallene Gebühren wurden hier nicht abgezogen." i18n-popover
+		></p-badge>
+		<p-badge
+			[isLoading]="outgoingPayments===null"
+			class="flex-shrink-0"
+			[theme]="PThemeEnum.DANGER"
+			[size]="BootstrapSize.LG"
+			[content]="outgoingPayments!==null ? (outgoingPayments | currency:undefined:undefined:undefined:undefined:undefined:true) : '██.██'"
+			popover="Summe aller unten aufgelisteten Abbuchungen (Transaktionen mit einem negativen Betrag). Für Online-Zahlungen angefallene Gebühren wurden hier nicht dazugerechnet." i18n-popover
+		></p-badge>
+	</div>
+</div>
+
+<div class="d-md-flex align-items-center mb-3 mt-1">
+	<ng-container *ngIf="onlineRefundableAmount!==null && onlineRefundableAmount!==null">
+		<h6 class="m-0 mr-3"><span class="d-inline d-md-none" i18n>Guthaben Online-Rückerstattung</span><span class="d-none d-md-inline" i18n>Guthaben für Online-Rückerstattung</span>&nbsp;<p-info-circle><span [innerHTML]="onlineRefundableAmountInfoText"></span></p-info-circle></h6>
+		<p-badge
+			[isLoading]="onlineRefundableAmount===null"
+			class="flex-shrink-0"
+			[theme]="PThemeEnum.WARNING"
+			[size]="BootstrapSize.LG"
+			[content]="onlineRefundableAmount!==null ? (onlineRefundableAmount | currency:undefined:undefined:undefined:undefined:undefined:true) : '██.██'"
+		></p-badge>
+	</ng-container>
+
+	<div class="d-flex justify-content-end mb-3 mb-md-0 ml-auto">
+		<ng-content></ng-content>
+	</div>
+</div>

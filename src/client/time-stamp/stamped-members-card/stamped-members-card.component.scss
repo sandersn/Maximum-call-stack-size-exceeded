@@ -1,0 +1,13 @@
+table.table {
+	margin-bottom: 0;
+}
+
+.table th,
+.table td {
+	vertical-align: baseline;
+}
+
+table.table td:last-child {
+	width: 56px;
+	text-align: center;
+}

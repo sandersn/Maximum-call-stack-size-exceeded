@@ -1,0 +1,41 @@
+<p-subheader [isNewItem]="!!item && item.isNewItem()" (onNavBack)="pRouterService.scrollToSelector($any('#scroll-target-id-'+routeId?.toString()), {behavior: 'auto'})">
+	<p-dropdown
+		*ngIf="showDeleteSection"
+
+		[dropdownType]="DropdownTypeEnum.BUTTONS"
+		label="Aktionen" i18n-label
+		[icon]="PlanoFaIconPool.MORE_ACTIONS"
+		[size]="BootstrapSize.SM"
+		[showActiveItem]="false"
+	>
+		<p-dropdown-item
+			(onClick)="onRemoveClick()"
+			[disabled]="false"
+			label="Diese Tätigkeit löschen" i18n-label
+			[icon]="PlanoFaIconPool.DELETE"
+			[theme]="PBtnThemeEnum.OUTLINE_DANGER"
+			[attributeInfo]="null"
+			></p-dropdown-item>
+	</p-dropdown>
+
+</p-subheader>
+
+<div class="flex-grow-1 d-flex position-relative">
+	<scroll-shadow-box class="flex-grow-1">
+		<div class="container pb-tawk">
+			<ng-template [ngIf]="!item && routeId">
+				<ng-template [ngIf]="api.isBackendOperationRunning" [ngIfElse]="noItemAvailable">
+					<p-spinner [size]="BootstrapSize.LG" class="m-3"></p-spinner>
+				</ng-template>
+				<ng-template #noItemAvailable>
+					<p-no-item></p-no-item>
+				</ng-template>
+			</ng-template>
+			<detail-form
+				*ngIf="item"
+				[shiftModel]="item"
+				(onAddItem)="saveNewItem($event)"
+			></detail-form>
+		</div>
+	</scroll-shadow-box>
+</div>

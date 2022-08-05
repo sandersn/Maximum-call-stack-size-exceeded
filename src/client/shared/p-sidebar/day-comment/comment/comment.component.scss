@@ -1,0 +1,19 @@
+:host {
+	display: block;
+}
+
+.card-options {
+	position: absolute;
+	top: 0;
+	right: 0;
+}
+
+:host .card-options .hidden-without-hover {
+	display: none;
+}
+
+@media (hover: hover) {
+	:host:hover .card-options .hidden-without-hover {
+		display: block;
+	}
+}

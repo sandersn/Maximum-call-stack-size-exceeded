@@ -1,0 +1,22 @@
+@import "variables";
+
+.card-header {
+	border-top-width: 0;
+	color: $headings-color;
+
+	&.is-closed {
+		// background: transparent;
+		border-color: transparent;
+		border-width: 0;
+	}
+}
+
+@media (hover: hover) {
+	.card-header.is-closed.clickable:hover {
+		background: $gray-300;
+	}
+}
+
+.progress {
+	background: $gray-600;
+}

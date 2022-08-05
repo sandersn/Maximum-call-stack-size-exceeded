@@ -1,0 +1,75 @@
+<ng-template [ngIf]="isLoading">
+	<p-dumb-booking-item
+		class="card mb-0"
+		style="opacity: 0.6;"
+		[isLoading]="true"
+		[hasDropdown]="false"
+		[careAboutAlignment]="true"
+	></p-dumb-booking-item>
+	<p-dumb-booking-item
+		class="card mb-0"
+		style="opacity: 0.5;"
+		[isLoading]="true"
+		[hasDropdown]="false"
+		[careAboutAlignment]="true"
+	></p-dumb-booking-item>
+	<p-dumb-booking-item
+		class="card mb-0"
+		style="opacity: 0.4;"
+		[isLoading]="true"
+		[hasDropdown]="false"
+		[careAboutAlignment]="true"
+	></p-dumb-booking-item>
+	<p-dumb-booking-item
+		class="card mb-0"
+		style="opacity: 0.3;"
+		[isLoading]="true"
+		[hasDropdown]="false"
+		[careAboutAlignment]="true"
+	></p-dumb-booking-item>
+	<p-dumb-booking-item
+		class="card mb-0"
+		style="opacity: 0.2;"
+		[isLoading]="true"
+		[hasDropdown]="false"
+		[careAboutAlignment]="true"
+	></p-dumb-booking-item>
+	<p-dumb-booking-item
+		class="card mb-0"
+		style="opacity: 0.1;"
+		[isLoading]="true"
+		[hasDropdown]="false"
+		[careAboutAlignment]="true"
+	></p-dumb-booking-item>
+</ng-template>
+<ng-template [ngIf]="!isLoading">
+	<!-- <p-alert class="text-center form-text" [theme]="PAlertThemeEnum.PLAIN" *ngIf="!bookingsForList.length" i18n>Keine Buchungen für {!!searchString && !!searchString.length, select, true {diese Suche} other {diesen Zeitraum}} vorhanden.</p-alert> -->
+	<div *ngFor="let booking of bookingsForList" class="bookings-item">
+		<p-dumb-booking-item
+			class="card mb-0"
+			[class.sidebar-is-visible]="!pSidebarService.mainSidebarIsCollapsed"
+			[id]="booking.id"
+			[model]="booking.model"
+			[hasDropdown]="false"
+			[paymentStatus]="booking.paymentStatus"
+			[state]="booking.state"
+			[dateOfBooking]="booking.dateOfBooking"
+			[noRelatedShiftsAvailable]="noRelatedShiftsAvailable(booking)"
+			[firstShiftStart]="booking.firstShiftStart"
+			[showFirstShiftStart]="showFirstShiftStart"
+			[bookingNumber]="booking.bookingNumber"
+			[firstName]="booking.firstName"
+			[lastName]="booking.lastName"
+			[ownerComment]="booking.ownerComment"
+			[bookingComment]="booking.bookingComment"
+			[participantCount]="booking.participantCount"
+			[price]="booking.price"
+			[dropdownMenuAlignment]="'right'"
+			[userCanWrite]="booking.attributeInfoThis.canEdit"
+			[careAboutAlignment]="true"
+
+			(onEdit)="onEdit.emit(booking.id!)"
+			(onSelectShifts)="onSelectShifts.emit(booking)"
+		></p-dumb-booking-item>
+	</div>
+</ng-template>

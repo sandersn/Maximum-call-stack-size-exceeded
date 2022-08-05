@@ -1,0 +1,151 @@
+<div
+	[pEditable]="pEditable"
+	*ngIf="show"
+	[api]="api"
+	[valid]="isValid && !isPending"
+	[saveChangesHook]="saveChangesHook"
+	(onSaveStart)="onSaveStart.emit($event)"
+	(onSaveSuccess)="onSaveSuccess.emit($event)"
+	(onDismiss)="onDismiss.emit($event)"
+	(onLeaveCurrent)="onLeaveCurrent.emit($event)"
+	(editMode)="editMode.emit($event)"
+>
+	<div
+		class="input-group"
+		[class.input-group-sm]="size === BootstrapSize.SM"
+		[class.input-group-lg]="size === BootstrapSize.LG"
+		[class.input-group-outline-dark]="theme === PBtnThemeEnum.OUTLINE_DARK"
+		[class.disabled]="disabled || readMode"
+		[class.has-danger]="hasDanger"
+		[class.has-warning]="isPending"
+	>
+		<ng-container *ngTemplateOutlet="prependItem"></ng-container>
+		<input
+			#inputEl
+
+			ngbAutofocus
+			pEditableTriggerFocussable
+			#pEditableTriggerFocussableRef
+
+			[type]="inputType"
+			[autocomplete]="autocomplete"
+			[readonly]="readonly"
+			class="form-control"
+			[class.form-control-sm]="size === BootstrapSize.SM"
+			[class.form-control-lg]="size === BootstrapSize.LG"
+			[class.text-left]="textAlign === 'left'"
+			[class.text-center]="textAlign === 'center'"
+			[class.text-right]="textAlign === 'right'"
+			[(ngModel)]="value"
+			[placeholder]="placeholder !== undefined ? placeholder : ''"
+			(focusout)="onFocusOut($event)"
+			(focus)="onFocus($event)"
+			(change)="onChange($event)"
+			(keyup)="onKeyUp($event)"
+			(keydown)="onKeyDown($event)"
+			(blur)="onBlur()"
+			[disabled]="disabled"
+			[required]="required"
+			[class.d-none]="readMode"
+			[class.required]="required"
+			[typeahead]="typeahead ? typeahead : []"
+			[typeaheadMinLength]="0"
+			(typeaheadOnSelect)="typeaheadOnSelect($event, pEditableTriggerFocussableRef)"
+
+			[min]="min"
+			[max]="max"
+		/>
+		<ng-template [ngIf]="readMode" [ngIfElse]="realModeTemplate">
+			<ng-template [ngIf]="type !== PApiPrimitiveTypes.Email" [ngIfElse]="emailLinkTemplate">
+				<div class="form-control-read-mode title">{{ readModeValue }}</div>
+			</ng-template>
+			<ng-template #emailLinkTemplate>
+				<a class="form-control-read-mode title text-primary" href="mailto:{{value}}">{{ value ? value : '&nbsp;' }}</a>
+			</ng-template>
+		</ng-template>
+		<ng-template #realModeTemplate>
+			<div class="input-group-append" pVisibleInEditMode *ngIf="pEditable">
+				<button
+					type="reset"
+					class="btn btn-outline-secondary"
+					pEditableDismissButton
+				><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.UNDO"></fa-icon></button>
+				<button
+					type="submit"
+					class="btn btn-outline-secondary"
+					pEditableSuccessButton
+				><fa-icon [class.text-warning]="isPending" [fixedWidth]="true" [icon]="successBtnIcon" [spin]="successBtnIconSpin"></fa-icon></button>
+			</div>
+		</ng-template>
+		<ng-container *ngTemplateOutlet="appendItem"></ng-container>
+	</div>
+</div>
+
+<ng-template [ngIf]="!!formControl">
+	<p-validation-hint
+		*ngFor="let error of visibleErrors"
+		[control]="formControl"
+		[isInvalid]="true"
+		[validationName]="error.key"
+		[errorValue]="error.value"
+		[checkTouched]="checkTouched"
+		[touched]="formControl.touched"
+	></p-validation-hint>
+</ng-template>
+
+<ng-template [ngIf]="showPasswordMeter">
+	<p-password-strength-meter
+		[passwordToCheck]="value?.toString()"
+		[inputValidationFailed]="!!visibleErrors?.length"
+	></p-password-strength-meter>
+</ng-template>
+
+<ng-template #prependItem>
+	<ng-content select="p-input-prepend"></ng-content>
+	<div class="input-group-prepend"
+		*ngIf="inputGroupPrependIcon && !inputGroupAppendText"
+	>
+		<span class="input-group-text" *ngIf="type!==PApiPrimitiveTypes.Search || !value" (click)="onClickPrependIcon(inputEl)"><fa-icon [spin]="inputGroupPrependIconSpin" [fixedWidth]="true" [icon]="inputGroupPrependIcon"></fa-icon></span>
+		<button
+			*ngIf="type===PApiPrimitiveTypes.Search && !!value"
+			class="input-group-btn btn btn-primary"
+			(click)="clearValue()"
+		><fa-icon [fixedWidth]="true" [icon]="'times-circle'"></fa-icon></button>
+	</div>
+</ng-template>
+<ng-template #appendItem>
+	<div class="input-group-append" *ngIf="!!dropdownItems?.length">
+		<div class="d-flex flex-column">
+			<p-dropdown
+				[ngModel]="dropdownValue"
+				(ngModelChange)="dropdownValue=$event;dropdownValueChange.emit($event)"
+				class="flex-grow-1 d-flex"
+				[rounded]="BootstrapRounded.RIGHT"
+			>
+				<p-dropdown-item
+					*ngFor="let dropdownItem of dropdownItems"
+					[value]="dropdownItem.value"
+					[label]="dropdownItem.label"
+					(onClick)="onDropdownClick(dropdownItem, $event)"
+				></p-dropdown-item>
+			</p-dropdown>
+		</div>
+	</div>
+
+	<div class="input-group-append" *ngIf="!!inputGroupAppendText">
+		<span class="input-group-text"><fa-icon *ngIf="inputGroupPrependIcon" [icon]="inputGroupPrependIcon" [size]="'sm'" class="mr-1"></fa-icon> {{ inputGroupAppendText }}</span>
+	</div>
+	<div class="input-group-append" *ngIf="showPasswordVisibilityToggleButton">
+		<button class="btn" [class.btn-secondary]="hidePassword" [class.btn-primary]="!hidePassword" type="button" (click)="hidePassword=!hidePassword"><fa-icon [icon]="hidePassword ? PlanoFaIconPool.VISIBLE : PlanoFaIconPool.INVISIBLE"></fa-icon></button>
+	</div>
+	<div class="input-group-append" *ngIf="disabled && cannotEditHint">
+		<button
+			*ngIf="!!cannotEditHint && !!disabled"
+			class="btn btn-outline-secondary"
+			type="button"
+			(click)="openCannotEditHint()"
+		><fa-icon [icon]="PlanoFaIconPool.MORE_INFO"></fa-icon></button>
+	</div>
+	<ng-content select="p-input-append"></ng-content>
+</ng-template>
+<ng-content></ng-content>

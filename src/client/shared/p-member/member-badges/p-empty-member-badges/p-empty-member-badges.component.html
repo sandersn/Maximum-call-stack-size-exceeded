@@ -1,0 +1,11 @@
+<ng-template
+	ngFor let-emptyBadge
+	[ngForOf]="emptyMemberBadges"
+	let-i="index"
+>
+	<p-member-badge
+		[style.z-index]="100 + -i"
+		[text]="emptyMemberSlots.toString()"
+		size="small"
+	></p-member-badge>
+</ng-template>

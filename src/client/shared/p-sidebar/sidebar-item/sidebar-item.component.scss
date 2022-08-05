@@ -1,0 +1,47 @@
+@use "sass:color";
+
+@import "variables";
+@import "~bootstrap/scss/bootstrap-grid.scss";
+
+h2 {
+	color: #ccc;
+	font-size: $h2-font-size;
+	line-height: 1.6em;
+}
+
+section.wrapper {
+	display: flex;
+	flex-direction: column;
+	border-bottom: $border-width solid color.scale($gray-800, $lightness: 7%);
+
+	.title {
+		flex-grow: 0;
+	}
+
+	&:not(.collapsed) {
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+	}
+
+	&.expanded,
+	&.collapsed a.sidebar-menu-item:hover {
+		background: $gray-900;
+	}
+
+	.content {
+		position: relative;
+		flex-grow: 1;
+
+		.content-inner {
+			position: absolute;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			left: 0;
+			// overflow-x: auto;
+		}
+	}
+}

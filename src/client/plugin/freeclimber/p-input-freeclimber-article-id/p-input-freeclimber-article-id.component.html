@@ -1,0 +1,39 @@
+<p-editable-modal-box
+	[pEditable]="true"
+	[api]="api"
+	[valid]="!formGroup!.invalid"
+	(onDismiss)="initFormGroup()"
+	(onSaveSuccess)="initFormGroup()"
+	label="Zuordnung von Angeboten und Artikel-ID" i18n-label
+>
+	<p-editable-modal-box-showroom><p class="m-0" i18n><code>{{amountOfShiftModelsWithArticleId}}</code> von <code>{{shiftModelsForList.length}}</code> Angeboten in Dr.&nbsp;Plano einer Freeclimber Artikel-ID zugeordnet</p></p-editable-modal-box-showroom>
+	<p-editable-modal-box-form>
+		<p-shiftmodel-list
+			*ngIf="hasShiftModels; else noItems"
+			[shiftModels]="shiftModelsForList"
+			[contentTemplate]="articleNrInputTemplate"
+			label="Freeclimber Artikel-ID" i18n-label
+		></p-shiftmodel-list>
+		<ng-template #articleNrInputTemplate let-shiftModel>
+			<div
+				class="m-1"
+			>
+				<p-input
+					*ngIf="getFormGroup(shiftModel.id)"
+					[type]="PApiPrimitiveTypes.string"
+					style="max-width: 120px;"
+					[formControl]="getFormGroup(shiftModel.id)!.controls['freeclimberArticleId']!"
+					[checkTouched]="false"
+				></p-input>
+			</div>
+		</ng-template>
+	</p-editable-modal-box-form>
+</p-editable-modal-box>
+
+<ng-template #noItems>
+	<p-alert
+		[theme]="PThemeEnum.INFO"
+		[dismissable]="false"
+		i18n
+	>Keine Tätigkeiten verfügbar</p-alert>
+</ng-template>

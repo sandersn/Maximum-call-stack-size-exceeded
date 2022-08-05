@@ -1,0 +1,130 @@
+<ng-template [ngIf]="readMode && valueMember" [ngIfElse]="inputTemplate">
+	<div class="input-group disabled">
+		<div class="input-group-prepend">
+			<span *ngIf="!hasMemberValue" class="input-group-text"><fa-icon [fixedWidth]="true" [icon]="icon"></fa-icon></span>
+			<ng-container *ngIf="hasMemberValue">
+				<span class="input-group-text">
+					<ng-template [ngTemplateOutlet]="memberBadgeTemplate" [ngTemplateOutletContext]="{$implicit: valueMember}"></ng-template>
+				</span>
+			</ng-container>
+		</div>
+		<div class="form-control-read-mode">
+			<ng-container *ngIf="hasMemberValue">
+				<ng-template [ngTemplateOutlet]="memberTextTemplate" [ngTemplateOutletContext]="{$implicit: valueMember}"></ng-template>
+			</ng-container>
+		</div>
+	</div>
+</ng-template>
+<ng-template #inputTemplate>
+	<div
+		[class.required]="required"
+
+		class="input-group position-relative"
+		[class.disabled]="readMode || disabled || allMembers"
+
+		[pEditable]="pEditable"
+		[api]="api"
+		[valid]="isValid"
+		[saveChangesHook]="saveChangesHook"
+		(onSaveStart)="onSaveStart.emit($event)"
+		(onSaveSuccess)="onSaveSuccess.emit($event)"
+		(onDismiss)="onDismiss.emit($event)"
+		(onLeaveCurrent)="onLeaveCurrent.emit($event)"
+		(editMode)="changeEditMode($event)"
+	>
+		<div class="input-group-prepend"
+			(click)="setFocus(pEditableTriggerFocussableRef)"
+		>
+			<span *ngIf="!hasMemberValue" class="input-group-text"><fa-icon [fixedWidth]="true" [icon]="icon" style="min-width: 28px;"></fa-icon></span>
+			<ng-container *ngIf="hasMemberValue">
+				<span class="input-group-text">
+					<ng-template [ngTemplateOutlet]="memberBadgeTemplate" [ngTemplateOutletContext]="{$implicit: valueMember}"></ng-template>
+				</span>
+			</ng-container>
+		</div>
+		<input
+			pEditableTriggerFocussable
+			#pEditableTriggerFocussableRef
+
+			type="Search"
+			autocomplete="off"
+			[readonly]="readMode"
+			class="form-control"
+
+			[(ngModel)]="valueMember"
+			[placeholder]="placeholder ?? ''"
+			(focusout)="focusout.emit($event)"
+			(focus)="onFocus($event)"
+			(change)="onChange($event)"
+			(keyup)="onKeyUp($event)"
+			(blur)="onBlur()"
+			[disabled]="readMode || disabled"
+			[required]="required"
+			[class.required]="required"
+			[class.rounded-right]="inputHasClassRoundedRight"
+
+			[ngbTypeahead]="search"
+			#instance="ngbTypeahead"
+			placement="bottom-left"
+			[resultTemplate]="resultTemplate"
+			[inputFormatter]="formatter"
+			[editable]="true"
+			(selectItem)="typeaheadOnSelect($event, pEditableTriggerFocussableRef)"
+
+			(click)="onClick($event)"
+		/>
+
+		<div class="input-group-append"
+			pVisibleInEditMode
+		>
+			<button
+				type="reset"
+				class="btn btn-outline-secondary"
+				pEditableDismissButton
+			><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.UNDO"></fa-icon></button>
+			<button
+				type="submit"
+				class="btn btn-outline-secondary"
+				pEditableSuccessButton
+			><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.SUCCESS"></fa-icon></button>
+		</div>
+		<ng-container *ngTemplateOutlet="appendItem"></ng-container>
+	</div>
+</ng-template>
+
+<ng-template #resultTemplate let-r="result" let-t="term">
+	<div class="d-flex align-items-center">
+		<ng-template [ngTemplateOutlet]="memberBadgeTemplate" [ngTemplateOutletContext]="{$implicit: r}"></ng-template>
+		<ng-template [ngTemplateOutlet]="memberTextTemplate" [ngTemplateOutletContext]="{$implicit: r}"></ng-template>
+	</div>
+</ng-template>
+
+<ng-template #memberTextTemplate let-member>
+	<div
+		class="mr-auto ml-2 text-bold"
+	><strong>{{ member.firstName ? member.firstName : '' }}</strong> {{ member.lastName ? member.lastName : '' }}</div>
+</ng-template>
+<ng-template #memberBadgeTemplate let-member>
+	<p-member-badge
+		style="min-width: 28px;"
+		[memberId]="member.id"
+		[firstName]="member.firstName"
+		[lastName]="member.lastName"
+		[isMe]="isMe(member)"
+		[absenceType]="member.trashed ? 'trashed' : null"
+		size="small"
+	></p-member-badge>
+</ng-template>
+
+<ng-template [ngIf]="!!formControl">
+	<p-validation-hint
+		[control]="formControl"
+		[checkTouched]="!!checkTouched"
+	></p-validation-hint>
+</ng-template>
+<ng-template #prependItem>
+	<ng-content select="p-input-prepend"></ng-content>
+</ng-template>
+<ng-template #appendItem>
+	<ng-content select="p-input-append"></ng-content>
+</ng-template>

@@ -1,0 +1,13 @@
+:host {
+	user-select: none;
+
+	&.is-inactive {
+		filter: grayscale(100%);
+	}
+}
+
+@media (hover: hover) {
+	:host.is-inactive:hover {
+		filter: grayscale(0%);
+	}
+}

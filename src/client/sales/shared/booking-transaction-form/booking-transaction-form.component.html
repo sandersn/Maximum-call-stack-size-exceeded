@@ -1,0 +1,234 @@
+<form *ngIf="!!bookable && group" [formGroup]="$any(group)">
+	<p-section
+		*ngIf="(modalVersion === 'CHANGE_CANCELLATION_FEE' || modalVersion === 'CHANGE_STATE_TO_CANCELED') && isBooking"
+		label="Stornogebühr" i18n-label
+		[whitespace]="SectionWhitespace.MEDIUM"
+	>
+		<ng-container [ngSwitch]="typeOfRecommendation">
+			<p *ngSwitchCase="'withdrawalAllowed'"><ng-container i18n>Für diese Buchung ist eine Widerrufsfrist von <code>{{$any(bookable).model.cancellationPolicies.get($any(bookable).cancellationPolicyId).withdrawalPeriod !== null ? $any(bookable).model.cancellationPolicies.get($any(bookable).cancellationPolicyId).withdrawalPeriod : '?'}}</code> Tagen nach Buchungsdatum hinterlegt. Dementsprechend wird folgende Stornogebühr empfohlen: <mark>{{0 | currency:undefined:undefined:undefined:undefined:true}}</mark></ng-container>&ngsp;<ng-container *ngIf="!!initialCancellationFee"><ng-container i18n>zuzüglich <mark>{{initialCancellationFee | currency}}</mark> Stornogebühr, die bereits hinterlegt worden sind, ergibt eine Gesamtstornogebühr von <mark><strong>{{(0 + initialCancellationFee) | currency}}</strong></mark>.</ng-container></ng-container></p>
+			<p *ngSwitchCase="'hasApplicableFee'"><ng-container i18n>Entsprechend den für diese Buchung hinterlegten Stornogebühren wird für eine Stornierung <ng-container *ngIf="applicableFee!.start !== null || applicableFee!.end !== null"><p-fee-period-time-text [start]="applicableFee!.start" [end]="applicableFee!.end"></p-fee-period-time-text>&ngsp;</ng-container>folgende Gebühr empfohlen: <mark>{{recommendationCalculation}}</mark></ng-container>&ngsp;<ng-container *ngIf="!!initialCancellationFee"><ng-container i18n>zuzüglich <mark>{{initialCancellationFee | currency}}</mark> Stornogebühr, die bereits hinterlegt worden sind</ng-container><ng-container *ngIf="bookable.state === SchedulingApiBookingState.CANCELED" i18n>, ergibt eine Gesamtstornogebühr von <mark><strong>{{(recommendedFee! + initialCancellationFee) | currency}}</strong></mark></ng-container>.</ng-container>
+			</p>
+			<p *ngSwitchCase="'forFree'"><ng-container i18n>Bei kostenlosen Buchungen wird folgende Stornogebühr empfohlen: <mark>{{0 | currency:undefined:undefined:undefined:undefined:true}}</mark></ng-container>&ngsp;<ng-container *ngIf="!!initialCancellationFee"><ng-container i18n>zuzüglich <mark>{{initialCancellationFee | currency}}</mark> Stornogebühr, die bereits hinterlegt worden sind, ergibt eine Gesamtstornogebühr von <mark><strong>{{(0 + initialCancellationFee) | currency}}</strong></mark>.</ng-container></ng-container></p>
+			<p *ngSwitchCase="'noFeePeriods'" i18n>Hinterlege deine Stornierungsbedingungen in der <a routerLink="/client/shiftmodel/{{$any(bookable).model.id.toString()}}/bookingsettings/" fragment="cancellation-policy" rel="noopener" target="_blank">Tätigkeit</a>, um bei den nächsten Stornierungen die Stornogebühr automatisch berechnen zu lassen. Das reduziert deinen Aufwand und auch mögliche Flüchtigkeitsfehler.</p>
+			<p *ngSwitchDefault i18n>Als diese Buchung erfolgte, waren noch keine generellen Stornobedingungen in der Tätigkeit hinterlegt, sodass nun keine Stornogebühr vorgeschlagen werden kann.</p>
+		</ng-container>
+		<div class="card px-3 pt-3 pb-1 bg-light-cold">
+			<p-grid>
+				<div class="col-12 col-lg-6">
+					<label i18n>Wie viel Stornogebühr anrechnen?</label>
+					<div class="d-flex align-items-center">
+						<p-form-control-switch
+							class="flex-grow-1"
+							[group]="group"
+							[attributeInfo]="$any(bookable).attributeInfoCancellationFee"
+							[pEditable]="false"
+						></p-form-control-switch>
+						<fa-icon class="ml-4 mb-3 d-none d-lg-block" [icon]="'arrow-right'" [size]="'2x'"></fa-icon>
+					</div>
+				</div>
+				<div class="col-12 col-lg-6">
+					<label i18n>Zahlungsstatus nach dieser Stornogebühr</label>
+					<p-cancellation-amount-alert
+						#cancellationAmountAfterFee
+						[currencyAmount]="bookable.getOpenAmount()"
+					></p-cancellation-amount-alert>
+				</div>
+			</p-grid>
+		</div>
+
+	</p-section>
+	<ng-container *ngIf="showHandleRefundFormControl">
+		<p-section
+			label="Rückerstattung an Kunden behandeln?" i18n-label
+			[whitespace]="SectionWhitespace.MEDIUM"
+		>
+			<p-radios
+				[formControl]="group.controls['handleRefund']!"
+			>
+				<p-radios-radio
+					label="Ja, Rückerstattung behandeln" i18n-label
+					[value]="true"
+					[disabled]="outgoingPaymentOptionDisabled"
+					[cannotEditHint]="outgoingPaymentOptionCannotEditHint"
+				></p-radios-radio>
+				<p-radios-radio
+					label="Nein, Rückerstattung überspringen" i18n-label
+					[value]="false"
+				></p-radios-radio>
+			</p-radios>
+		</p-section>
+	</ng-container>
+
+	<ng-container *ngIf="modalVersion !== 'CHANGE_CANCELLATION_FEE' || (bookable.getOpenAmount() && bookable.getOpenAmount()! < 0)">
+
+		<ng-container *ngIf="!!transaction && !!transaction.rawData">
+
+			<ng-container *ngIf="modalVersion !== 'CHANGE_CANCELLATION_FEE'">
+				<p-section
+					label="Aktueller Zahlungsstatus der Buchung" i18n-label
+					[whitespace]="SectionWhitespace.MEDIUM"
+				>
+					<p-cancellation-amount-alert
+						[currencyAmount]="bookable.getOpenAmount(bookable.currentlyPaid)"
+					></p-cancellation-amount-alert>
+				</p-section>
+				<p-section
+					*ngIf="!showHandleRefundFormControl"
+					label="Typ der neuen Zahlung" i18n-label
+					[whitespace]="SectionWhitespace.MEDIUM"
+				>
+					<p-form-control-switch
+						[group]="group"
+						[attributeInfo]="transaction.attributeInfoType"
+						[type]="FormControlSwitchType.RADIOS"
+						[pEditable]="false"
+					>
+						<p-form-control-switch-item
+							label="Rückerstattung an Kunden" i18n-label
+							[icon]="PlanoFaIconPool.OUTGOING_PAYMENT"
+							[value]="SchedulingApiTransactionType.REFUND"
+							[disabled]="outgoingPaymentOptionDisabled"
+							[cannotEditHint]="outgoingPaymentOptionCannotEditHint"
+							(onClick)="onClickTypeRefund()"
+						></p-form-control-switch-item>
+						<p-form-control-switch-item
+							label="Einzahlung durch Kunden" i18n-label
+							[icon]="PlanoFaIconPool.INCOMING_PAYMENT"
+							[value]="SchedulingApiTransactionType.PAYMENT"
+							(onClick)="onClickTypePayment()"
+							[disabled]="incomingPaymentOptionDisabled"
+							cannotEditHint="Hier kannst du Einzahlungen erfassen, die nicht per Online-Zahlung, sondern über eine andere Zahlungsart erfolgt sind und die deshalb von Dr. Plano nicht automatisch erfasst werden konnten. Bevor du allerdings eine solche Zahlung eingeben kannst, musst du erst in der Tätigkeit unter »Buchungseinstellungen« die Zahlungsart anlegen. Aktuell sind nämlich keine Zahlungsarten vorhanden."
+						></p-form-control-switch-item>
+					</p-form-control-switch>
+				</p-section>
+			</ng-container>
+
+
+			<ng-container *ngIf="modalVersion !== 'CHANGE_CANCELLATION_FEE' || transaction.type===SchedulingApiTransactionType.REFUND">
+				<ng-container *ngIf="transaction.type !== undefined">
+					<p-section
+						*ngIf="transaction.type === SchedulingApiTransactionType.REFUND"
+						label="Rückerstattung online oder manuell?" i18n-label
+						[whitespace]="SectionWhitespace.MEDIUM"
+					>
+						<p-form-control-switch
+							[group]="group"
+							[attributeInfo]="transaction.attributeInfoPaymentMethodType"
+							[type]="FormControlSwitchType.RADIOS"
+							[pEditable]="false"
+						>
+							<p-form-control-switch-item
+								label="Online-Rückerstattung veranlassen" i18n-label
+								[value]="SchedulingApiTransactionPaymentMethodType.ONLINE_PAYMENT"
+								[disabled]="optionTypeOnlinePaymentDisabled"
+								[cannotEditHint]="paymentMethodOnlineBankingCannotEditHint"
+								(onClick)="changeDetectorRef.detectChanges()"
+							></p-form-control-switch-item>
+							<p-form-control-switch-item
+								label="Manuelle Rückerstattung erfassen" i18n-label
+								[value]="SchedulingApiTransactionPaymentMethodType.MISC"
+								[active]="transaction.paymentMethodType === SchedulingApiTransactionPaymentMethodType.MISC || transaction.paymentMethodType === SchedulingApiTransactionPaymentMethodType.PAYPAL"
+								[disabled]="optionTypeMiscDisabled"
+								cannotEditHint="Hier kannst du Rückerstattungen erfassen, die du nicht per Online-Zahlung, sondern über eine andere Zahlungsart vorgenommen hast und die deshalb von Dr. Plano nicht automatisch erfasst werden konnten. Bevor du allerdings eine solche Zahlung eingeben kannst, musst du erst in der Tätigkeit unter »Buchungseinstellungen« die Zahlungsart anlegen. Aktuell sind nämlich keine Zahlungsarten vorhanden."
+								(onClick)="changeDetectorRef.detectChanges()"
+							></p-form-control-switch-item>
+						</p-form-control-switch>
+					</p-section>
+					<ng-container *ngIf="transaction.type !== SchedulingApiTransactionType.REFUND || (transaction.paymentMethodType !== null && transaction.paymentMethodType !== undefined)">
+						<p-section
+							[whitespace]="SectionWhitespace.MEDIUM"
+						>
+							<p *ngIf="transaction.type === SchedulingApiTransactionType.PAYMENT">Hier kannst du Einzahlungen erfassen, die nicht über die Online-Zahlung von Dr.&nbsp;Plano erfolgten und deshalb nicht automatisch erfasst werden konnten. Durch das Erfassen solcher Einzahlungen bleibt die Zahlungsübersicht dieser Buchung vollständig.</p>
+							<p *ngIf="transaction.type === SchedulingApiTransactionType.REFUND && transaction.paymentMethodType !== SchedulingApiTransactionPaymentMethodType.ONLINE_PAYMENT"><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.WARNING" class="mr-1 small"></fa-icon><ng-container i18n><strong>Durch das Erfassen einer manuellen Rückerstattung hier wird keine Rückzahlung an deinen Kunden beauftragt!</strong> Vielmehr kannst du hier Rückerstattungen erfassen, die du bereits außerhalb von Dr.&nbsp;Plano – z.B. per Bank-Überweisung – vorgenommen hast. Auf diese Weise bleibt die Zahlungsübersicht dieser Buchung vollständig.</ng-container></p>
+							<div class="card px-3 pt-3 pb-1 bg-light-cold">
+								<ng-container *ngIf="transaction.type === SchedulingApiTransactionType.PAYMENT">
+									<p-grid>
+										<div class="col-12 col-lg-6">
+											<label i18n>Wie viel hat {{bookable.firstName}} {{bookable.lastName}} eingezahlt?</label>
+											<div class="d-flex align-items-center">
+												<p-form-control-switch
+													class="flex-grow-1"
+													[group]="group"
+													[attributeInfo]="transaction.attributeInfoAbsAmount"
+													[pEditable]="false"
+													[checkTouched]="false"
+												></p-form-control-switch>
+												<fa-icon class="ml-4 mb-3 d-none d-lg-block" [icon]="'arrow-right'" [size]="'2x'"></fa-icon>
+											</div>
+										</div>
+										<div class="col-12 col-lg-6">
+											<label i18n>Zahlungsstatus nach dieser Einzahlung</label>
+											<p-cancellation-amount-alert
+												[currencyAmount]="bookable.getOpenAmount(bookable.newCurrentlyPaid)"
+											></p-cancellation-amount-alert>
+										</div>
+									</p-grid>
+								</ng-container>
+								<ng-container *ngIf="transaction.type === SchedulingApiTransactionType.REFUND">
+									<p-grid>
+										<div class="col-12 col-lg-6">
+											<label i18n>Wie viel möchtest du zurückzahlen?</label>
+											<div class="d-flex align-items-center">
+												<p-form-control-switch
+													class="flex-grow-1"
+													[group]="group"
+													[attributeInfo]="transaction.attributeInfoAbsAmount"
+													[checkTouched]="false"
+													[pEditable]="false"
+												></p-form-control-switch>
+												<fa-icon class="ml-4 mb-3 d-none d-lg-block" [icon]="'arrow-right'" [size]="'2x'"></fa-icon>
+											</div>
+										</div>
+										<div class="col-12 col-lg-6">
+											<label i18n>Zahlungsstatus nach dieser Rückzahlung</label>
+											<p-cancellation-amount-alert
+												[currencyAmount]="!group.get(transaction.attributeInfoAbsAmount.id)?.valid ? null : bookable.getOpenAmount(bookable.newCurrentlyPaid)"
+											></p-cancellation-amount-alert>
+										</div>
+									</p-grid>
+								</ng-container>
+								<p-alert *ngIf="showMultiRefundHint" [theme]="PThemeEnum.INFO" i18n>Da dein Kunde mehrere Einzahlungen vorgenommen hat, werden eventuell auch <mark>mehrere Teilzahlungen</mark> für die Rückerstattung nötig sein. Aber keine Sorge: Gib einfach deinen gewünschten Rückerstattungsbetrag ein und der Rest wird automatisch geregelt 👍</p-alert>
+								<p-form-control-switch
+									*ngIf="transaction.type === SchedulingApiTransactionType.PAYMENT || transaction.type === SchedulingApiTransactionType.REFUND"
+									label="Welche Zahlungsart hast du benutzt?" i18n-label
+									[group]="group"
+									[show]="transaction.attributeInfoMiscPaymentMethodName.show || transaction.paymentMethodType === SchedulingApiTransactionPaymentMethodType.PAYPAL"
+									[attributeInfo]="transaction.attributeInfoMiscPaymentMethodName"
+									[description]="paymentMethodNameDescription"
+									[pEditable]="false"
+								>
+									<p-form-control-switch-item
+										*ngFor="let coursePaymentMethod of paymentMethodsForRadio.iterable()"
+										[label]="coursePaymentMethod.name"
+										[value]="coursePaymentMethod.name"
+										(onClick)="onClickNonPayPal()"
+									></p-form-control-switch-item>
+									<p-form-control-switch-item
+										*ngIf="coursePaymentMethodTypePaypalIsAvailable"
+										[label]="coursePaymentMethodTypePaypal?.name ?? ''"
+										[active]="transaction.paymentMethodType === SchedulingApiTransactionPaymentMethodType.PAYPAL"
+										(onClick)="onClickPayPal()"
+									></p-form-control-switch-item>
+								</p-form-control-switch>
+							</div>
+						</p-section>
+						<p-section
+							[whitespace]="SectionWhitespace.MEDIUM"
+						>
+							<p-form-control-switch
+								label="Interne Notiz für diese Zahlung" i18n-label
+								description="Interne Notizen werden bei der Zahlung abgespeichert und können nur von Admins oder Usern eingesehen werden, die Buchungen verwalten dürfen. Außerdem werden die Notizen im Excel-Export der Zahlungen mit exportiert und können so für die Kommunikation mit der Buchhaltung verwendet werden." i18n-description
+								[group]="group"
+								[attributeInfo]="transaction.attributeInfoInternalComment"
+								[type]="FormControlSwitchType.TEXTAREA"
+								[pEditable]="false"
+							></p-form-control-switch>
+						</p-section>
+					</ng-container>
+				</ng-container>
+			</ng-container>
+
+		</ng-container>
+
+	</ng-container>
+</form>

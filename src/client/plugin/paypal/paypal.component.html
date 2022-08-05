@@ -1,0 +1,123 @@
+<p-subheader [containerSize]="BootstrapSize.SM" [isNewItem]="false"></p-subheader>
+
+<div class="flex-grow-1 d-flex position-relative">
+	<scroll-shadow-box class="flex-grow-1">
+		<div class="container-sm pb-tawk pl-6 pr-6">
+			<ng-container *ngIf="!isLoading && api.data.isPaypalAvailable">
+				<p-alert i18n *ngIf="!api.data.isOnlinePaymentAvailable">Achtung: PayPal wird endgültig abgeschaltet am <mark>{{Config.PAYPAL_SHUTDOWN_DATE | date:'short'}}</mark>. Bitte befolge die Hinweise auf unserer <a href="https://extras.dr-plano.com/new-online-payment" target="_blank" rel="noopener">Info-Seite zur Umstellung auf die neue Online-Zahlung</a>, um für einen nahtlosen Übergang zu sorgen. Bedenke bitte, dass die Aktivierung der neuen Online-Zahlung <mark>einige Tage</mark> in Anspruch nehmen kann.</p-alert>
+				<p-alert [theme]="PThemeEnum.SUCCESS" i18n *ngIf="api.data.isOnlinePaymentAvailable">PayPal wird endgültig abgeschaltet am {{Config.PAYPAL_SHUTDOWN_DATE | date:'short'}}. Du hast die neue <a href="client/plugin/payments" target="_blank" rel="noopener">Online-Zahlung</a> bereits aktiviert und so für einen nahtlosen Übergang gesorgt. Du brauchst hier nichts weiter zu tun. Falls du noch Fragen zur Umstellung hast, schau dir unsere <a href="https://extras.dr-plano.com/new-online-payment" target="_blank" rel="noopener">Info-Seite zur Umstellung auf die neue Online-Zahlung</a> an.</p-alert>
+			</ng-container>
+
+			<h2><img src="images/de-pp-logo-200px.png" alt="PayPal"></h2>
+			<div class="mb-4">
+				<p i18n>Wenn du deinen Kunden die Online-Zahlungsart PayPal anbieten möchtest, dann verbinde hier dein PayPal-Geschäftskonto mit Dr.&nbsp;Plano.</p>
+				<p-form-group label="Verbindung zu deinem PayPal-Account" i18n-label>
+					<p-input
+						[ngModel]="translatedPayPalAccountEmailModel"
+						[disabled]="true"
+					>
+						<p-input-append>
+							<button
+								type="button"
+								class="btn"
+								[class.btn-outline-secondary]="isLoading || accountApiService.data.paypalAccountEmail"
+								[class.btn-primary]="!(isLoading || accountApiService.data.paypalAccountEmail)"
+								(click)="startPaypalAuthorization()"
+								[disabled]="disablePaypalAuthorizationButton"
+								[class.disabled]="isLoading"
+							><ng-template [ngIf]="isLoading">
+								<p-spinner class="d-inline"></p-spinner>
+							</ng-template><ng-template [ngIf]="!isLoading">
+								<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.BRAND_PAYPAL"
+								></fa-icon>&nbsp;<ng-container i18n>{!!accountApiService.data.paypalAccountEmail, select, true {Anderes Konto verbinden} other {Jetzt verbinden}}</ng-container>
+							</ng-template></button>
+						</p-input-append>
+					</p-input>
+				</p-form-group>
+				<p-form-group label="PayPal Plus?" i18n-label>
+					<ng-template #tooltipPayPalPlus><ng-container i18n>PayPal Plus ist eine Erweiterung von PayPal mit beachtlichen Vorteilen wie z.B. weiteren Zahlungsarten: Kreditkarte, Lastschrift usw. Mehr dazu siehe unten.</ng-container></ng-template>
+					<p-checkbox
+						[readMode]="false"
+
+						[popover]="tooltipPayPalPlus"
+						placement="top"
+
+						[pEditable]="true"
+						[api]="accountApiService"
+						[valid]="true"
+
+						(ngModelChange)="accountApiService.data.isPaypalPlus=$event"
+						[ngModel]="accountApiService.data.isPaypalPlus===true"
+						[disabled]="!accountApiService.data.paypalAccountEmail"
+						[isLoading]="isLoading"
+						valueText="Ist ein PayPal Plus Account" i18n-valueText
+					></p-checkbox>
+
+				</p-form-group>
+			</div>
+			<div class="mb-4">
+				<span><h3 class="mt-5 text-center" i18n>Fragen & Antworten</h3></span>
+				<p-collapsible>
+					<span trigger i18n>Wie richte ich bei Dr.&nbsp;Plano die PayPal-Zahlung ein?</span>
+					<div content class="card-body" i18n>Du kannst auf dieser Seite direkt eine Verbindung zu deinem PayPal-Konto herstellen. Voraussetzung ist allerdings ein Konto bei PayPal. Wenn die Verbindung hergestellt ist, kannst du bei den Tätigkeiten unter »Buchungseinstellungen« PayPal als Zahlungsart auswählen.</div>
+				</p-collapsible>
+				<p-collapsible>
+					<span trigger i18n>Was ist PayPal Plus und wie bekomme ich das?</span>
+					<div content class="card-body"><ng-container i18n>PayPal Plus ist eine Erweiterung von deinem PayPal-Konto und birgt drei riesen Vorteile:</ng-container>
+						<ol>
+							<li i18n>Du kannst zusätzlich zur normalen PayPal-Zahlung weitere Zahlungsarten anbieten.
+								<br><img src="images/payment_methods.svg" width="85%" alt="PayPal Plus Online-Zahlungsarten"/>
+							</li>
+							<li i18n>Deine Kunden brauchen <strong>kein</strong> PayPal-Konto!</li>
+							<li i18n>Egal welche Zahlungsart deine Kunden wählen, du behältst den Überblick, da alle Zahlungseingänge zentral bei PayPal dokumentiert werden und der Zahlungsstatus in Dr.&nbsp;Plano automatisch aktualisiert wird.</li>
+						</ol>
+						<div i18n>Und so beantragst du PayPal Plus (Behalte bitte genau diese Reihenfolge bei, um einen reibungslosen Verlauf bei der Einrichtung zu erhalten):</div>
+
+						<ol>
+							<li i18n>Erstelle ein PayPal-Konto, falls du noch keins haben solltest.</li>
+							<li i18n>Füge deinem PayPal-Konto dein gewünschtes Girokonto als Bankverbindung hinzu und durchlaufe das Verifizierungsverfahren von PayPal. <strong>Achtung:</strong> Dein Girokonto darf nicht mit einem anderen PayPal-Konto verbunden sein.</li>
+							<li i18n>Stufe dein PayPal-Konto auf ein Geschäftskonto hoch.</li>
+							<li i18n>Sobald dein Girokonto verifiziert wurde, kannst du <a href="https://www.paypal.com/de/webapps/mpp/paypal-plus" target="_blank" rel="noopener">PayPal Plus beantragen</a>. PayPal informiert dich per Email, wenn PayPal Plus für dich freigeschaltet wird. <strong>Achtung:</strong> Auch wenn Dr.&nbsp;Plano bei PayPal in der Liste der Online-Shops nicht aufgeführt wird, musst du für die Implementierung nichts tun. Dafür haben wir schon gesorgt.</li>
+							<li i18n>Zum Abschluss musst du nur noch oben dein PayPal-Konto mit Dr.&nbsp;Plano verbinden und das Häckchen setzen bei »Ist ein PayPal Plus Account«. Damit hast du es geschafft und profitierst von den Vorteilen, die PayPal Plus bietet ✌</li>
+						</ol>
+					</div>
+				</p-collapsible>
+				<p-collapsible>
+					<span trigger i18n>Wie überweise ich das PayPal-Guthaben auf mein Bankkonto?</span>
+					<div content class="card-body">
+						<div i18n>Wenn deine Kunden per PayPal zahlen, entsteht für dich ein PayPal-Guthaben. So buchst du dein PayPal-Guthaben auf dein Bankkonto ab:</div>
+						<ol>
+							<li i18n>Melde dich bitte in deinem PayPal-Konto an und gehe zur Seite »Guthaben«.</li>
+							<li i18n>Klicke unter deinem PayPal-Guthaben auf »Geld ein- und auszahlen« und wähle das Bankkonto aus, wohin du das Geld umbuchen möchtest.</li>
+							<li i18n>Nach 1-2 Werktagen erscheint dann das Guthaben auf deinem Bankkonto.</li>
+						</ol>
+					</div>
+				</p-collapsible>
+				<p-collapsible>
+					<span trigger i18n>Gibt es Kontoauszüge oder Ähnliches bei PayPal?</span>
+					<div content class="card-body">
+						<div i18n>PayPal bietet dir diverse Berichte an. Unter anderem auch monatliche Kontoauszüge, die du herunterladen kannst. Um dahin zu gelangen, loggst du dich ein und gehst auf die Seite »Berichte«.</div>
+					</div>
+				</p-collapsible>
+				<p-collapsible>
+					<span trigger i18n>Wie sicher ist PayPal?</span>
+					<div content class="card-body">
+						<div i18n>PayPal ist eine der am meisten genutzten Online-Zahlungsarten in Deutschland und wird von sehr vielen Händlern angeboten. Darüber hinaus hat PayPal eine Luxemburger Banklizenz im Sinne des Artikels 2 des Gesetzes vom 5. April 1993 über das Kreditwesen. Damit untersteht PayPal der Luxemburger Bankenaufsicht, der Commission de Surveillance du Secteur Financier (CSSF). Somit sind PayPal und deine Hausbank in Sachen Sicherheit gar nicht so verschieden.</div>
+					</div>
+				</p-collapsible>
+				<p-collapsible>
+					<span trigger i18n>Ist mein Datenschutz gewährleistet?</span>
+					<div content class="card-body">
+						<div i18n>Die Kommunikation mit PayPal erfolgt verschlüsselt. Beachte, dass du durch das Verbinden deines PayPal-Geschäftskontos mit Dr.&nbsp;Plano dem Datenaustausch zwischen uns und PayPal zum Zweck der Online-Zahlung und Angebotsverwaltung zustimmst. Du kannst jederzeit diesen Datenaustausch unterbinden, indem du die Verbindung kappst. Wir gehen unsererseits sehr sorgsam mit deinen Daten um. Informationen zum Schutz deiner Daten findest du auf unserer Seite zur <a routerLink="/personal-data-protection-regulation" target="_blank" rel="noopener">Datenschutz-Grundverordnung</a> sowie in unserer <a routerLink="/privacy" target="_blank" rel="noopener">Datenschutzerklärung</a>. Bitte informiere dich bei PayPal, um zu erfahren, welche Maßnahmen der Zahlungsanbieter ergreift, um datenschutzkonform zu handeln und die Datenschutz-Grundverordnung (DSGVO) einzuhalten.</div>
+					</div>
+				</p-collapsible>
+				<p-collapsible>
+					<span trigger i18n>Wie viel kostet PayPal?</span>
+					<div content class="card-body">
+						<div i18n>Für die Nutzung von PayPal fallen Gebühren an. Diese Kosten werden direkt mit PayPal abgerechnet und haben nichts mit den Preisen von Dr.&nbsp;Plano zu tun. Informiere dich bitte über <a href="https://www.paypal.com/webapps/mpp/paypal-fees" target="_blank" rel="noopener">die aktuellen Gebühren</a>. <strong>Achtung:</strong> Schon ab einem monatlichen Transaktionsvolumen von {{2000.01 | currency:PSupportedCurrencyCodes.EUR}} gewährt PayPal in der Regel besondere Händlerkonditionen (Merchant Rate). Diese müssen individuell beantragt werden. Weitere Infos findest du dazu <a href="https://www.paypal.com/de/smarthelp/article/was-sind-vorzugskonditionen-f%C3%BCr-gewerbliche-verk%C3%A4ufer-und-wie-kann-ich-sie-beantragen-faq1784" target="_blank" rel="noopener">hier</a>.</div>
+					</div>
+				</p-collapsible>
+			</div>
+		</div>
+	</scroll-shadow-box>
+</div>

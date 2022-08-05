@@ -1,0 +1,46 @@
+<!-- This card is advertising for our open job offers. Should get rid of after a while. -->
+<ng-container *ngTemplateOutlet="deskCardTemplate"></ng-container>
+<ng-container *ngTemplateOutlet="commentList"></ng-container>
+<ng-container *ngTemplateOutlet="shiftExchangeList"></ng-container>
+<p-assignment-processes></p-assignment-processes>
+
+<ng-template #deskCardTemplate>
+	<p-card *ngIf="meService.isLoaded() && deskCardIsVisible" class="border-0 o-hidden launch-darkly-desk-card mb-3">
+		<button type="button" class="close py-2" aria-label="Close" title="Schließen" i18n-title (click)="hideSection('desk-card')">
+			<span aria-hidden="true">&times;</span>
+		</button>
+		<section [innerHTML]="safeHtmlStr"></section>
+	</p-card>
+</ng-template>
+<ng-template #commentList>
+	<div *ngIf="!!now" class="card border-0 rounded o-hidden">
+		<section>
+			<list-headline text="Heutige Kommentare – {{ now | date:'minimalDate' }}" i18n-text>
+				<p-sticky-note headline-icon height="18" class="mr-1"></p-sticky-note>
+			</list-headline>
+		</section>
+		<div class="position-relative bg-light">
+			<p-spinner [size]="BootstrapSize.LG" *ngIf="isLoading" class="area-blocking-spinner"></p-spinner>
+
+			<p-day-comment
+				class="small"
+				[maxLines]="true"
+				[maxTextLength]="true"
+			></p-day-comment>
+			<p-shift-comments></p-shift-comments>
+		</div>
+	</div>
+</ng-template>
+<ng-template #shiftExchangeList>
+	<p-shift-exchange-list
+		[showOnlyItemsForDesk]="true"
+		[showDetails]="false"
+		[shiftExchanges]="shiftExchanges"
+		(calendarBtnClick)="pShiftExchangeService.onCalendarBtnClick($event)"
+	>
+		<button *ngIf="!Config.IS_MOBILE" type="button" (click)="navToShiftExchanges.emit()" class="w-100 btn btn-light btn-frameless border-top text-center d-flex justify-content-center align-items-center">
+			<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.LIST" class="mr-2"></fa-icon>
+			<small i18n>Alle Einträge anzeigen</small>
+		</button>
+	</p-shift-exchange-list>
+</ng-template>

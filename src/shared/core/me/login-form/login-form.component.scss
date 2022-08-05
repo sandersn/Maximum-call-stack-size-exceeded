@@ -1,0 +1,23 @@
+@import "p-variables";
+
+form {
+	// position elements centered in a column-count
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+input[type="email"] {
+	/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+	margin-bottom: 5px;
+}
+
+input[type="email"],
+input[type="password"] {
+	// Safari needs 16px or it will auto zoom. Prevent that.
+	font-size: $font-size-base;
+}
+
+#remember-me label {
+	font-size: $font-size-sm;
+}

@@ -1,0 +1,757 @@
+<ng-template [ngIf]="item && isLoaded">
+	<form
+		*ngIf="formGroup"
+		[formGroup]="$any(formGroup)"
+	>
+		<p-grid class="mb-3">
+			<div class="col-12">
+				<p-form-group [control]="formGroup.controls['courseSelector']!">
+					<ng-template [ngIf]="showInquiryDeclinedMsg" [ngIfElse]="courseSelectorEnabled">
+						<div class="card">
+							<div class="card-body text-muted" i18n>Abgelehnte Anfragen können keinem Termin zugewiesen werden.</div>
+						</div>
+					</ng-template>
+					<ng-template #courseSelectorEnabled>
+						<p-shift-selection
+							[pEditable]="false"
+							[api]="api"
+							(onDismiss)="initFormGroup()"
+							(onSaveSuccess)="initFormGroup()"
+							[valid]="formGroup.controls['courseSelector']!.valid"
+
+							(onModalClosed)="initFormGroup()"
+							(onModalDismissed)="initFormGroup()"
+
+							[booking]="item"
+							[showAsList]="true"
+							[formControl]="formGroup.controls['courseSelector']!"
+						></p-shift-selection>
+					</ng-template>
+				</p-form-group>
+				<p-form-group
+					*ngIf="showDesiredDate"
+					label="Vom Kunden gewünschte Zeit" i18n-label
+					[control]="formGroup.controls['desiredDate']!"
+				>
+					<p-input
+						[pEditable]="!item.isNewItem()"
+						[api]="api"
+						(onDismiss)="initFormGroup()"
+						[formControl]="formGroup.controls['desiredDate']!"
+					></p-input>
+				</p-form-group>
+			</div>
+			<div class="col-12">
+				<p-form-group
+					label="Status" i18n-label
+					[control]="formGroup.controls['state']!"
+				>
+					<p-radios
+						[pEditable]="!item.isNewItem()"
+						[api]="api"
+						(onDismiss)="initFormGroup()"
+						[saveChangesHook]="changeStateHook"
+
+						[(ngModel)]="item.state"
+						[formControl]="formGroup.controls['state']!"
+					>
+						<ng-template [ngIf]="courseIsOnlineInquiry">
+							<p-radios-radio
+								label="Anfrage" i18n-label
+								[value]="SchedulingApiBookingState.INQUIRY"
+								icon="inbox"
+								[disabled]="stateDisabled"
+							></p-radios-radio>
+							<p-radios-radio
+								label="Abgelehnt" i18n-label
+								[value]="SchedulingApiBookingState.INQUIRY_DECLINED"
+								icon="times"
+								[disabled]="stateInquiryDeclinedDisabled"
+							></p-radios-radio>
+						</ng-template>
+						<p-radios-radio
+							label="Gebucht" i18n-label
+							[value]="SchedulingApiBookingState.BOOKED"
+							[icon]="PlanoFaIconPool.BOOKING_BOOKED"
+							[disabled]="stateBookedDisabled"
+							[cannotEditHint]="stateBookedDisabledHint"
+						></p-radios-radio>
+						<p-radios-radio
+							label="Storniert" i18n-label
+							[value]="SchedulingApiBookingState.CANCELED"
+							icon="times"
+							[disabled]="stateCanceledDisabled"
+							[cannotEditHint]="stateCanceledDisabledHint"
+						></p-radios-radio>
+					</p-radios>
+				</p-form-group>
+			</div>
+
+			<div class="col-12">
+				<p-form-group label="Zahlungsstatus" i18n-label>
+					<p-grid [justifyContent]="'stretch'">
+						<div class="col-12 col-lg-4 d-flex align-items-stretch flex-column flex-lg-row">
+							<div class="card flex-grow-1 align-self-stretch">
+								<div class="card-body flex-grow-0">
+									<div class="d-flex flex-lg-column justify-content-between align-items-center align-items-lg-start">
+										<span i18n>Vom Kunden zu zahlen</span>
+										<div class="mt-1 ml-2 ml-lg-0 mr-2"><span class="h5 text-monospace font-weight-bold">{{ (item.amountToPay ?? 0) | currency }}</span></div>
+									</div>
+								</div>
+								<div class="card-footer flex-grow-1 small justify-content-around d-flex flex-column">
+									<div class="d-flex justify-content-between align-items-center" [class.text-line-through]="item.state === SchedulingApiBookingState.CANCELED">
+										<span class="word-break"><ng-container i18n>Buchungspreis</ng-container><p-info-circle i18n>Wird automatisch berechnet anhand der Teilnehmendenzahl und der Tarifauswahl.</p-info-circle></span>
+										<span class="ml-2 mr-2">{{ item.price | currency }}</span>
+									</div>
+									<div *ngIf="item.state === SchedulingApiBookingState.CANCELED" class="form-text mt-0 text-uppercase mb-2">Entfallen da storniert</div>
+									<div class="d-flex justify-content-between align-items-center">
+										<span class="word-break"><ng-container i18n>Stornogebühr</ng-container><p-info-circle i18n>Trage hier nur die Stornogebühren ein, die tatsächlich schon angefallen sind.<br>Durch das Eintragen oder Editieren der Stornogebühr ändert sich der vom Kunden zu zahlende Preis. Darüber wird dein Kunde per Email benachrichtigt, <strong>falls</strong> du automatische Emails aktiviert hast.</p-info-circle></span>
+										<button
+											type="button"
+											class="ml-auto btn btn-secondary ml-2 mt-1 p-editable-has-hook p-editable-active nowrap"
+											(click)="onStornoBtnClick()"
+										><fa-icon [icon]="item.cancellationFee !== undefined || item.cancellationFee !== null ? PlanoFaIconPool.EDIT : PlanoFaIconPool.ADD"></fa-icon>&nbsp;{{item.cancellationFee !== undefined || item.cancellationFee !== null ? (item.cancellationFee | currency) : ('Hinzufügen' | localize)}}</button>
+									</div>
+								</div>
+							</div>
+
+							<fa-icon [icon]="'minus'" class="mb-3 mb-lg-0 ml-lg-4 align-self-center"></fa-icon>
+						</div>
+
+						<div class="col-12 col-lg-4 d-flex align-items-center flex-column flex-lg-row">
+							<div class="card flex-grow-1 align-self-stretch">
+								<div class="card-body flex-grow-0">
+									<div class="d-flex flex-lg-column justify-content-between align-items-center align-items-lg-start">
+										<span i18n>Saldo bisheriger Zahlungen</span>
+										<div class="mt-1 ml-2 ml-lg-0 mr-2"><span class="h5 text-monospace font-weight-bold">{{ (item.newCurrentlyPaid ?? 0) | currency }}</span></div>
+									</div>
+								</div>
+								<div class="card-footer flex-grow-1 small justify-content-around d-flex flex-column">
+									<p-alert class="p-2 mb-2" *ngIf="item.paidBeforeTransactionListIntroduction" [icon]="null" [theme]="PThemeEnum.INFO">
+										<div class="d-flex justify-content-between align-items-center">
+											<span><ng-container i18n>Saldo zum {{Config.ADYEN_RELEASE_DATE | date}}</ng-container>&ngsp;<label class="m-0 d-inline small"><a (click)="navToAnchorBeforeTransactionListIntroductionHint()" i18n>Mehr&nbsp;Info</a></label></span>
+											<span>{{ item.paidBeforeTransactionListIntroduction | currency }}</span>
+										</div>
+									</p-alert>
+									<div class="d-flex justify-content-between align-items-center my-1">
+										<span><fa-icon [fixedWidth]="true" [theme]="PThemeEnum.SUCCESS" [icon]="PlanoFaIconPool.INCOMING_PAYMENT"></fa-icon>&ngsp;<ng-container i18n>Einzahlungen durch Kunden</ng-container></span>
+										<span class="ml-2 mr-2">{{ api.data.transactions.totalIncomingPayments | currency }}</span>
+									</div>
+									<div class="d-flex justify-content-between align-items-center my-1">
+										<span><fa-icon [fixedWidth]="true" [theme]="PThemeEnum.DANGER" [icon]="PlanoFaIconPool.OUTGOING_PAYMENT"></fa-icon>&ngsp;<ng-container i18n>Rückzahlungen an den Kunden</ng-container></span>
+										<span class="ml-2 mr-2">{{ api.data.transactions.totalOutgoingPayments | currency }}</span>
+									</div>
+								</div>
+							</div>
+
+							<fa-icon [icon]="'equals'" class="mb-3 mb-lg-0 ml-lg-4 align-self-center"></fa-icon>
+						</div>
+						<div class="col-12 col-lg-4 d-flex align-items-center flex-column flex-lg-row">
+							<div class="card flex-grow-1 align-self-stretch">
+								<div class="card-body flex-grow-0">
+									<div class="d-flex flex-lg-column justify-content-between align-items-center align-items-lg-start">
+
+										<p-open-amount-display
+											[amountToPay]="item.amountToPay"
+											[currentlyPaid]="item.currentlyPaid"
+											[openAmount]="item.getOpenAmount(item.newCurrentlyPaid)"
+											[price]="item.price"
+										></p-open-amount-display>
+
+									</div>
+								</div>
+								<div class="card-footer flex-grow-1 small justify-content-around d-flex flex-column">
+									<ng-container *ngIf="!item.isNewItem() || true">
+										<p i18n>Erfasse hier manuell Zahlungen durch deinen Kunden oder veranlasse eine Online-Rückzahlung:</p>
+										<button
+											type="button"
+											class="mr-auto btn btn-secondary p-editable-has-hook p-editable-active nowrap"
+											(click)="onTransactionBtnClick()"
+										><fa-icon [icon]="PlanoFaIconPool.ADD"></fa-icon>&nbsp;{{newTransactionFormLabel}}</button>
+									</ng-container>
+
+								</div>
+							</div>
+
+						</div>
+
+					</p-grid>
+				</p-form-group>
+			</div>
+		</p-grid>
+		<p-grid class="mb-3"
+			*ngIf="item.rawData && item.bookingComment && item.bookingComment.length"
+		>
+			<div class="col-12">
+				<p-form-group>
+					<label><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.BOOKING_COMMENT"></fa-icon>&nbsp;<ng-container i18n>Kommentar der buchenden Person</ng-container></label>
+					<blockquote [innerHTML]="item.bookingComment"></blockquote>
+				</p-form-group>
+			</div>
+		</p-grid>
+
+		<p-tabs
+			class="mt-5"
+			[isLoading]="!api.isLoaded()"
+			[theme]="PTabsTheme.CLEAN"
+		>
+
+			<p-tab
+				label="Buchende & Teilnehmende Personen" i18n-label
+				[icon]="PlanoFaIconPool.ITEMS_PARTICIPANTS"
+				[size]="PTabSizeEnum.FRAMELESS"
+				urlName="participants"
+			>
+				<div class="mt-4">
+
+					<p-form-group [control]="formGroup.controls['bookingPerson']!">
+						<p-editable-modal-box
+							[pEditable]="!item.isNewItem()"
+							[api]="api"
+							[valid]="!formGroup.controls['bookingPerson']!.invalid && !formGroup.controls['courseTariffs']!.invalid"
+							(onDismiss)="initFormGroup()"
+							(onSaveSuccess)="initFormGroup()"
+
+							[waitForEditableCompleteBeforeClose]="true"
+							(onModalClosed)="item.isNewItem() ? initFormGroup() : undefined"
+						>
+							<p-editable-modal-box-header><label class="m-0 pl-3"><fa-icon [icon]="PlanoFaIconPool.ITEMS_BOOKING_PERSON"></fa-icon>&nbsp;<ng-container i18n>Buchende Person</ng-container></label></p-editable-modal-box-header>
+							<p-editable-modal-box-showroom size="frameless">
+								<div *ngIf="!hasBookingPersonData" class="card-body">…</div>
+
+								<p-booking-person-card
+									*ngIf="item.rawData"
+									[card]="false"
+									[booking]="item"
+								></p-booking-person-card>
+							</p-editable-modal-box-showroom>
+							<p-editable-modal-box-form>
+								<form [formGroup]="formGroup.controls['bookingPerson']!" *ngIf="!!formGroup">
+									<p-form-group
+										label="Firma / Organisation" i18n-label
+										[control]="formGroup.controls['bookingPerson']!.controls['company']!"
+									>
+										<p-input
+											placeholder="Dr.&nbsp;Plano GmbH" i18n-placeholder
+											[formControl]="formGroup.controls['bookingPerson']!.controls['company']!"
+										></p-input>
+									</p-form-group>
+									<p-grid>
+										<p-form-group
+											class="col-12 col-md-6"
+											label="Vorname" i18n-label
+											[control]="formGroup.controls['bookingPerson']!.controls['firstName']!"
+										>
+											<p-input
+												placeholder="Peter" i18n-placeholder
+												[formControl]="formGroup.controls['bookingPerson']!.controls['firstName']!"
+											></p-input>
+										</p-form-group>
+										<p-form-group
+											class="col-12 col-md-6"
+											label="Nachname" i18n-label
+											[control]="formGroup.controls['bookingPerson']!.controls['lastName']!"
+										>
+											<p-input
+												placeholder="Plano" i18n-placeholder
+												[formControl]="formGroup.controls['bookingPerson']!.controls['lastName']!"
+											></p-input>
+										</p-form-group>
+										<p-form-group
+											class="col-12"
+											label="Geburtsdatum" i18n-label
+											[control]="formGroup.controls['bookingPerson']!.controls[item.attributeInfoDateOfBirth.id]"
+										>
+											<p-input-date
+												[formControl]="formGroup.controls['bookingPerson']!.controls[item.attributeInfoDateOfBirth.id]"
+												[icon]="PlanoFaIconPool.BIRTHDAY"
+											></p-input-date>
+											<p-validation-hint
+												text="Die Person sollte zum Buchungszeitpunkt mindestens {{item.model?.bookingPersonMinAge}} Jahre alt sein." i18n-text
+												[isInvalid]="formGroup.controls['bookingPerson']!.controls[item.attributeInfoDateOfBirth.id].valid && showBookingPersonAgeLimitWarning"
+												[theme]="PThemeEnum.WARNING"
+											></p-validation-hint>
+										</p-form-group>
+										<p-form-group
+											class="col-12 col-md-6"
+											label="Postleitzahl" i18n-label
+											[control]="formGroup.controls['bookingPerson']!.controls['postalCode']!"
+										>
+											<p-input
+												placeholder="00000" i18n-placeholder
+												[formControl]="formGroup.controls['bookingPerson']!.controls['postalCode']!"
+											></p-input>
+										</p-form-group>
+										<p-form-group
+											class="col-12 col-md-6"
+											label="Ort" i18n-label
+											[control]="formGroup.controls['bookingPerson']!.controls['city']!"
+										>
+											<p-input
+												placeholder="Darmstadt" i18n-placeholder
+												[formControl]="formGroup.controls['bookingPerson']!.controls['city']!"
+											></p-input>
+										</p-form-group>
+										<p-form-group
+											class="col-12"
+											label="Straße und Hausnummer" i18n-label
+											[control]="formGroup.controls['bookingPerson']!.controls['streetAndHouseNumber']!"
+										>
+											<p-input
+												[formControl]="formGroup.controls['bookingPerson']!.controls['streetAndHouseNumber']!"
+											></p-input>
+										</p-form-group>
+										<div class="col-12 col-md-6">
+											<p-form-group
+												label="Mobiltelefon" i18n-label
+												[control]="formGroup.controls['bookingPerson']!.controls['phoneMobile']!"
+											>
+												<p-input
+													placeholder="0000 - 0000000" i18n-placeholder
+													[formControl]="formGroup.controls['bookingPerson']!.controls['phoneMobile']!"
+												></p-input>
+											</p-form-group>
+										</div>
+										<div class="col-12 col-md-6">
+											<p-form-group
+												label="Festnetz" i18n-label
+												[control]="formGroup.controls['bookingPerson']!.controls['phoneLandline']!"
+											>
+												<p-input
+													placeholder="00000 - 00000" i18n-placeholder
+													[formControl]="formGroup.controls['bookingPerson']!.controls['phoneLandline']!"
+												></p-input>
+											</p-form-group>
+										</div>
+
+										<div class="col-12">
+											<p-form-group
+												label="Email" i18n-label
+												[control]="formGroup.controls['bookingPerson']!.controls['email']!"
+											>
+												<p-input
+													[formControl]="formGroup.controls['bookingPerson']!.controls['email']!"
+												></p-input>
+											</p-form-group>
+										</div>
+									</p-grid>
+									<p-form-group
+										label="Kontaktiert mich zu weiteren interessanten Angeboten" i18n-label
+										[control]="formGroup.controls['bookingPerson']!.controls['wantsNewsletter']!"
+									>
+										<p-grid>
+											<div class="col-12 col-md-6">
+												<p-radio
+													class="mb-2"
+													(checkedChange)="formGroup.controls['bookingPerson']!.controls['wantsNewsletter'].setValue(true)"
+													[checked]="formGroup.controls['bookingPerson']!.controls['wantsNewsletter'].value === true"
+													[card]="true"
+													[disabled]="!item.isNewItem() && (formGroup.controls['bookingPerson']!.invalid || formGroup.controls['bookingPerson']!.controls['wantsNewsletter'].disabled)"
+													i18n
+												>Ja</p-radio>
+											</div>
+											<div class="col-12 col-md-6">
+												<p-radio
+													class="mb-2"
+													(checkedChange)="formGroup.controls['bookingPerson']!.controls['wantsNewsletter'].setValue(false)"
+													[checked]="formGroup.controls['bookingPerson']!.controls['wantsNewsletter'].value === false"
+													[card]="true"
+													[disabled]="!item.isNewItem() && (formGroup.controls['bookingPerson']!.invalid || formGroup.controls['bookingPerson']!.controls['wantsNewsletter'].disabled)"
+													i18n
+												>Nein</p-radio>
+											</div>
+										</p-grid>
+									</p-form-group>
+									<ng-template [ngIf]="!item.model.onlyWholeCourseBookable">
+										<p-form-group
+											label="Teilnahme" i18n-label
+											[control]="formGroup.controls['bookingPerson']!.controls['isParticipant']!"
+										>
+											<p-checkbox
+												[popover]="!item.isNewItem() && !formGroup.controls['bookingPerson']!.controls['isParticipant'].disabled ? popTemplateChange : ''"
+
+												[formControl]="formGroup.controls['bookingPerson']!.controls['isParticipant']!"
+												[readMode]="false"
+												valueText="Buchende Person ist zugleich teilnehmende Person" i18n-valueText
+											></p-checkbox>
+										</p-form-group>
+										<p-form-group
+											*ngIf="formGroup.controls['bookingPerson']!.controls['isParticipant'].value"
+											label="Tarif" i18n-label
+											[control]="formGroup.controls['bookingPerson']!.controls['tariffId']!"
+										>
+											<p-tariff-input
+												*ngIf="formGroup.controls['courseTariffs']!.controls"
+												[participant]="formGroup.controls['bookingPerson']!.controls['reference'].value"
+												[formControl]="formGroup.controls['bookingPerson']!.controls['tariffId']!"
+												[booking]="item"
+												[formArray]="courseTariffsFormArray"
+												[disabled]="!formGroup.controls['bookingPerson']!.controls['isParticipant'].value || formGroup.controls['bookingPerson']!.controls['tariffId'].disabled"
+											></p-tariff-input>
+										</p-form-group>
+										<p-form-group
+											[hidden]="!showAdditionalFieldAtBookingPersonForm"
+
+											label="{{ getAdditionalFieldLabel(formGroup.controls['bookingPerson']!.controls['tariffId'].value) }}"
+											[control]="formGroup.controls['bookingPerson']!.controls['additionalFieldValue']!"
+											description="Diese Info wird aufgrund des ausgewählten Tarifs abgefragt" i18n-description
+										>
+											<p-input
+												[formControl]="formGroup.controls['bookingPerson']!.controls['additionalFieldValue']!"
+												[disabled]="!showAdditionalFieldAtBookingPersonForm"
+											></p-input>
+										</p-form-group>
+									</ng-template>
+								</form>
+							</p-editable-modal-box-form>
+						</p-editable-modal-box>
+
+					</p-form-group>
+
+
+					<p-grid class="mb-3"
+						*ngIf="item.rawData"
+					>
+						<!-- <div class="col-12 d-flex">
+
+						</div> -->
+						<ng-template
+							[ngIf]="item.model.onlyWholeCourseBookable"
+							[ngIfElse]="notOnlyWholeCourseBookable"
+						>
+							<div
+								class="col-12"
+							>
+								<p-editable-modal-box
+									[pEditable]="!item.isNewItem()"
+									[api]="api"
+									[valid]="participantIsValid"
+									(onDismiss)="initFormGroup()"
+									(onSaveSuccess)="initFormGroup()"
+								>
+									<p-editable-modal-box-header><label class="m-0 pl-3"><fa-icon [icon]="PlanoFaIconPool.ITEMS_PARTICIPANTS"></fa-icon>&nbsp;<ng-container i18n>Teilnehmende</ng-container></label></p-editable-modal-box-header>
+									<p-editable-modal-box-showroom>
+										<div class="d-flex"
+											[class.flex-row]="!Config.IS_MOBILE"
+											[class.flex-column]="Config.IS_MOBILE"
+										>
+											<p-persons
+												class="flex-grow-1 pr-3"
+												[count]="formGroup.controls['participantCount']!.value"
+												[tariffName]="overallTariff ? overallTariff.name : null"
+												[price]="item.price"
+												[ageMin]="formGroup.controls['ageMin']!.value"
+												[ageMax]="formGroup.controls['ageMax']!.value"
+												[additionalFieldLabel]="getAdditionalFieldLabel(item.overallTariffId)"
+												[additionalFieldValue]="item.additionalFieldValue"
+												[tariffNotAvailableThatTime]="tariffNotAvailableThatTime(overallTariff)"
+												[ageLimitWarning]="participantsAgeLimitWarning"
+											></p-persons>
+											<p-checkbox
+												*ngIf="!item.isNewItem()"
+
+												[disabled]="bookingsService.attendedCheckboxDisabled(item)"
+												[popover]="bookingsService.attendedCheckboxTooltipContent(item)"
+
+												[pEditable]="!item.isNewItem()"
+												[api]="api"
+												[valid]="participantIsValid"
+
+												[readMode]="false"
+												[(ngModel)]="item.attended"
+												[ngModelOptions]="{standalone: true}"
+												[icon]="item.attendedSetByPos ? 'plug' : null"
+												valueText="Teilgenommen" i18n-valueText
+											></p-checkbox>
+										</div>
+									</p-editable-modal-box-showroom>
+									<p-editable-modal-box-form>
+										<p-grid>
+											<div class="col-12 col-md-6">
+												<p-form-group
+													label="Anzahl der Teilnehmenden" i18n-label
+													[control]="formGroup.controls['participantCount']!"
+												>
+													<p-input
+														[popover]="!item.isNewItem() ? popTemplateChange : undefined"
+														[type]="PApiPrimitiveTypes.Integer"
+														[formControl]="formGroup.controls['participantCount']!"
+													></p-input>
+												</p-form-group>
+											</div>
+											<div class="col-12 col-md-3">
+												<p-form-group
+													label="Alter von" i18n-label
+													[control]="formGroup.controls['ageMin']!"
+												>
+													<p-input
+														[type]="PApiPrimitiveTypes.number"
+
+														placeholder="z.B. »18«" i18n-placeholder
+														[formControl]="formGroup.controls['ageMin']!"
+													></p-input>
+													<p-validation-hint
+														text="Die Person sollte mindestens {{item.model?.participantMinAge}} Jahre alt sein (zum Datum des gebuchten Angebots)." i18n-text
+														[isInvalid]="formGroup.controls['ageMin']!.valid && showParticipantsMinAgeLimitWarning"
+														[theme]="PThemeEnum.WARNING"
+													></p-validation-hint>
+												</p-form-group>
+											</div>
+											<div class="col-12 col-md-3">
+												<p-form-group
+													label="Alter bis" i18n-label
+													[control]="formGroup.controls['ageMax']!"
+												>
+													<p-input
+														[type]="PApiPrimitiveTypes.number"
+
+														placeholder="z.B. »30«" i18n-placeholder
+														[formControl]="formGroup.controls['ageMax']!"
+													></p-input>
+													<p-validation-hint
+														text="Die Person sollte höchstens {{item.model?.participantMaxAge}} Jahre alt sein (zum Datum des gebuchten Angebots)." i18n-text
+														[isInvalid]="formGroup.controls['ageMax']!.valid && showParticipantsMaxAgeLimitWarning"
+														[theme]="PThemeEnum.WARNING"
+													></p-validation-hint>
+												</p-form-group>
+											</div>
+											<div class="col-12">
+												<p-form-group
+													label="Tarif" i18n-label
+													[control]="formGroup.controls['overallTariffId']!"
+												>
+													<p-tariff-input
+														*ngIf="formGroup.controls['courseTariffs']!.controls"
+														[participant]="null"
+														[formControl]="formGroup.controls['overallTariffId']!"
+														[booking]="item"
+														[formArray]="courseTariffsFormArray"
+														[participantCount]="formGroup.controls['participantCount']!.value"
+													></p-tariff-input>
+												</p-form-group>
+											</div>
+											<div class="col-12"
+												[hidden]="!showAdditionalFieldAtBookingForm"
+											>
+												<p-form-group
+													label="{{ getAdditionalFieldLabel(formGroup.controls['overallTariffId']!.value) }}"
+													[control]="formGroup.controls['additionalFieldValue']!"
+													description="Diese Info wird aufgrund des ausgewählten Tarifs abgefragt" i18n-description
+												>
+													<p-input
+														[disabled]="!showAdditionalFieldAtBookingForm"
+														[formControl]="formGroup.controls['additionalFieldValue']!"
+													></p-input>
+												</p-form-group>
+											</div>
+										</p-grid>
+									</p-editable-modal-box-form>
+								</p-editable-modal-box>
+							</div>
+						</ng-template>
+						<ng-template #notOnlyWholeCourseBookable>
+							<div class="col-12">
+
+								<p-participants
+									*ngIf="!!formGroup"
+									[booking]="item"
+									[array]="formGroup.controls['participants']!"
+									(onModalClosed)="initFormGroup()"
+									(onModalDismissed)="initFormGroup()"
+								></p-participants>
+								<p-validation-hint
+									[control]="formGroup.controls['participants']!"
+									text="Minimum: Eine teilnehmende Person" i18n-text
+									validationName="min"
+								></p-validation-hint>
+								<p-validation-hint
+									[control]="formGroup.controls['participants']!"
+								></p-validation-hint>
+
+							</div>
+						</ng-template>
+
+					</p-grid>
+
+				</div>
+			</p-tab>
+			<p-tab
+				label="Zahlungen" i18n-label
+				[icon]="PlanoFaIconPool.AREA_TRANSACTIONS"
+				[size]="PTabSizeEnum.FRAMELESS"
+				urlName="transactions"
+			>
+				<div class="my-4">
+					<p-section [whitespace]="SectionWhitespace.NONE">
+						<ng-template [ngIf]="showPaymentMethods">
+							<!-- <p-form-control-switch
+								[group]="formGroup"
+								[attributeInfo]="item.attributeInfoPaymentMethodId"
+							></p-form-control-switch> -->
+							<p-form-group
+								[hasDanger]="formGroup.controls[item.attributeInfoPaymentMethodId.id]!.invalid"
+								class="mb-4"
+							>
+								<label><span i18n>Präferierte Zahlungsart des Kunden</span>&nbsp;<p-info-circle i18n>Das kann ein Kunde selbst bei der Buchung bzw. Bezahlung auswählen. Änderst du allerdings hier die Einstellung, dann steht dem Kunden bei einer fälligen Zahlung nur noch die von dir ausgewählte Zahlungsart zur Verfügung.</p-info-circle></label>
+								<p-radios
+									[formControl]="formGroup.controls[item.attributeInfoPaymentMethodId.id]!"
+									[readMode]="false"
+									[disabled]="item.isFreeBooking  && !item.isNewItem()"
+								>
+									<ng-template
+										ngFor let-paymentMethod
+										[ngForOf]="item.model.coursePaymentMethods.iterable()"
+									>
+										<p-radios-radio
+											*ngIf="!paymentMethod.trashed || paymentMethod.id.equals(formGroup.controls[item.attributeInfoPaymentMethodId.id]!.value)"
+											[label]="paymentMethod?.type === SchedulingApiPaymentMethodType.PAYPAL ? 'PayPal' : paymentMethod.name"
+											[description]="paymentMethodDescription(paymentMethod)"
+											[value]="paymentMethod.id"
+											[icon]="paymentMethodIcon(paymentMethod)"
+											[disabled]="paymentMethodIsDisabled(paymentMethod)"
+										></p-radios-radio>
+									</ng-template>
+								</p-radios>
+								<p-validation-hint
+									[control]="formGroup.controls[item.attributeInfoPaymentMethodId.id]!"
+									[checkTouched]="false"
+									[validationName]="PPossibleErrorNames.ID_DEFINED"
+								></p-validation-hint>
+							</p-form-group>
+						</ng-template>
+
+						<ng-template [ngIf]="!!item">
+							<p-transaction-totals
+								[isLoading]="!api.isLoaded()"
+								[totalIncomingPayments]="transactionsForList.totalIncomingPayments"
+								[totalOutgoingPayments]="transactionsForList.totalOutgoingPayments"
+								[onlineRefundableAmount]="transactionsForList.onlineRefundableAmount"
+								[onlineRefundableAmountInfoText]="'Für Online-Rückerstattungen an die buchende Person steht maximal dieses Guthaben zur Verfügung. Das Guthaben ergibt sich aus der Differenz ein- und abgegangener <strong>Online-Zahlungen</strong>, die unten aufgelistet sind.'"
+							>
+								<p-dropdown
+									*ngIf="exportTransactionsApi.data.attributeInfoThis.show && !item.isNewItem()"
+									class="d-none d-xs-flex"
+									[dropdownType]="DropdownTypeEnum.BUTTONS"
+									[size]="BootstrapSize.SM"
+									[icon]="exportIsRunning ? PlanoFaIconPool.SYNCING : PlanoFaIconPool.EXPORT"
+									[iconSpin]="exportIsRunning"
+									[disabled]="exportIsRunning || isApiLoading"
+									label="Exportieren" i18n-label
+								>
+									<p-dropdown-item
+										title="Excel-Export aller Transaktionen mit den gewählten Filter-Einstellungen" i18n-title
+										(onClick)="exportTransactions('xlsx')"
+										[attributeInfo]="exportTransactionsApi.data.attributeInfoThis"
+									><fa-icon [icon]="PlanoFaIconPool.EXPORT_AS_EXCEL"></fa-icon> <strong>Excel</strong>&nbsp;<ng-container i18n>Export</ng-container></p-dropdown-item>
+									<p-dropdown-item
+										title="CSV-Export aller Transaktionen mit den gewählten Filter-Einstellungen" i18n-title
+										(onClick)="exportTransactions('csv')"
+										[attributeInfo]="exportTransactionsApi.data.attributeInfoThis"
+									><fa-icon [icon]="PlanoFaIconPool.EXPORT_AS_CSV"></fa-icon> <strong>CSV</strong>&nbsp;<ng-container i18n>Export</ng-container></p-dropdown-item>
+									<p-dropdown-item
+										title="PDF-Export aller Transaktionen mit den gewählten Filter-Einstellungen" i18n-title
+										(onClick)="exportTransactions('pdf')"
+										[attributeInfo]="exportTransactionsApi.data.attributeInfoThis"
+									><fa-icon [icon]="PlanoFaIconPool.EXPORT_AS_PDF"></fa-icon> <strong>PDF</strong>&nbsp;<ng-container i18n>Export</ng-container></p-dropdown-item>
+								</p-dropdown>
+							</p-transaction-totals>
+
+
+							<p-transaction-list-headline
+								[isLoading]="!api.isLoaded()"
+								[excludedColumn]="[TransactionsSortedByEmum.BOOKING_NUMBER, TransactionsSortedByEmum.OFFER_NAME]"
+								[canEditTransactions]="canEditSomeTransactions"
+							></p-transaction-list-headline>
+
+							<ng-template [ngIf]="transactionsForList.length" [ngIfElse]="noItems">
+								<p-transaction-list
+									[isLoading]="!api.isLoaded()"
+									[transactions]="transactionsForList.iterableSortedBy('dateTime', true)"
+									(onEditItem)="navToTransaction($event)"
+									[excludedColumn]="[TransactionsSortedByEmum.BOOKING_NUMBER, TransactionsSortedByEmum.OFFER_NAME]"
+								></p-transaction-list>
+							</ng-template>
+							<ng-template #noItems>
+								<p-no-items
+									[handleGlobalFilterService]="false"
+									[hasFilterSettings]="null"
+								></p-no-items>
+							</ng-template>
+
+						</ng-template>
+
+					</p-section>
+				</div>
+				<p-alert *ngIf="!!item.paidBeforeTransactionListIntroduction" id="beforeTransactionListIntroductionHint" [theme]="PThemeEnum.INFO" i18n>Die Erfassung der einzelnen Zahlungen wurde erst am <mark>{{Config.ADYEN_RELEASE_DATE | date}}</mark> eingeführt. Ein- und Auszahlungen, die vor diesem Datum erfolgten, wurden nur in ihrer Summe und nicht einzeln erfasst. Diese Buchung wies zum <mark>{{Config.ADYEN_RELEASE_DATE | date}}</mark> einen Zahlungssaldo von <mark>{{ item.paidBeforeTransactionListIntroduction | currency }}</mark> auf.</p-alert>
+			</p-tab>
+			<p-tab
+				label="Interne Notizen" i18n-label
+				[icon]="PlanoFaIconPool.NOTE"
+				[size]="PTabSizeEnum.FRAMELESS"
+				[attributeInfo]="$any(item.attributeInfoOwnerComment)"
+				urlName="owner-comment"
+			>
+				<div class="mt-4">
+
+					<p-form-group
+						[control]="formGroup.controls['ownerComment']!"
+					>
+						<p i18n>Die hier hinterlegten Notizen sind nur für dich und weitere User sichtbar, die Buchungen verwalten dürfen. Mehr dazu in der <a routerLink="/client/rightgroups/settings">Rechteverwaltung</a>.</p>
+						<p-textarea
+							[pEditable]="!item.isNewItem()"
+							[api]="api"
+							[valid]="!formGroup.controls['ownerComment']!.invalid"
+							(onDismiss)="initFormGroup()"
+							placeholder="…"
+							[formControl]="formGroup.controls['ownerComment']!"
+						></p-textarea>
+					</p-form-group>
+
+				</div>
+			</p-tab>
+			<p-tab
+				label="Email-Protokoll" i18n-label
+				[icon]="PlanoFaIconPool.EMAIL_NOTIFICATION"
+				[size]="PTabSizeEnum.FRAMELESS"
+				[attributeInfo]="$any(api.data.mailsSentToBookingPerson.attributeInfoThis)"
+				urlName="email-history"
+			>
+				<p-email-history></p-email-history>
+			</p-tab>
+		</p-tabs>
+
+	</form>
+
+	<div
+		*ngIf="item.isNewItem()"
+		class="d-flex justify-content-between"
+	>
+		<button type="button"
+			[popover]="item.isNewItem() ? popTemplate : undefined"
+			placement="top"
+
+			class="btn btn-lg btn-primary ml-auto"
+			(click)="saveItem()"
+			[disabled]="!formGroup || formGroup.invalid || api.isBackendOperationRunning"
+		><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon> <span i18n>Anlegen</span></button>
+	</div>
+</ng-template>
+
+<ng-template #popTemplate>
+	<div class="p-3" i18n><strong>Klickst du hierauf,</strong> werden buchende & teilnehmende Personen informiert, <strong>falls</strong> du automatische Emails aktiviert hast.</div>
+</ng-template>
+
+<ng-template #popTemplateChange>
+	<div class="p-3" i18n><strong>Änderst du das,</strong> werden buchende & teilnehmende Personen informiert, <strong>falls</strong> du automatische Emails aktiviert hast.</div>
+</ng-template>
+
+<ng-template #bookingTransactionFormModal let-modalVersion="modalVersion">
+	<p-editable-modal-button-form>
+		<p-booking-transaction-form
+			#transactionForm
+			[modalVersion]="modalVersion"
+			[bookable]="item!"
+			[group]="formGroup!"
+		></p-booking-transaction-form>
+		</p-editable-modal-button-form>
+</ng-template>

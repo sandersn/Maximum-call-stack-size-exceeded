@@ -1,0 +1,27 @@
+<div class="d-flex flex-grow-1 justify-content-between" [class.flex-column]="!oneLine">
+	<div
+		class="title name"
+		[class.d-inline]="oneLine"
+		[class.is-removed]="isRemoved"
+	>
+		<span *ngIf="!!name; else placeholderForName">{{name}}</span>
+		<ng-template #placeholderForName>
+			<span class="text-skeleton-animated">███████████</span>
+		</ng-template>
+	</div>
+	<div hidden><span i18n #translatedDateTimeInfoSectionTitle>{isRemoved, select, true {Schicht wurde gelöscht}}</span></div>
+	<div
+		class="title text-monospace date-and-time"
+		*ngIf="showDate || showTime"
+		[class.text-danger]="dateTimeHasDanger"
+		[title]="translatedDateTimeInfoSectionTitle.textContent!"
+	>
+		<span *ngIf="showDate" class="title mr-3"
+			[class.is-removed]="isRemoved"
+			[class.text-skeleton-animated]="!start"
+			>{{date}}</span>
+		<span *ngIf="showTime" class="title" [class.text-skeleton-animated]="!start" [class.is-removed]="isRemoved">{{time}}</span>
+	</div>
+</div>
+
+<ng-content></ng-content>

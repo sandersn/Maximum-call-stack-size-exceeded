@@ -1,0 +1,53 @@
+<p-subheader [isNewItem]="!!item && item.isNewItem()" [containerSize]="BootstrapSize.SM" (onNavBack)="pRouterService.scrollToSelector($any('#scroll-target-id-'+routeId?.toString()))">
+	<!-- <div hidden><span i18n #translatedDeleteBookingLabel>Transaktion löschen</span></div>
+	<div hidden><span i18n #translatedDeleteBookingDescription>Du kannst Transaktionen nicht löschen.</span></div> -->
+	<p-dropdown
+		*ngIf="item?.paymentMethodType === SchedulingApiTransactionPaymentMethodType.ONLINE_PAYMENT"
+		[dropdownType]="DropdownTypeEnum.BUTTONS"
+		label="Aktionen" i18n-label
+		[icon]="PlanoFaIconPool.MORE_ACTIONS"
+		[size]="BootstrapSize.SM"
+		[showActiveItem]="false"
+		[canEdit]="true"
+	>
+		<!-- <p-dropdown-item
+			[show]="true"
+			[disabled]="true"
+			(onClick)="onRemoveClick()"
+			[description]="translatedDeleteBookingDescription.textContent!"
+			[label]="translatedDeleteBookingLabel.textContent!"
+			[icon]="PlanoFaIconPool.DELETE"
+			[theme]="PBtnThemeEnum.OUTLINE_DANGER"
+		></p-dropdown-item> -->
+		<p-dropdown-item
+			[show]="true"
+			[disabled]="false"
+			[icon]="PlanoFaIconPool.AREA_FAQ"
+			(onClick)="navToFaq()"
+			label="FAQ Online-Zahlung" i18n-label
+		></p-dropdown-item>
+	</p-dropdown>
+</p-subheader>
+
+<div class="flex-grow-1 d-flex position-relative">
+	<scroll-shadow-box class="flex-grow-1">
+		<div class="container-sm pb-tawk">
+			<ng-template [ngIf]="!item && !!routeId">
+				<ng-template [ngIf]="api.isBackendOperationRunning" [ngIfElse]="noItemAvailable">
+					<p-spinner [size]="BootstrapSize.LG" class="m-3"></p-spinner>
+				</ng-template>
+				<ng-template #noItemAvailable>
+					<p-no-item></p-no-item>
+				</ng-template>
+			</ng-template>
+
+			<p-detail-form
+				*ngIf="item"
+				class="mb-5"
+				[item]="item"
+				(onAddItem)="saveNewItem($event)"
+			></p-detail-form>
+
+		</div>
+	</scroll-shadow-box>
+</div>

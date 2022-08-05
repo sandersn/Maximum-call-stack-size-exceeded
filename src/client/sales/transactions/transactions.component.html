@@ -1,0 +1,415 @@
+<p-section label="Dein Konto für Online-Zahlungen" i18n-label>
+	<div class="card">
+		<p-grid>
+			<div class="col-12 col-xl-6 d-flex">
+				<div (click)="navToOnboarding()" class="btn btn-light btn-frameless flex-grow-1 d-flex align-items-center justify-content-center w-100">
+
+					<div class="d-flex px-5 py-3">
+
+						<div class="position-relative plano-adyen-logos" [class.adyen-is-not-active]="!adyenIsActive">
+							<div class="plano-adyen-logos--plano">
+								<img src="./images/plano-logo/logo.svg" alt="Dr.&nbsp;Plano Logo" height="60px"/>
+							</div>
+							<div class="plano-adyen-logos--adyen">
+								<img src="./images/adyen/adyen_logo.svg" alt="Adyen Logo" height="60px"/>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-12 col-xl-6 d-flex align-items-center justify-content-center">
+				<div class="p-3">
+					<ng-container *ngIf="adyenIsActive===null">
+						<h5><fa-icon [isLoading]="true"></fa-icon>&nbsp;<span class="text-skeleton-animated">███████████</span></h5>
+						<div class="d-flex align-items-center">
+							<h4 class="text-monospace mb-2 nowrap text-skeleton-animated"><strong>████.██</strong></h4>
+						</div>
+						<p-button
+							[isLoading]="true"
+							class="balanceInfoButton"
+							[attributeInfo]="null"
+							[icon]="'info-circle'"
+							i18n
+						>Mehr Infos zum Guthaben</p-button>
+					</ng-container>
+					<ng-container *ngIf="adyenIsActive === true">
+						<h5><fa-icon [icon]="PlanoFaIconPool.ONLINE_PAYMENT"></fa-icon>&nbsp;<ng-container i18n>Online-Guthaben</ng-container>
+							<small class="align-middle ml-2">
+								<p-info-circle placement="bottom">
+									<div style="max-width: 200px;" i18n>Das Online-Guthaben wird nur durch jene Zahlungen unten in der Übersicht beeinflusst, die bei Zahlungsart »Online&#8209;Zahlung« vermerkt haben.</div>
+								</p-info-circle>
+							</small>
+						</h5>
+						<div class="d-flex align-items-center">
+							<h4 class="text-monospace mb-2 nowrap" [class.text-skeleton-animated]="!api.isLoaded()"><strong>{{ api.isLoaded() ? (api.data.adyenAccount.balance | currency) : '████.██' }}</strong></h4>
+						</div>
+						<a
+							class="btn btn-secondary balanceInfoButton"
+							routerLink="/client/plugin/faq-online-payment/"
+							fragment="balance"
+							target="_blank"
+							rel="noopener"
+						>
+						<ng-container i18n>Mehr Infos zum Guthaben</ng-container>&ngsp;<fa-icon
+						[fixedWidth]="true" [icon]="PlanoFaIconPool.NAV_FORWARD"
+						></fa-icon></a>
+
+						<p-alert
+							*ngIf="isPayoutEnabled === false"
+							class="mt-3"
+						>
+							<ng-container *ngIf="rightsService.isOwner" i18n>Guthaben-Auszahlungen aktuell ausgesetzt. Mehr Infos dazu <a routerLink="/client/plugin/payments">hier</a>.</ng-container>
+							<ng-container *ngIf="!rightsService.isOwner" i18n>Guthaben-Auszahlungen aktuell ausgesetzt. Bitte wende dich an eine administrierende Person.</ng-container>
+						</p-alert>
+
+						<p-alert
+							*ngIf="isProcessingEnabled === false"
+							class="mt-3"
+							[theme]="PThemeEnum.DANGER"
+						>
+							<ng-container *ngIf="rightsService.isOwner" i18n>Online-Zahlung aktuell ausgesetzt. Mehr Infos dazu <a routerLink="/client/plugin/payments">hier</a>.</ng-container>
+							<ng-container *ngIf="!rightsService.isOwner" i18n>Online-Zahlung aktuell ausgesetzt. Bitte wende dich an eine administrierende Person.</ng-container>
+						</p-alert>
+
+					</ng-container>
+					<ng-container *ngIf="adyenIsActive === false">
+						<div class="d-flex flex-column align-items-start">
+
+							<h5><fa-icon [icon]="PlanoFaIconPool.NOT_POSSIBLE"></fa-icon>&nbsp;<ng-container i18n>Online-Zahlung ist nicht aktiviert</ng-container></h5>
+							<p-button
+								class="balanceInfoButton"
+								[attributeInfo]="null"
+								(triggerClick)="navToOnboarding()"
+								[theme]="PThemeEnum.PRIMARY"
+								[disabled]="!api.data.adyenAccount.attributeInfoOnboardingUrl.show"
+								[pTooltip]="!api.data.adyenAccount.attributeInfoOnboardingUrl.show ? ('Du hast nicht die Berechtigung dazu. Bitte wende dich an einen Admin.' | localize) : null"
+								i18n
+							>Jetzt aktivieren</p-button>
+
+						</div>
+					</ng-container>
+				</div>
+			</div>
+		</p-grid>
+	</div>
+</p-section>
+<h4 class="px-4 px-md-5 pt-4" i18n>Zahlungsübersicht</h4>
+<p-section [background]="'light-cold'">
+	<div class="bg-light-cold">
+		<div class="row justify-content-between">
+			<div class="col-12 col-xl flex-shrink-1 flex-grow-0">
+				<p-form-group class="mb-3">
+					<div class="d-md-flex align-items-center">
+						<p-input-date
+							class="w-100"
+							[isLoading]="!start"
+							[size]="BootstrapSize.SM"
+							[(ngModel)]="start"
+							[max]="end ? end - 1 : null"
+							[showTimeInput]="false"
+							[timeIsRequired]="false"
+							[showEraseValueBtn]="false"
+							[isExclusiveEnd]="false"
+						></p-input-date>
+						<div class="mx-2 text-center" i18n>bis</div>
+						<p-input-date
+							[isLoading]="!end"
+							class="w-100"
+							[size]="BootstrapSize.SM"
+							[(ngModel)]="end"
+							[min]="start"
+							[showTimeInput]="false"
+							[timeIsRequired]="false"
+							[showEraseValueBtn]="false"
+							[isExclusiveEnd]="true"
+						></p-input-date>
+					</div>
+				</p-form-group>
+			</div>
+
+			<div class="col-12 col-xl-5 flex-grow-1 mb-3 mb-xl-0">
+				<p-input
+					id="search-input"
+					[class.mb-2]="focusOnSearch || focusOnSearchSettings || searchString"
+					[size]="BootstrapSize.SM"
+					[type]="PApiPrimitiveTypes.Search"
+					[(ngModel)]="searchString"
+					(keyup)="onSearchKeyUp($event)"
+					placeholder="Suche…" i18n-placeholder
+					(focus)="onFocusSearch()"
+					(blur)="onBlurSearch()"
+				></p-input>
+
+				<p-dropdown
+					*ngIf="focusOnSearch || focusOnSearchSettings || searchString"
+					(focus)="onFocusSearchSettings()"
+					(blur)="onBlurSearchSettings()"
+					(onSelect)="onSelectSearchSetting()"
+					class="m-0 d-flex justify-content-stretch"
+					[(ngModel)]="searchAll"
+					[size]="BootstrapSize.SM"
+				>
+					<p-dropdown-item
+						label="in allen Transaktionen" i18n-label
+						[value]="true"
+					></p-dropdown-item>
+					<p-dropdown-item
+						label="nur in angezeigten Transaktionen" i18n-label
+						[value]="false"
+					></p-dropdown-item>
+				</p-dropdown>
+			</div>
+
+			<div class="col-12 col-xl flex-shrink-1 flex-grow-0 d-flex align-items-start justify-content-end">
+				<p-button
+					[attributeInfo]="null"
+					pModal
+					[modalContent]="modalContentRef"
+					[modalServiceOptions]="modalServiceOptions"
+					[size]="BootstrapSize.SM"
+					[icon]="PlanoFaIconPool.FILTER"
+				><div class="d-flex"><p-led [theme]="PThemeEnum.PRIMARY" [off]="!pTransactionsService.hasFilterSettings"></p-led>&nbsp;<ng-container i18n>Filter</ng-container></div></p-button>
+
+				<ng-template #modalContentRef let-c="close" let-d="dismiss">
+					<p-modal-content
+						modalTitle="Filter"
+						(onClose)="c('Started');"
+						(onDismiss)="d('Started');"
+						[hideDismissBtn]="true"
+					>
+						<p-modal-content-body class="p-3">
+
+							<p-grid>
+								<div class="col-12 mb-5">
+									<h5 i18n>Zahlungstyp</h5>
+									<div class="row">
+										<div class="col-12 col-md-6 mb-3">
+											<ng-template
+												[ngTemplateOutlet]="typeFilterBtnRef"
+												[ngTemplateOutletContext]="{ $implicit: SchedulingApiTransactionType.PAYMENT_FAILED }"
+											></ng-template>
+										</div>
+										<div class="col-12 col-md-6 mb-3">
+											<ng-template
+												[ngTemplateOutlet]="typeFilterBtnRef"
+												[ngTemplateOutletContext]="{ $implicit: SchedulingApiTransactionType.REFUND_FAILED }"
+											></ng-template>
+										</div>
+										<div class="col-12 col-md-6 mb-3">
+											<ng-template
+												[ngTemplateOutlet]="typeFilterBtnRef"
+												[ngTemplateOutletContext]="{ $implicit: SchedulingApiTransactionType.AUTO_DEBIT_FAILED }"
+											></ng-template>
+										</div>
+										<div class="col-12 col-md-6 mb-3">
+											<ng-template
+												[ngTemplateOutlet]="typeFilterBtnRef"
+												[ngTemplateOutletContext]="{ $implicit: SchedulingApiTransactionType.PAYOUT_FAILED }"
+											></ng-template>
+										</div>
+										<div class="col-12 col-md-6 mb-3">
+											<ng-template
+												[ngTemplateOutlet]="typeFilterBtnRef"
+												[ngTemplateOutletContext]="{ $implicit: SchedulingApiTransactionType.CHARGEBACK }"
+											></ng-template>
+										</div>
+										<div class="col-12 col-md-6 mb-3">
+											<ng-template
+												[ngTemplateOutlet]="typeFilterBtnRef"
+												[ngTemplateOutletContext]="{ $implicit: SchedulingApiTransactionType.DR_PLANO_FEE_VAT }"
+											></ng-template>
+										</div>
+									</div>
+									<div class="pt-2 pb-3 px-6">
+										<hr>
+										<div class="arrow-up"></div>
+									</div>
+									<div class="d-flex justify-content-center mb-2">
+										<p-checkbox
+											[(ngModel)]="pTransactionsService.showOnlyFailedTransactions"
+											valueText="Nur fehlgeschlagene Zahlungen Anzeigen" i18n-valueText
+											i18n
+										></p-checkbox>
+									</div>
+
+									<ng-template #typeFilterBtnRef let-value>
+										<p-button
+											[attributeInfo]="null"
+											[buttonType]="PButtonType.FILTER"
+											[icon]="!pTransactionsService.filteredTransactionType.includes(value) ? PlanoFaIconPool.VISIBLE : PlanoFaIconPool.INVISIBLE"
+											[isActiveButton]="pTransactionsService.filteredTransactionType.includes(value)"
+											(triggerClick)="pTransactionsService.toggleFilteredTransactionType(value)"
+											i18n
+										>
+											<span [innerHTML]="getTransactionTypeLabel(value)"></span>
+										</p-button>
+									</ng-template>
+								</div>
+								<div class="col-12 mb-5">
+									<h5 i18n>Zahlungsart</h5>
+									<div class="row">
+										<div class="col-12 col-md-6 mb-3">
+											<ng-template
+												[ngTemplateOutlet]="paymentMethodTypeFilterBtnRef"
+												[ngTemplateOutletContext]="{ $implicit: SchedulingApiTransactionPaymentMethodType.ONLINE_PAYMENT }"
+											></ng-template>
+											<div class="form-text" i18n>Relevant fürs Online-Guthaben</div>
+										</div>
+										<div class="col-12 col-md-6 mb-3">
+											<ng-template
+												[ngTemplateOutlet]="paymentMethodTypeFilterBtnRef"
+												[ngTemplateOutletContext]="{ $implicit: SchedulingApiTransactionPaymentMethodType.POS}"
+											></ng-template>
+											<div class="form-text" i18n>Irrelevant fürs Online-Guthaben</div>
+										</div>
+										<div class="col-12 col-md-6 mb-3">
+											<ng-template
+												[ngTemplateOutlet]="paymentMethodTypeFilterBtnRef"
+												[ngTemplateOutletContext]="{ $implicit: SchedulingApiTransactionPaymentMethodType.MISC }"
+											></ng-template>
+											<div class="form-text" i18n>Irrelevant fürs Online-Guthaben</div>
+										</div>
+										<div class="col-12 col-md-6 mb-3" *ngIf="showPayPalFilterOption">
+											<ng-template
+												[ngTemplateOutlet]="paymentMethodTypeFilterBtnRef"
+												[ngTemplateOutletContext]="{ $implicit: SchedulingApiTransactionPaymentMethodType.PAYPAL }"
+											></ng-template>
+											<div class="form-text" i18n>Irrelevant fürs Online-Guthaben</div>
+										</div>
+									</div>
+
+									<ng-template #paymentMethodTypeFilterBtnRef let-value>
+										<p-button
+											[attributeInfo]="null"
+											[buttonType]="PButtonType.FILTER"
+											[icon]="!pTransactionsService.filteredTransactionPaymentMethodType.includes(value) ? PlanoFaIconPool.VISIBLE : PlanoFaIconPool.INVISIBLE"
+											[isActiveButton]="pTransactionsService.filteredTransactionPaymentMethodType.includes(value)"
+											(triggerClick)="toggleFilteredTransactionPaymentMethodType(value)"
+											i18n
+										>{{getPaymentMethodTypeLabel(value)}}</p-button>
+									</ng-template>
+								</div>
+							</p-grid>
+							<p-grid>
+								<div class="col-12"><h6 i18n>Betrag</h6></div>
+								<div class="col-12 col-md-6">
+									<p-form-group
+										label="Von" i18n-label
+									>
+										<p-input
+											[type]="PApiPrimitiveTypes.Currency"
+											placeholder="Unbegrenzt" i18n-placeholder
+											[formControl]="pTransactionsService.amountStart!"
+										></p-input>
+									</p-form-group>
+								</div>
+								<div class="col-12 col-md-6">
+									<p-form-group
+										label="Bis" i18n-label
+									>
+										<p-input
+											[type]="PApiPrimitiveTypes.Currency"
+											placeholder="Unbegrenzt" i18n-placeholder
+											[formControl]="pTransactionsService.amountEnd!"
+										></p-input>
+									</p-form-group>
+								</div>
+
+							</p-grid>
+
+						</p-modal-content-body>
+
+						<p-modal-content-footer>
+							<p-button class="mr-auto"
+								(triggerClick)="pTransactionsService.unloadFilters()"
+								[theme]="PThemeEnum.SECONDARY"
+								[disabled]="!pTransactionsService.hasFilterSettings"
+							><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.UNDO"></fa-icon>&nbsp;<ng-container i18n>Filter zurücksetzen</ng-container></p-button>
+
+							<p-button
+								(triggerClick)="c();"
+								[theme]="pTransactionsService.hasFilterSettings ? PThemeEnum.PRIMARY : PThemeEnum.SECONDARY"
+								[disabled]="pTransactionsService.amountStart!.invalid || pTransactionsService.amountEnd!.invalid"
+								i18n
+							>Ok</p-button>
+						</p-modal-content-footer>
+					</p-modal-content>
+				</ng-template>
+
+			</div>
+		</div>
+	</div>
+</p-section>
+<p-section>
+
+	<p-transaction-totals
+		[isLoading]="!api.isLoaded()"
+		[totalIncomingPayments]="transactionsForList.totalIncomingPayments"
+		[totalOutgoingPayments]="transactionsForList.totalOutgoingPayments"
+		[onlineRefundableAmountInfoText]="'Für Online-Rückerstattungen an die buchende Person steht maximal dieses Guthaben zur Verfügung. Das Guthaben ergibt sich aus der Differenz ein- und abgegangener <strong>Online-Zahlungen</strong>, die unten aufgelistet sind.'"
+	>
+		<p-dropdown
+			*ngIf="exportTransactionsApi.data.attributeInfoThis.show"
+			class="d-none d-xs-flex"
+			[dropdownType]="DropdownTypeEnum.BUTTONS"
+			[size]="BootstrapSize.SM"
+			[icon]="exportIsRunning ? PlanoFaIconPool.SYNCING : PlanoFaIconPool.EXPORT"
+			[iconSpin]="exportIsRunning"
+			[disabled]="isApiLoading || exportIsRunning"
+			label="Exportieren" i18n-label
+		>
+			<p-dropdown-item
+				title="Excel-Export aller Transaktionen mit den gewählten Filter-Einstellungen" i18n-title
+				(onClick)="exportTransactions('xlsx')"
+				[attributeInfo]="exportTransactionsApi.data.attributeInfoThis"
+			><fa-icon [icon]="PlanoFaIconPool.EXPORT_AS_EXCEL"></fa-icon> <strong>Excel</strong>&nbsp;<ng-container i18n>Export</ng-container></p-dropdown-item>
+			<p-dropdown-item
+				title="CSV-Export aller Transaktionen mit den gewählten Filter-Einstellungen" i18n-title
+				(onClick)="exportTransactions('csv')"
+				[attributeInfo]="exportTransactionsApi.data.attributeInfoThis"
+			><fa-icon [icon]="PlanoFaIconPool.EXPORT_AS_CSV"></fa-icon> <strong>CSV</strong>&nbsp;<ng-container i18n>Export</ng-container></p-dropdown-item>
+			<p-dropdown-item
+				title="PDF-Export aller Transaktionen mit den gewählten Filter-Einstellungen" i18n-title
+				(onClick)="exportTransactions('pdf')"
+				[attributeInfo]="exportTransactionsApi.data.attributeInfoThis"
+			><fa-icon [icon]="PlanoFaIconPool.EXPORT_AS_PDF"></fa-icon> <strong>PDF</strong>&nbsp;<ng-container i18n>Export</ng-container></p-dropdown-item>
+		</p-dropdown>
+	</p-transaction-totals>
+
+	<p-transaction-list-headline
+		[class.sidebar-is-visible]="sidebarIsVisible"
+		[isLoading]="isLoading"
+		[sorter]="sortedBy"
+		(sorterChange)="setSorter($event)"
+	></p-transaction-list-headline>
+	<ng-template [ngIf]="transactionsForList.length" [ngIfElse]="noItems">
+		<p-transaction-list
+			[class.sidebar-is-visible]="sidebarIsVisible"
+			[isLoading]="isLoading"
+			[transactions]="transactionsForListSorted.iterable().slice(0,maxVisibleItems!)"
+			(onEditItem)="navToItem($event)"
+		></p-transaction-list>
+		<ng-template [ngTemplateOutlet]="moreBtnTemplate"></ng-template>
+	</ng-template>
+	<ng-container *ngIf="Config.ADYEN_RELEASE_DATE! > start!">
+		<p-alert class="mt-4" [theme]="PThemeEnum.INFO">Die Erfassung der einzelnen Zahlungen wurde erst am <mark>{{ Config.ADYEN_RELEASE_DATE | date }}</mark> eingeführt. Daher kann diese Übersicht nur Zahlungen ab diesem Datum enthalten.</p-alert>
+	</ng-container>
+</p-section>
+
+<ng-template #noItems>
+	<p-no-items
+		[handleGlobalFilterService]="false"
+		[hasFilterSettings]="hasFilterSettings"
+		(onResetFilter)="unloadFilters()"
+	></p-no-items>
+</ng-template>
+
+<ng-template #moreBtnTemplate>
+	<p-button
+		[attributeInfo]="null"
+		*ngIf="!isLoading && maxVisibleItems !== undefined && maxVisibleItems! < transactionsForList.length"
+		class="mt-5 mx-auto load-more-button"
+		[theme]="PThemeEnum.SECONDARY"
+		(triggerClick)="pMoreBtnService.showMore()"
+	>{{moreBtnText}}</p-button>
+</ng-template>

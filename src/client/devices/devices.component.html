@@ -1,0 +1,59 @@
+<scroll-shadow-box class="flex-grow-1">
+	<div class="container-sm pb-tawk">
+		<h2 i18n>Stempeluhr-Einstellungen</h2>
+		<div
+			class="ml-auto mr-auto"
+		>
+			<div class="mb-5">
+				<p i18n>Falls du möchtest, kannst du hier den Zugang zur digitalen Stempeluhr auf bestimmte Geräte beschränken. Das macht Sinn, wenn deine Mitarbeitenden ihre Arbeitszeiten nur an Geräten deiner Wahl erfassen sollen - zum Beispiel nur am Kassenrechner.</p>
+				<p *ngIf="CONFIG.platform ==='browser'"><fa-icon [icon]="'info'"></fa-icon>	<ng-container i18n>Beachte, dass die Gerätebeschränkung auch den jeweiligen Browser einschließt.</ng-container></p>
+			</div>
+			<div class="mb-5">
+				<h4 class="mb-3" i18n>Erlaubte Geräte & Browser</h4>
+				<p-devices-list></p-devices-list>
+			</div>
+
+			<h5 *ngIf="CONFIG.platform === 'browser'" class="mb-3" i18n>Gerät & Browser hinzufügen</h5>
+			<h5 *ngIf="CONFIG.platform !== 'browser'" class="mb-3" i18n>Gerät hinzufügen</h5>
+			<ng-container *ngIf="!api.isLoadOperationRunning && !fingerprintService.isLoading; else spinnerTemplate">
+				<div *ngIf="!showNewDeviceSection">
+					<div class="mb-3" i18n>Du kannst jeweils nur das Gerät samt Browser für die Stempeluhr erlauben, auf dem du gerade eingeloggt bist. Begebe dich also zum gewünschten Gerät und Browser, logge dich dort mit deinen Zugangsdaten bei Dr.&nbsp;Plano ein und navigiere zu dieser Einstellungsseite. Anschließend kannst du das Gerät und entsprechenden Browser mit einem Namen versehen und für die Stempeluhr freischalten.</div>
+				</div>
+				<div *ngIf="showNewDeviceSection">
+					<p-form-group>
+						<label i18n>Name des Geräts (Dieser dient deinen Mitarbeitenden zur Orientierung)</label>
+						<p-input
+							(keyup.enter)="onEnter()"
+							[formControl]="formControl"
+							[placeholder]="defaultDeviceName"
+						>
+							<p-input-append *ngIf="!CONFIG.IS_MOBILE">
+								<ng-template [ngTemplateOutlet]="addBtnTemplate"></ng-template>
+							</p-input-append>
+						</p-input>
+						<div class="mt-2 d-flex align-items-stretch flex-column" *ngIf="CONFIG.IS_MOBILE">
+							<ng-template [ngTemplateOutlet]="addBtnTemplate"></ng-template>
+						</div>
+					</p-form-group>
+				</div>
+			</ng-container>
+			<ng-template #spinnerTemplate>
+				<p-spinner></p-spinner>
+			</ng-template>
+
+		</div>
+	</div>
+</scroll-shadow-box>
+
+<ng-template #addBtnTemplate>
+	<button type="button"
+		class="input-group-btn btn btn-outline-primary"
+		[class.btn-lg]="CONFIG.IS_MOBILE"
+		[disabled]="!api.isLoaded()"
+		(click)="addDevice()"
+	>
+		<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon>
+		<span i18n>Aktuelles Gerät {CONFIG.platform ==='browser', select, true {& Browser }}hinzufügen</span>
+	</button>
+
+</ng-template>

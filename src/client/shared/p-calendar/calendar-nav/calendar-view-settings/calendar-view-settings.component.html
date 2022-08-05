@@ -1,0 +1,49 @@
+<p-button [attributeInfo]="null"
+	*ngIf="showListBtn && calendarMode === CalendarModes.DAY && !config.IS_MOBILE"
+	[size]="config.IS_MOBILE ? undefined : BootstrapSize.SM"
+	[buttonType]="PButtonType.TOGGLE"
+	[isActiveButton]="showDayAsList"
+	(triggerClick)="showDayAsList=!showDayAsList;showDayAsListChange.emit(showDayAsList)"
+	[rounded]="BootstrapRounded.LEFT"
+	[icon]="PlanoFaIconPool.LIST"
+><span
+	class="d-none"
+	[class.d-xl-inline]="!hideLabels"
+><ng-container i18n>Liste</ng-container></span></p-button>
+<p-button [attributeInfo]="null"
+	*ngIf="showListBtn && calendarMode === CalendarModes.WEEK && !config.IS_MOBILE"
+	[size]="config.IS_MOBILE ? undefined : BootstrapSize.SM"
+	[buttonType]="PButtonType.TOGGLE"
+	[isActiveButton]="showWeekAsList"
+	(triggerClick)="showWeekAsList=!showWeekAsList;showWeekAsListChange.emit(showWeekAsList)"
+	[rounded]="BootstrapRounded.LEFT"
+	[icon]="PlanoFaIconPool.LIST"
+><span
+	class="d-none"
+	[class.d-xl-inline]="!hideLabels"
+><ng-container i18n>Liste</ng-container></span></p-button>
+
+<p-dropdown
+	[ngModel]="calendarMode"
+	(ngModelChange)="switchCalendarMode($event)"
+	[disabled]="!!isLoading"
+	[size]="config.IS_MOBILE ? null : BootstrapSize.SM"
+	[hideTriggerLabel]="hideLabels || config.IS_MOBILE"
+	[rounded]="config.IS_MOBILE ? null : (calendarMode !== CalendarModes.MONTH ? BootstrapRounded.RIGHT : null)"
+>
+	<p-dropdown-item
+		label="Monat" i18n-label
+		[icon]="PlanoFaIconPool.CALENDAR_MONTH"
+		[value]="CalendarModes.MONTH"
+	></p-dropdown-item>
+	<p-dropdown-item
+		label="Woche" i18n-label
+		[icon]="PlanoFaIconPool.CALENDAR_WEEK"
+		[value]="CalendarModes.WEEK"
+	></p-dropdown-item>
+	<p-dropdown-item
+		label="Tag" i18n-label
+		[icon]="PlanoFaIconPool.CALENDAR_DAY"
+		[value]="CalendarModes.DAY"
+	></p-dropdown-item>
+</p-dropdown>

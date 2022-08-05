@@ -1,0 +1,78 @@
+<p-main-sidebar
+	*ngIf="!CONFIG.IS_MOBILE"
+	[shifts]="api.data.shifts"
+></p-main-sidebar>
+
+<p-tabs
+	[theme]="PTabsTheme.CLEAN"
+	[pageSubNav]="true"
+	class="d-flex flex-column flex-grow-1"
+>
+	<p-tab #bookingsTab
+		[show]="!!showBookingsTab"
+		[canEdit]="true"
+		[size]="PTabSizeEnum.FRAMELESS"
+		[urlName]="SalesTabNames.BOOKINGS"
+		label="Buchungen" i18n-label
+		class="position-relative"
+	>
+		<scroll-shadow-box
+			class="flex-grow-1"
+			[backgroundStyleTop]="PThemeEnum.LIGHT"
+		>
+			<ng-container *ngIf="bookingsTab.active">
+				<p-bookings
+					class="pb-tawk"
+					[shifts]="api.data.shifts"
+					[initialStart]="defaultStart"
+					[initialEnd]="defaultEnd"
+				></p-bookings>
+			</ng-container>
+		</scroll-shadow-box>
+	</p-tab>
+	<p-tab #giftCardsTab
+		[show]="!!showGiftCardsTab"
+		[canEdit]="true"
+		[size]="PTabSizeEnum.FRAMELESS"
+		[urlName]="SalesTabNames.GIFT_CARDS"
+		label="Gutscheine" i18n-label
+		class="position-relative"
+	>
+		<scroll-shadow-box
+			class="flex-grow-1"
+			[backgroundStyleTop]="PThemeEnum.LIGHT"
+		>
+			<ng-container *ngIf="giftCardsTab.active">
+				<p-gift-cards
+					class="pb-tawk"
+					[vouchers]="api.data.vouchers"
+					[initialStart]="defaultStart"
+					[initialEnd]="defaultEnd"
+				></p-gift-cards>
+			</ng-container>
+		</scroll-shadow-box>
+	</p-tab>
+
+	<p-tab #transactionsTab
+		[show]="!!showTransactionsTab"
+		[canEdit]="true"
+		[size]="PTabSizeEnum.FRAMELESS"
+		[urlName]="SalesTabNames.TRANSACTIONS"
+		label="Zahlungen" i18n-label
+		class="position-relative"
+	>
+		<scroll-shadow-box
+			class="flex-grow-1"
+		>
+			<ng-container *ngIf="transactionsTab.active">
+				<p-transactions
+					class="pb-tawk"
+					[transactions]="api.data.transactions"
+					[initialStart]="defaultStart"
+					[initialEnd]="defaultEnd"
+				></p-transactions>
+			</ng-container>
+		</scroll-shadow-box>
+	</p-tab>
+
+</p-tabs>

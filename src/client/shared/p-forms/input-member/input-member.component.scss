@@ -1,0 +1,85 @@
+@import "~bootstrap/scss/bootstrap-grid.scss";
+@import "p-variables";
+
+$shadow-height: 8px;
+
+.overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+
+	&.has-margin-top {
+		.content-inner {
+			margin-top: $shadow-height;
+		}
+	}
+}
+
+.content {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	-webkit-overflow-scrolling: touch;
+	overflow-y: auto;
+
+	// PLANO-7908
+	//&.always-show-scrollbar {
+	//	// TODO: This is necessary for the alignment of the bar that shows weekdays. See comments in PLANO-7908
+	//	overflow-y: scroll;
+	//}
+}
+
+.shadow-container {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	z-index: 2;
+}
+
+.radial-shadow-top,
+.radial-shadow-bottom {
+	position: absolute;
+	left: 0;
+	z-index: 1;
+	width: inherit;
+	height: $shadow-height;
+	background-repeat: no-repeat;
+	background-size: 100% $shadow-height;
+}
+
+.radial-shadow-top {
+	top: 0;
+	background: radial-gradient(farthest-side at 50% 0%, $darken-04, rgba(0, 0, 0, 0)) 100% 0;
+}
+
+.radial-shadow-bottom {
+	bottom: 0;
+	background: radial-gradient(farthest-side at 50% 100%, $darken-04, rgba(0, 0, 0, 0)) 0 100%;
+}
+
+.shadow-cover-top,
+.shadow-cover-bottom {
+	position: absolute;
+	z-index: 2;
+	background: $white;
+	height: $shadow-height;
+	width: 100%;
+	background-size: 100% 12px;
+	background-repeat: no-repeat;
+}
+
+.shadow-cover-top {
+	float: top;
+}
+
+.shadow-cover-bottom {
+	float: bottom;
+}

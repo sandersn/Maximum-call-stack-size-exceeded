@@ -1,0 +1,15 @@
+<p-shifts-info
+	class="flex-grow-1 border-0"
+	[shiftId]="id"
+	[showDate]="showDate"
+>
+	<p-shift-info-content-left class="align-items-stretch">
+		<p-multi-select-checkbox
+			class="border-right"
+			*ngIf="showCheckbox"
+			[ngModel]="selected"
+			(ngModelChange)="selectedChange.emit(!selected)"
+			[disabled]="disabled"
+		></p-multi-select-checkbox>
+	</p-shift-info-content-left>
+</p-shifts-info>

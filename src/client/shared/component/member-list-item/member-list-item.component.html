@@ -1,0 +1,196 @@
+<!-- draggable
+[dragScope]="'member'"
+[dragData]="member" -->
+
+<p-list-item
+
+	size="frameless"
+	*ngIf="member"
+	class="rounded o-hidden card-options border bg-white"
+
+	[hideListItemStyle]="true"
+	(mouseover)="hover=true"
+	(mouseleave)="hover=false"
+
+	[class.border-secondary]="!highlightService.isHighlighted(member)"
+	[class.border-primary]="highlightService.isHighlighted(member)"
+	[class.shadow]="highlightService.isHighlighted(member)"
+
+	(onClick)="!undefined"
+>
+	<a
+		class="flex-grow-1 d-flex align-items-center flex-nowrap title p-0 position-relative border-0"
+		[affected]="affected"
+		[selected]="selected"
+		[class.clickable]="hasOnItemClickBinding"
+		[class.list-group-item]="hasOnItemClickBinding"
+		[class.list-group-item-action]="hasOnItemClickBinding"
+		[class.bg-white]="highlightService.isHighlighted(member) && !selected && !affected"
+		(click)="onItemClick.emit(member)"
+	>
+		<ng-template [ngIf]="showExpectedMemberData1">
+			<div class="bar-wrap bar-top">
+				<p-earnings-bar
+					[expectedMemberEarnings]="expectedMemberData1!.earnings"
+					[member]="member!"
+				></p-earnings-bar>
+			</div>
+		</ng-template>
+		<div class="flex-grow-1 d-flex align-items-stretch title" style="min-height: 48px;">
+			<p-member-badge
+				[memberId]="member.id"
+				[firstName]="member.firstName"
+				[lastName]="member.lastName"
+				[absenceType]="member.trashed ? 'trashed' : null"
+				style="z-index: 10;"
+				[shadow]="!!isOwner && !!pSidebarService.isWorkloadMode"
+				class="d-flex align-items-center ml-2 mt-2 mb-2"
+				[isMe]="!!isMe"
+				size="normal"
+			></p-member-badge>
+			<div class="mr-auto p-2 ml-1 name d-flex align-items-center title"
+				style="z-index: 10;"
+			>
+				<span class="title"><strong>{{ member.firstName }}</strong> {{ member.lastName }}</span>
+			</div>
+			<div
+				*ngIf="showWishesIconForMember"
+				class="card-option border-0 d-flex align-items-center justify-content-center"
+			><p-member-wish-icon
+				[member]="member"
+			></p-member-wish-icon></div>
+		</div>
+		<ng-template [ngIf]="showExpectedMemberData2">
+			<div class="bar-wrap bar-bottom">
+				<p-earnings-bar
+					[expectedMemberEarnings]="expectedMemberData2!.earnings"
+					[member]="member!"
+				></p-earnings-bar>
+			</div>
+		</ng-template>
+	</a>
+	<p-list-item-append class="d-flex justify-content-end ml-auto">
+		<button
+			*ngIf="showMultiSelectCheckbox"
+			type="button"
+			class="card-option btn pt-2 pb-2 d-flex align-items-center justify-content-center border-left btn-frameless rounded-0"
+			[class.btn-primary]="member.selected"
+			[class.btn-light]="!member.selected"
+			[class.btn-outline-secondary]="!member.selected"
+			(click)="selectInCalendar($event)"
+			title="Alle Einträge dieser Person selektieren" i18n-title
+		><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.CALENDAR_SELECT_RELATED_SHIFTS">
+			<!-- [class.text-primary]="affected && !selected" -->
+		</fa-icon></button>
+		<ng-template [ngIf]="pSidebarService.isWorkloadMode">
+			<button
+				type="button"
+
+				*ngIf="showExpectedMemberData1 || showExpectedMemberData2"
+				class="earnings text-monospace card-option btn border-left nowrap btn-frameless rounded-0"
+				[class.btn-light]="!showExpectedEarningsDetails"
+				[class.btn-primary]="showExpectedEarningsDetails"
+				[class.text-white]="showExpectedEarningsDetails"
+				(click)="showExpectedEarningsDetails=!showExpectedEarningsDetails"
+			>
+				<ng-template [ngIf]="showExpectedMemberData1">
+					<div class="earning">
+						<div class="earning-top">
+							{{ expectedMemberData1!.earnings | currency:undefined:'symbol':'1.0-0' }}
+							·
+							{{ expectedMemberData1!.workingHours | number:'1.0-0' }}h
+						</div>
+					</div>
+				</ng-template>
+				<hr class="m-0 p-0" style="border-style: dashed;">
+				<ng-template [ngIf]="showExpectedMemberData2">
+					<div class="earning">
+						<div class="earning-bottom">
+							{{ expectedMemberData2!.earnings | currency:undefined:'symbol':'1.0-0' }}
+							·
+							{{ expectedMemberData2!.workingHours | number:'1.0-0' }}h
+						</div>
+					</div>
+				</ng-template>
+			</button>
+		</ng-template>
+			<button
+				type="button"
+				*ngIf="editListItemsMode && hasOnItemClickBinding"
+				class="card-option btn pt-2 pb-2 d-flex align-items-center justify-content-center border-left btn-frameless rounded-0 btn-outline-secondary btn-light"
+				(click)="showDetails()"
+				[title]="(isOwner || isMe ? 'Bearbeiten' : 'Details anzeigen') | localize"
+				><fa-icon [fixedWidth]="true" [icon]="isOwner || isMe ? 'pen' : ['far','id-card']"></fa-icon>
+			</button>
+			<button
+				*ngIf="editFilterModeActive"
+				type="button"
+				(click)="toggleItem()"
+				class="card-option btn pt-2 pb-2 d-flex align-items-center justify-content-center border-left btn-frameless rounded-0 btn-secondary"
+				><fa-icon [fixedWidth]="true" [class.text-primary]="!isVisible" [icon]="isVisible ? PlanoFaIconPool.VISIBLE : PlanoFaIconPool.INVISIBLE"></fa-icon>
+			</button>
+	</p-list-item-append>
+
+</p-list-item>
+
+
+<div
+	*ngIf="pSidebarService.isWorkloadMode && showExpectedEarningsDetails && (showExpectedMemberData1 || showExpectedMemberData2)"
+	class="expected-earnings-details"
+>
+	<div class="message-bubble">
+		<ng-template [ngIf]="showExpectedMemberData1 || showExpectedMemberData2">
+			<div class="mb-3">
+				<ng-template [ngIf]="showExpectedMemberData1">
+					<small class="d-flex justify-content-between align-items-center">
+						<div>
+							<ng-template [ngIf]="period1.end < now"><ng-container i18n><span class="nowrap">Arbeitseinsätze + bez. Abwesenheiten</span> laut Auswertung</ng-container></ng-template>
+							<ng-template [ngIf]="period1.start < now && period1.end > now"><span class="nowrap" i18n>zukünftige Schichten</span> + <span class="nowrap" i18n>Einträge laut Auswertung</span></ng-template>
+							<ng-template [ngIf]="period1.start > now"><span class="nowrap" i18n>zukünftige Schichten</span> + <span class="nowrap" i18n>Einträge laut Auswertung</span></ng-template>
+						</div>
+						<div class="nowrap text-monospace">= {{ expectedMemberData1!.earnings | currency:undefined:'symbol':'1.0-0' }}</div>
+					</small>
+				</ng-template>
+
+				<ng-template [ngIf]="showExpectedMemberData1 && showExpectedMemberData2">
+					<hr class="mt-2 mb-2">
+				</ng-template>
+
+				<ng-template [ngIf]="showExpectedMemberData2">
+					<small class="d-flex justify-content-between align-items-center">
+						<div>
+							<ng-template [ngIf]="period2.end < now"><span class="nowrap" i18n>Arbeitseinsätze + bez. Abwesenheiten</span> <span i18n>laut Auswertung</span></ng-template>
+							<ng-template [ngIf]="period2.start < now && period2.end > now"><span class="nowrap" i18n>zukünftige Schichten</span> + <span class="nowrap" i18n>Einträge laut Auswertung</span></ng-template>
+							<ng-template [ngIf]="period2.start > now"><span class="nowrap" i18n>zukünftige Schichten</span> + <span class="nowrap" i18n>Einträge laut Auswertung</span></ng-template>
+						</div>
+						<div class="nowrap text-monospace">= {{ expectedMemberData2!.earnings | currency:undefined:'symbol':'1.0-0' }}</div>
+					</small>
+				</ng-template>
+			</div>
+		</ng-template>
+		<p-earnings-bar
+			[member]="member!"
+			extract="min"
+		></p-earnings-bar>
+		<div class="d-flex justify-content-between">
+			<label i18n>Minimaler Lohn</label>
+			<div class="text-monospace">{{ member!.minMonthlyEarnings | currency }}</div>
+		</div>
+		<p-earnings-bar
+			[member]="member!"
+			extract="desired"
+		></p-earnings-bar>
+		<div class="d-flex justify-content-between">
+			<label i18n>Wunschlohn</label>
+			<div class="text-monospace">{{ member!.desiredMonthlyEarnings | currency }}</div>
+		</div>
+		<p-earnings-bar
+			[member]="member!"
+			extract="max"
+		></p-earnings-bar>
+		<div class="d-flex justify-content-between">
+			<label i18n>Maximaler Lohn</label>
+			<div class="text-monospace">{{ member!.maxMonthlyEarnings | currency }}</div>
+		</div>
+	</div>
+</div>

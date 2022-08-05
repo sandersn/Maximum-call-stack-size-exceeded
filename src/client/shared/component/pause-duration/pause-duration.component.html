@@ -1,0 +1,44 @@
+<ng-template [ngIf]="merged" [ngIfElse]="dontMerge">
+	<span
+		[innerHTML]="(duration! + automaticPauseDuration!) | pDurationAsHours: false"
+		[tooltip]="automaticPauseDuration ? tooltipMergedPauseDuration : undefined"
+		#pop="bs-tooltip"
+		placement="bottom"
+	></span><span *ngIf="!(duration! + automaticPauseDuration!)">0<sub>M</sub></span>
+	<ng-template #tooltipMergedPauseDuration>
+		<div class="d-block clickable card m-0 text-left o-hidden"
+			(click)="pop.hide()"
+		>
+			<div class="card-body p-1 pl-2 pr-2">
+				<div class="text-center"><span
+					*ngIf="!duration"
+				>0<sub i18n>M</sub></span><strong
+					*ngIf="duration"
+					[innerHTML]="duration | pDurationAsHours: false"
+				></strong><span
+					class="text-warning"
+					*ngIf="automaticPauseDuration"
+				>+<strong
+					[innerHTML]="automaticPauseDuration | pDurationAsHours: false"
+				></strong>
+				</span></div>
+				<div i18n>Es wurden Zeiten automatisch hinzugefügt, da die <strong *ngIf="memberName">von {{ memberName }} </strong>eingetragenen Pausen unter dem gesetzlichen Minimum liegen.</div>
+			</div>
+		</div>
+	</ng-template>
+</ng-template>
+<ng-template #dontMerge>
+	<span
+		[innerHTML]="duration! | pDurationAsHours: false"
+	></span><span *ngIf="!duration">0<sub i18n>M</sub></span><span
+		class="text-warning"
+		*ngIf="automaticPauseDuration"
+
+		[popover]="tooltipTemplate ? tooltipTemplate : tooltipAutomaticPauseDurationTemplate"
+		placement="bottom"
+	>+<span [innerHTML]="automaticPauseDuration | pDurationAsHours: false"></span></span>
+	<ng-template #tooltipAutomaticPauseDurationTemplate>
+		<ng-template [ngIf]="!isForecast" [ngIfElse]="isForecastTemplate"><ng-container i18n>Diese Zeit wurde automatisch hinzugefügt, da die <strong *ngIf="memberName">von {{ memberName }} </strong>eingetragene Pause <strong [innerHTML]="(regularPauseDuration ? regularPauseDuration : duration!) | pDurationAsHours: false"></strong> unter dem gesetzlichen Minimum liegt.</ng-container></ng-template>
+		<ng-template #isForecastTemplate><ng-container i18n>Laut Gesetz wird<strong *ngIf="memberName"> {{ memberName }}</strong> mindestens <span [innerHTML]="automaticPauseDuration! | pDurationAsHours: false"></span> Pause machen müssen.</ng-container></ng-template>
+	</ng-template>
+</ng-template>

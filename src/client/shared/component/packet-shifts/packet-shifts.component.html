@@ -1,0 +1,46 @@
+<ng-template [ngIf]="!!linesArray.length">
+	<div
+		*ngFor="let lineItem of linesArray"
+		class="text-monospace"
+		[class.muted-item]="isString(lineItem)"
+		[class.disable-muted-item-hover]="isString(lineItem)"
+	>
+		<ng-template [ngIf]="!isString(lineItem)" [ngIfElse]="stringTemplate">
+			<ng-template [ngIf]="linesArray.length > 1">
+				<img
+					*ngIf="linesArray.indexOf(lineItem) === 0 && isCurrentShift(lineItem)"
+					alt="Schichtpaket-Icon" i18n-alt
+					src="images/icons/packet-icon-start.svg">
+				<img
+					*ngIf="linesArray.indexOf(lineItem) === 0 && !isCurrentShift(lineItem)"
+					alt="Schichtpaket-Icon" i18n-alt
+					src="images/icons/packet-icon-start-o.svg">
+				<img
+					*ngIf="!(linesArray.indexOf(lineItem) === 0 || linesArray.indexOf(lineItem) === (linesArray.length - 1)) && isCurrentShift(lineItem)"
+					alt="Schichtpaket-Icon" i18n-alt
+					src="images/icons/packet-icon-middle.svg">
+				<img
+					*ngIf="!(linesArray.indexOf(lineItem) === 0 || linesArray.indexOf(lineItem) === (linesArray.length - 1)) && !isCurrentShift(lineItem)"
+					alt="Schichtpaket-Icon" i18n-alt
+					src="images/icons/packet-icon-middle-o.svg">
+				<img
+					*ngIf="(linesArray.indexOf(lineItem) === (linesArray.length - 1)) && isCurrentShift(lineItem)"
+					alt="Schichtpaket-Icon" i18n-alt
+					src="images/icons/packet-icon-end.svg">
+				<img
+					*ngIf="(linesArray.indexOf(lineItem) === (linesArray.length - 1)) && !isCurrentShift(lineItem)"
+					alt="Schichtpaket-Icon" i18n-alt
+					src="images/icons/packet-icon-end-o.svg"
+				>
+			</ng-template>
+			<span class="ml-2">{{ getDateInfo(lineItem) }}</span>
+		</ng-template>
+		<ng-template #stringTemplate>
+			<img
+				alt="Schichtpaket-Icon" i18n-alt
+				src="images/icons/packet-icon-middle-placeholder.svg"
+			>
+			<span class="ml-2">{{ lineItem }}</span>
+		</ng-template>
+	</div>
+</ng-template>

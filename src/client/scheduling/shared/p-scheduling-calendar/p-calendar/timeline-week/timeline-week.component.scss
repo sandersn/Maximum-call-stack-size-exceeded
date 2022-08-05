@@ -1,0 +1,14 @@
+// @import 'variables';
+
+:host {
+	display: block;
+}
+
+#timeline-container {
+	position: relative;
+	flex-grow: 1;
+}
+
+timeline-day {
+	position: absolute;
+}

@@ -1,0 +1,15 @@
+@import "variables";
+
+.custom-marker {
+	li::marker {
+		color: $primary;
+		content: "\f00c";
+		font-weight: 900;
+		/* stylelint-disable-next-line */
+		font-family: "Font Awesome 5 Free";
+	}
+
+	li:not(:last-child) {
+		margin-bottom: map-get($spacers, 2);
+	}
+}

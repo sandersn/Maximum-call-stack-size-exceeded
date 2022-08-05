@@ -1,0 +1,24 @@
+// @import "variables";
+
+:host {
+	display: block;
+}
+
+p-alert {
+	&:not(:first-child) {
+		border-top-left-radius: 0;
+		border-top-right-radius: 0;
+		border-top: none;
+	}
+
+	&:not(:last-child) {
+		border-bottom-left-radius: 0;
+		border-bottom-right-radius: 0;
+	}
+}
+
+.rounded-bottom-only {
+	border-top-left-radius: 0 !important;
+	border-top-right-radius: 0 !important;
+	border-top: none;
+}

@@ -1,0 +1,194 @@
+<ng-template [ngIf]="!!item">
+	<div class="mt-3 mb-4">
+		<h2 class="m-0" i18n>Email-Vorlage {item.isNewItem(), select, true {anlegen} other {bearbeiten}}</h2>
+	</div>
+	<ng-template [ngIf]="api.isLoaded() && !!formGroup">
+		<form [formGroup]="$any(formGroup)">
+			<p-grid>
+				<div class="col-12 col-md-6">
+					<p-form-group
+						label="Name der Vorlage" i18n-label
+						[control]="formGroup.controls['name']!"
+					>
+						<p-input
+							[pEditable]="!item.isNewItem()"
+							[api]="api"
+							(onDismiss)="initFormGroup()"
+
+							[formControl]="formGroup.controls['name']!"
+						></p-input>
+					</p-form-group>
+				</div>
+				<div class="col-12 col-md-6">
+					<p-form-group
+						label="Email-Typ" i18n-label
+						[control]="formGroup.controls['eventType']!"
+					>
+						<p-dropdown
+							[pEditable]="!item.isNewItem()"
+							[api]="api"
+							[valid]="!formGroup.controls['eventType']!.invalid"
+							(onDismiss)="initFormGroup()"
+
+							[icon]="eventTypes.getIcon(formGroup.controls['eventType']!.value)"
+							[label]="eventTypeDropdownLabel"
+							[formControl]="formGroup.controls['eventType']!"
+							[disabled]="!api.isLoaded()"
+							[attributeInfo]="null"
+						>
+							<p-dropdown-item
+								*ngFor="let eventType of eventTypes.eventTypesObjects"
+								[attributeInfo]="null"
+								[label]="eventType.title | localize"
+								[description]="eventType.description ? (eventType.description | localize) : null"
+								[value]="eventType.type"
+								[icon]="eventType.icon ?? null"
+							></p-dropdown-item>
+						</p-dropdown>
+					</p-form-group>
+				</div>
+				<div class="col-12">
+					<p-form-group
+						[hasDanger]="formGroup.controls['sendToParticipants']!.invalid || formGroup.controls['sendToBookingPerson']!.invalid"
+					>
+						<p-editable-modal-box
+							[pEditable]="!item.isNewItem()"
+							[api]="api"
+							[valid]="!formGroup.controls['sendToBookingPerson']!.invalid"
+							(onDismiss)="initFormGroup()"
+
+							label="Email geht an" i18n-label
+						>
+							<p-editable-modal-box-header>
+								<span>➡&nbsp;<span *ngIf="!!formGroup.controls['sendToParticipants']!.value" i18n>Teilnehmende Person(en)&nbsp;</span><span *ngIf="!!formGroup.controls['sendToParticipants']!.value && !!formGroup.controls['sendToBookingPerson']!.value">&&nbsp;</span><span *ngIf="!!formGroup.controls['sendToBookingPerson']!.value" i18n>Buchende Person</span></span>
+							</p-editable-modal-box-header>
+							<p-editable-modal-box-form>
+								<p-grid>
+									<div class="col-12 col-md-6">
+										<p-checkbox
+											[formControl]="formGroup.controls['sendToParticipants']!"
+											valueText="Teilnehmende Personen" i18n-valueText
+										></p-checkbox>
+									</div>
+									<div class="col-12 col-md-6">
+										<p-checkbox
+											[formControl]="formGroup.controls['sendToBookingPerson']!"
+											valueText="Buchende Person" i18n-valueText
+										></p-checkbox>
+									</div>
+								</p-grid>
+								<p-validation-hint
+									[isInvalid]="formGroup.controls['sendToParticipants']!.invalid || formGroup.controls['sendToBookingPerson']!.invalid"
+									text="Bitte mindestens buchende oder teilnehmende Person(en) auswählen." i18n-text
+									validationName="noRecipient"
+									[checkTouched]="false"
+								></p-validation-hint>
+							</p-editable-modal-box-form>
+						</p-editable-modal-box>
+					</p-form-group>
+				</div>
+				<div class="col-12">
+					<p-form-group label="Platzhalter" i18n-label>
+						<div class="d-flex justify-content-between align-items-center">
+							<div class="">
+								<p class="mb-0" i18n>Platzhalter sind Variablen für Email-Vorlagen, die beim Versenden einer Email mit konkreten Daten gefüllt werden. Lasse dir alle Platzhalter anzeigen, die für deinen gewählten Email-Typ verfügbar sind, und füge die gewünschten per <code>copy & paste</code> in deine Email ein.</p>
+							</div>
+							<div class="ml-3">
+								<button type="button"
+									class="btn btn-outline-secondary"
+									(click)="showPlaceholdersForEmail(modalContent)"
+									i18n
+								>Platzhalter anzeigen</button>
+							</div>
+						</div>
+					</p-form-group>
+				</div>
+				<div class="col-12">
+					<p-form-group
+						label="Email-Betreff"
+						i18n-label
+						[control]="formGroup.controls['subjectTemplate']!"
+					>
+						<p-input
+							[pEditable]="!item.isNewItem()"
+							[api]="api"
+							[valid]="!formGroup.controls['subjectTemplate']!.invalid"
+							(onDismiss)="initFormGroup()"
+
+							[formControl]="formGroup.controls['subjectTemplate']!"
+						></p-input>
+					</p-form-group>
+				</div>
+				<div class="col-12">
+					<p-form-group
+						label="Email-Inhalt"
+						i18n-label
+						[control]="formGroup.controls['textTemplate']!"
+					>
+						<p-textarea
+							[pEditable]="!item.isNewItem()"
+							[api]="api"
+							[valid]="!formGroup.controls['textTemplate']!.invalid"
+							(onDismiss)="initFormGroup()"
+
+							[wysiwyg]="true"
+							[formControl]="formGroup.controls['textTemplate']!"
+						></p-textarea>
+						<p-validation-hint
+							[isInvalid]="showZAHLUNGSAUFFORDERUNGHint"
+							text="Bei einer Buchungsanfrage müssen Kunden erst online bezahlen, wenn du ihrer Buchungsanfrage zugestimmt hast. Achte bitte darauf, dass du hierfür in der Email-Vorlage den Platzhalter #ZAHLUNGSAUFFORDERUNG# benutzt. Dr.&nbsp;Plano fügt einen Link in der Email ein, worüber eure Kunden online zahlen können." i18n-text
+							[checkTouched]="false"
+							validationName="pattern"
+						></p-validation-hint>
+					</p-form-group>
+				</div>
+				<div class="col-12">
+					<p-form-group
+						label="Eure Email-Adresse für Kundenantworten"
+						i18n-label
+						[control]="formGroup.controls['replyTo']!"
+					>
+						<p-input
+							[type]="PApiPrimitiveTypes.Email"
+							[pEditable]="!item.isNewItem()"
+							[api]="api"
+							(onDismiss)="initFormGroup()"
+
+							[formControl]="formGroup.controls['replyTo']!"
+						></p-input>
+					</p-form-group>
+				</div>
+			</p-grid>
+		</form>
+	</ng-template>
+
+	<div
+		*ngIf="item.isNewItem()"
+		class="d-flex justify-content-between"
+	>
+		<button type="button"
+			class="btn btn-lg btn-primary ml-auto"
+			(click)="saveItem()"
+			[disabled]="!formGroup || formGroup.invalid || !formGroup.valid || api.isBackendOperationRunning"
+		><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon>&nbsp;<ng-container i18n>Anlegen</ng-container></button>
+	</div>
+
+	<ng-template #modalContent let-d="dismiss">
+		<div class="modal-header">
+			<h4 class="modal-title" i18n>Platzhalter auswählen</h4>
+			<button type="button" class="close" aria-label="Close" (click)="d()">
+				<span aria-hidden="true">&times;</span>
+			</button>
+		</div>
+		<div class="modal-body p-0">
+			<p-custom-course-email-placeholders
+				[email]="item"
+			></p-custom-course-email-placeholders>
+		</div>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-outline-secondary ml-auto" aria-label="Close" (click)="d()" i18n>Schließen</button>
+		</div>
+
+	</ng-template>
+
+</ng-template>

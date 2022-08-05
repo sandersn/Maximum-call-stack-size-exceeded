@@ -1,0 +1,42 @@
+@import "variables";
+
+table,
+table thead th,
+table tr th,
+table tr td {
+	border: inherit;
+}
+
+.line > * {
+	padding: map-get($spacers, 3) map-get($spacers, 2);
+	white-space: nowrap;
+}
+
+.toggle-btns > * {
+	min-height: 3.5rem;
+}
+
+.line.headlines {
+	border-bottom: $border-width * 2 solid $primary;
+	// font-size: 1.2em;
+
+	> * {
+		padding: map-get($spacers, 1) map-get($spacers, 2);
+	}
+}
+
+.thead-empty {
+	background: transparent;
+	border: $border-width * 2 dotted $gray-600;
+}
+
+.toggle-btns,
+.report-settings {
+	display: flex;
+	flex-direction: row;
+	align-items: stretch;
+}
+
+.navbar {
+	padding: map-get($spacers, 2) 0;
+}

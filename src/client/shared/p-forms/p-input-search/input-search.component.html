@@ -1,0 +1,30 @@
+<div [class.input-group-prepend]="isActive">
+	<p-button
+		[attributeInfo]="null"
+		[darkMode]="darkMode"
+		[theme]="btnStyle"
+		[size]="isSizeSm ? BootstrapSize.SM : (isSizeLg ? BootstrapSize.LG : undefined)"
+		[popover]="triggerButtonPopoverText"
+		placement="bottom"
+		[rounded]="isActive ? BootstrapRounded.LEFT : null"
+		(triggerClick)="onClickSearchIcon()"
+	><fa-icon [fixedWidth]="true" [icon]="isActive ? 'times-circle' : PlanoFaIconPool.SEARCH"></fa-icon></p-button>
+</div>
+<input
+	#input
+	*ngIf="isActive"
+	[@flexGrowHorizontal]
+	class="form-control"
+	type="search"
+	[(ngModel)]="value"
+	(focus)="inputHasFocus=true"
+	(blur)="inputHasFocus=false"
+	placeholder="Suche…" i18n-placeholder
+>
+<!-- <div class="input-group-append flex-grow-0" (click)="onClickSearchIcon()" *ngIf="isActive" [@flexGrowHorizontal]>
+	<button type="button"
+		class="btn btn-light"
+		[class.btn-sm]="isSizeSm"
+		[class.btn-lg]="isSizeLg"
+	><fa-icon [fixedWidth]="true" icon="times"></fa-icon></button>
+</div> -->

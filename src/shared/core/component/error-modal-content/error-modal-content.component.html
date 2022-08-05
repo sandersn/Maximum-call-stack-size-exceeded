@@ -1,0 +1,44 @@
+<div class="card m-0">
+	<div class="card-header bg-danger">
+		<h4 class="text-white m-0 text-center" *ngIf="!customErrorModalDescription" i18n>Oh nein!</h4>
+		<h4 class="text-white m-0 text-center" *ngIf="customErrorModalDescription" i18n>Wow!</h4>
+	</div>
+	<div class="card-body text-center"
+		[class.bg-danger]="!customErrorModalDescription"
+		[class.bg-light]="customErrorModalDescription"
+		[class.text-white]="!customErrorModalDescription"
+	>
+		<ng-container>
+			<div *ngIf="!customErrorModalDescription" i18n>Tut uns leid! Irgendetwas ist hier schiefgelaufen <span class="nowrap">:(</span></div>
+			<div *ngIf="customErrorModalDescription" i18n>{{ customErrorModalDescription }}</div>
+		</ng-container>
+	</div>
+	<div class="card-body">
+		<div>
+			<label for="errorModalUserMessage" i18n>Nachricht an Mui, Masoud, Lukas, Milad und Nils</label>
+			<textarea
+				id="errorModalUserMessage"
+				class="form-control w-100"
+				[(ngModel)]="userMessage"
+				rows="2"
+				placeholder="Um bei der Fehlersuche zu helfen, schreib uns was du gerade machen wolltest…" i18n-placeholder
+				[maxlength]="USER_MESSAGE_LENGTH_LIMIT"
+				#textareaRef
+			></textarea>
+			<span
+				*ngIf="lengthLimitState($any(textareaRef.value)?.length)"
+				class="form-text float-right text-{{lengthLimitState($any(textareaRef.value)?.length)}}"
+			>{{textareaRef.value?.length ?? 0}}/{{USER_MESSAGE_LENGTH_LIMIT}}</span>
+			<p i18n class="mt-2 mb-0 small">Falls sich das wiederholt und es dir unmöglich ist weiterzuarbeiten, kontaktiere uns gerne im Chat!</p>
+		</div>
+	</div>
+	<div class="card-footer">
+		<button type="button" name="button" class="btn btn-primary w-100" (click)="onClose()">
+			<ng-template [ngIf]="!!userMessage">
+				<span i18n><span class="d-none d-lg-inline d-xl-inline">Fehlermeldung </span>Senden</span>
+				<span> & </span>
+			</ng-template>
+			<span i18n><span class="d-none d-lg-inline d-xl-inline">App </span>neu laden</span>
+		</button>
+	</div>
+</div>

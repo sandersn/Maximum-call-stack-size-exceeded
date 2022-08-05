@@ -1,0 +1,210 @@
+@import "variables";
+
+:host {
+	display: block;
+}
+
+.nav-tabs {
+	border-color: $gray-400;
+
+	&:not(.scrollbarHasBeenCalculated) {
+		overflow-x: auto;
+		overflow-y: hidden;
+		display: flex;
+		// flex-wrap: nowrap;
+
+		.nav-item {
+			flex-shrink: 0;
+
+		}
+	}
+}
+
+:host.has-scrollbar .nav-pills .nav-item {
+	margin: map-get($spacers, 1);
+}
+
+.todo-badge {
+	position: absolute;
+	top: -3px;
+	z-index: 500;
+	box-shadow: 0 1px 3px 0 $darken-04;
+
+	&.align-left {
+		left: -3px;
+	}
+
+	&.align-right {
+		right: -3px;
+	}
+
+	&.align-center {
+		left: 50%;
+		transform: translate(-50%, 0);
+	}
+}
+
+.card-header.p-2 .card-header-tabs {
+	/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+	margin-right: -0.125rem;
+	/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+	margin-bottom: -0.5rem;
+	/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+	margin-left: -0.125rem;
+	border-bottom: 0;
+}
+
+.tabs-body {
+	flex-grow: 1;
+	display: flex;
+	flex-direction: column;
+
+	.content-wrapper {
+		flex-grow: 1;
+		display: flex;
+		flex-direction: column;
+	}
+
+	&.card-body {
+		overflow: auto;
+	}
+}
+
+:host {
+	.nav-tabs .nav-item {
+		padding-left: map-get($spacers, 1);
+		padding-right: map-get($spacers, 1);
+	}
+
+	&.theme-clean {
+		margin-top: map-get($map: $spacers, $key: 3);
+
+		.nav-tabs .nav-item {
+			padding-left: map-get($spacers, 4);
+			padding-right: map-get($spacers, 4);
+
+			p-badge {
+				right: -7px;
+			}
+
+			.btn {
+				opacity: 0.7;
+				border-radius: 0;
+				padding-left: 0;
+				padding-right: 0;
+				border-bottom-width: $border-width * 4;
+				transition: border-color 0.5s;
+
+				label {
+					font-weight: bold;
+				}
+
+				&:hover,
+				&.active {
+					opacity: 1;
+				}
+			}
+
+			&:first-child {
+				padding-left: 0;
+			}
+
+			&:last-child {
+				padding-right: 0;
+			}
+		}
+
+		.nav-tabs .btn:hover {
+			border-color: transparent transparent theme-color-level("light", 2);
+		}
+
+		.nav-tabs .btn.active {
+			border-color: transparent transparent $primary;
+		}
+	}
+
+	&.page-sub-nav.theme-clean {
+		margin-top: map-get($map: $spacers, $key: 4);
+
+		// @include media-breakpoint-down(md) {
+		// 	padding: 0;
+		// }
+
+		.nav-tabs .nav-item {
+			&:first-child {
+				padding-left: map-get($map: $spacers, $key: 5);
+			}
+
+			&:last-child {
+				padding-right: map-get($map: $spacers, $key: 5);
+			}
+		}
+
+		.nav-pills {
+			&:first-child {
+				padding-left: map-get($map: $spacers, $key: 4);
+			}
+
+			&:last-child {
+				padding-right: map-get($map: $spacers, $key: 4);
+			}
+
+		}
+	}
+}
+
+@mixin tabsTheme(
+	$themeName,
+	$boxBackgroundLevel,
+	$passiveBtnBackgroundLevel,
+	$activeBtnBackgroundLevel,
+	$activeBtnBorderLevel
+) {
+	background-color: theme-color-level($themeName, $boxBackgroundLevel);
+
+	.card-header {
+		border-bottom-color: theme-color-level($themeName, $activeBtnBorderLevel);
+	}
+
+	.card-body {
+		background-color: theme-color-level($themeName, $activeBtnBackgroundLevel);
+	}
+
+	.nav-link {
+		background-color: theme-color-level($themeName, $passiveBtnBackgroundLevel);
+		border-color: transparent
+			transparent
+			theme-color-level($themeName, $activeBtnBorderLevel);
+
+		@if $themeName == "dark" {
+			color: white;
+		}
+	}
+
+	.nav-tabs .nav-link.active {
+		background-color: theme-color-level($themeName, $activeBtnBackgroundLevel);
+		border-color: theme-color-level($themeName, $activeBtnBorderLevel)
+			theme-color-level($themeName, $activeBtnBorderLevel)
+			theme-color-level($themeName, $activeBtnBackgroundLevel);
+	}
+}
+
+:host.theme-default {
+	@include tabsTheme(
+		$themeName: "light",
+		$boxBackgroundLevel: 0,
+		$passiveBtnBackgroundLevel: +1,
+		$activeBtnBackgroundLevel: -10,
+		$activeBtnBorderLevel: +1
+	);
+}
+
+:host.taps-dark-mode {
+	@include tabsTheme(
+		$themeName: "dark",
+		$boxBackgroundLevel: 7,
+		$passiveBtnBackgroundLevel: 3,
+		$activeBtnBackgroundLevel: 0,
+		$activeBtnBorderLevel: -1,
+	);
+}

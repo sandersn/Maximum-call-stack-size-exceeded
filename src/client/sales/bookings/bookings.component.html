@@ -1,0 +1,260 @@
+<div class="bg-light-cold mb-3">
+<div class="px-4 px-md-5 py-3 py-md-4 row justify-content-between">
+	<div class="col-12 col-md-12 col-xl flex-shrink-1 flex-grow-0">
+		<p-form-group>
+			<div class="d-md-flex align-items-center">
+				<p-input-date
+					class="w-100"
+					[isLoading]="!start"
+					[size]="BootstrapSize.SM"
+					[(ngModel)]="start"
+					[max]="end! - 1"
+					[showTimeInput]="false"
+					[timeIsRequired]="false"
+					[showEraseValueBtn]="false"
+					[isExclusiveEnd]="false"
+				></p-input-date>
+				<div class="mx-2 text-center" i18n>bis</div>
+				<p-input-date
+					[isLoading]="!end"
+					class="w-100"
+					[size]="BootstrapSize.SM"
+					[(ngModel)]="end"
+					[min]="start"
+					[showTimeInput]="false"
+					[timeIsRequired]="false"
+					[showEraseValueBtn]="false"
+					[isExclusiveEnd]="true"
+				></p-input-date>
+			</div>
+		</p-form-group>
+
+		<p-form-group class="lg-m-0">
+			<div class="d-md-flex align-items-center justify-content-between">
+				<label class="m-0 nowrap" i18n>Zeitraum bezogen auf</label>
+				<p-dropdown [show]="true" [canEdit]="true"
+					class="flex-grow-1 ml-md-2"
+					[ngModel]="byShiftTime"
+					(ngModelChange)="byShiftTime=$event;loadNewData()"
+				>
+					<p-dropdown-item [show]="true" [canEdit]="true"
+						label="Buchungsdatum" i18n-label
+						[value]="false"
+					></p-dropdown-item>
+					<p-dropdown-item [show]="true" [canEdit]="true"
+						label="Angebotsdatum" i18n-label
+						[value]="true"
+					></p-dropdown-item>
+				</p-dropdown>
+			</div>
+		</p-form-group>
+
+	</div>
+
+	<div class="col-12 col-md-9 col-xl-5">
+		<p-form-group>
+			<p-input
+				id="search-input"
+				[class.mb-2]="focusOnSearch || focusOnSearchSettings || searchString"
+				[size]="BootstrapSize.SM"
+				[type]="PApiPrimitiveTypes.Search"
+				[(ngModel)]="searchString"
+				(keyup)="onSearchKeyUp($event)"
+				placeholder="Suche…" i18n-placeholder
+				(focus)="onFocusSearch()"
+				(blur)="onBlurSearch()"
+			></p-input>
+
+			<p-dropdown
+				*ngIf="focusOnSearch || focusOnSearchSettings || searchString"
+				(focus)="onFocusSearchSettings()"
+				(blur)="onBlurSearchSettings()"
+				(onSelect)="onSelectSearchSetting()"
+				class="m-0 d-flex justify-content-stretch"
+				[(ngModel)]="searchAll"
+				[size]="BootstrapSize.SM"
+			>
+				<p-dropdown-item
+					label="in allen Buchungen" i18n-label
+					[value]="true"
+				></p-dropdown-item>
+				<p-dropdown-item
+					label="nur in angezeigten Buchungen" i18n-label
+					[value]="false"
+				></p-dropdown-item>
+			</p-dropdown>
+		</p-form-group>
+	</div>
+
+	<div class="col-12 col-md-3 col-xl flex-shrink-1 flex-grow-0 d-flex justify-content-end">
+		<p-dropdown
+			class="m-0"
+			label="Filter" i18n-label
+			[size]="BootstrapSize.SM"
+			[dropdownType]="DropdownTypeEnum.FILTER"
+		>
+			<p-dropdown-item
+				label="Buchungsanfragen" i18n-label
+				[active]="showInquiry"
+				(onClick)="showInquiry=!showInquiry;loadNewData()"
+				[attributeInfo]="null"
+			></p-dropdown-item>
+			<p-dropdown-item
+				label="Buchungsgruppierung" i18n-label
+				[active]="groupByCourses"
+				(onClick)="toggleGroupByCourses()"
+				[attributeInfo]="null"
+			></p-dropdown-item>
+		</p-dropdown>
+	</div>
+</div>
+</div>
+
+<div class="p-4 p-md-5">
+<div class="d-flex justify-content-end mb-3">
+	<p-button
+		[attributeInfo]="api.data.bookings.attributeInfoThis"
+		class="mr-2"
+		[theme]="PBtnThemeEnum.OUTLINE_PRIMARY"
+		[size]="BootstrapSize.SM"
+		(triggerClick)="addBooking()"
+	><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon>&nbsp;<ng-container i18n>Neue Buchung</ng-container></p-button>
+	<p-button
+		[attributeInfo]="null"
+		*ngIf="userCanExportBookings"
+		class="mr-2"
+		(triggerClick)="export()"
+		[disabled]="disabledExportBookingsBtn"
+		[popover]="translatedDropdownExportDescription"
+		[size]="BootstrapSize.SM"
+	><fa-icon
+		[icon]="exportIsRunning ? PlanoFaIconPool.SYNCING : PlanoFaIconPool.EXPORT"
+		[spin]="exportIsRunning"
+	></fa-icon>&nbsp;<ng-container i18n>Exportieren</ng-container></p-button>
+	<p-button
+		[attributeInfo]="null"
+		*ngIf="userCanExportBookingStatistics && !Config.IS_MOBILE"
+		(triggerClick)="exportStatistics()"
+		[disabled]="!!searchString || disabledExportStatisticsBtn"
+		[size]="BootstrapSize.SM"
+		[popover]="translatedDropdownExportStatisticsDescription"
+		placement="left"
+	><fa-icon
+		[icon]="isPreparingTheStatisticsExport ? PlanoFaIconPool.SYNCING : PlanoFaIconPool.STATISTICS_EXPORT"
+		[spin]="isPreparingTheStatisticsExport"
+	></fa-icon>&nbsp;<ng-container i18n>Statistik</ng-container></p-button>
+</div>
+
+<ng-container *ngTemplateOutlet="listHeader"></ng-container>
+
+<ng-template [ngIf]="isLoading" [ngIfElse]="noSpinner">
+	<ng-template [ngIf]="showBookingsGroupedByCourses" [ngIfElse]="skeletonList">
+		<p-spinner [size]="BootstrapSize.LG" class="p-4 text-white"></p-spinner>
+	</ng-template>
+</ng-template>
+</div>
+
+<ng-template #noSpinner>
+	<ng-template
+		[ngIf]="showBookingsGroupedByCourses"
+		[ngIfElse]="unGroupedList"
+	>
+		<div *ngFor="let bookings of groupedBookings!.iterable().slice(0, maxVisibleItems ?? undefined)" class="mb-2">
+			<div class="mb-1 mt-3">
+				<ng-template [ngIf]="showInquiryHeadline(bookings)">
+					<p-collapsible
+						[size]="BootstrapSize.SM"
+						[collapsed]="isCollapsed(bookings)"
+						(collapsedChange)="toggleCollapsedState(bookings, !$event.collapsedState)"
+					>
+						<label trigger class="m-0 text-left flex-grow-1">
+							<small i18n>Anfragen ohne Termin</small>
+							<div
+								*ngIf="!isLoading && !!searchString"
+								class="badge badge-primary ml-2 mr-2"
+								title="Suchtreffer" i18n-title
+							><fa-icon [fixedWidth]="true" icon="search"></fa-icon>&nbsp;{{bookings.length}}</div>
+						</label>
+					</p-collapsible>
+				</ng-template>
+			</div>
+			<p-booking-related-course
+				*ngIf="!showInquiryHeadline(bookings)"
+				class="mb-1 mt-3"
+				[bookings]="bookings"
+				(onClick)="toggleCollapsedState(bookings)"
+				[isCollapsed]="isCollapsed(bookings)"
+				[isLoading]="isLoading"
+			></p-booking-related-course>
+			<ng-template [ngIf]="!isCollapsed(bookings)">
+				<ng-template
+					[ngTemplateOutlet]="listTemplate"
+					[ngTemplateOutletContext]="{ $implicit : bookings }"
+				></ng-template>
+			</ng-template>
+		</div>
+		<ng-template [ngIf]="!groupedBookingsLength">
+			<ng-container *ngTemplateOutlet="noItems"></ng-container>
+		</ng-template>
+		<ng-template [ngTemplateOutlet]="moreBtnTemplate"></ng-template>
+	</ng-template>
+</ng-template>
+
+<ng-template #unGroupedList>
+	<ng-template [ngIf]="!!bookingsForList.length" [ngIfElse]="noItems">
+		<ng-template
+			[ngTemplateOutlet]="listTemplate"
+			[ngTemplateOutletContext]="{ $implicit : bookingsForList, maxVisibleItems: maxVisibleItems }"
+		></ng-template>
+		<ng-template [ngTemplateOutlet]="moreBtnTemplate"></ng-template>
+	</ng-template>
+</ng-template>
+
+<ng-template #moreBtnTemplate>
+	<p-button
+		[attributeInfo]="null"
+		*ngIf="!isLoading && maxVisibleItems && maxVisibleItems < amountOfListItems"
+		class="mt-5 mx-auto load-more-button"
+		(triggerClick)="pMoreBtnService.showMore()"
+	>{{moreBtnText}}</p-button>
+</ng-template>
+
+<ng-template #listHeader>
+	<p-booking-list-headline
+		[class.sidebar-is-visible]="!pSidebarService.mainSidebarIsCollapsed"
+		[(sortedBy)]="sortedBy"
+		[(sortedReverse)]="sortedReverse"
+		[groupByCourses]="groupByCourses"
+	></p-booking-list-headline>
+</ng-template>
+
+<ng-template #noItems>
+	<div class="mt-3">
+		<p-no-items
+			[handleGlobalFilterService]="false"
+			[hasFilterSettings]="hasFilterSettings"
+			(onResetFilter)="unloadFilters()"
+		></p-no-items>
+	</div>
+</ng-template>
+
+<ng-template #listTemplate let-bookings let-maxVisibleItems="maxVisibleItems">
+	<p-booking-list
+		class="pt-2"
+		[isLoading]="isLoading"
+		[bookings]="bookings"
+		[maxVisibleItems]="maxVisibleItems"
+		(onEdit)="navToItem($event)"
+		(onSelectShifts)="onSelectShifts($event)"
+		[showFirstShiftStart]="!groupByCourses"
+	></p-booking-list>
+</ng-template>
+
+<ng-template #skeletonList>
+	<p-booking-list
+		class="pt-2"
+		[isLoading]="true"
+		[bookings]="bookings!"
+		[showFirstShiftStart]="!groupByCourses"
+	></p-booking-list>
+</ng-template>

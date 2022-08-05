@@ -1,0 +1,72 @@
+<div class="{{theme ? 'modal-' + theme : ''}} d-flex flex-column h-100">
+	<div *ngIf="modalTitle" class="modal-header d-flex justify-content-between align-items-stretch">
+		<div
+			[class.modal-header-content]="size !== 'fullscreen'"
+			[class.d-flex]="size === 'fullscreen'"
+			[class.w-100]="size === 'fullscreen'"
+		>
+			<div class="mr-auto w-100 card-header-inner">
+				<h4 class="m-0"
+					[class.text-white]="textWhite"
+				><span [innerHTML]="modalTitle"></span></h4>
+			</div>
+			<button ngbAutofocus type="button" class="close" aria-label="Close" (click)="onDismiss.emit('Cross click')">
+				<span aria-hidden="true" [class.text-white]="textWhite">&times;</span>
+			</button>
+		</div>
+	</div>
+
+	<div class="modal-body position-relative d-flex text-break"
+		[class.p-0]="size === 'frameless' || size === 'fullscreen'"
+		[class.p-2]="size === BootstrapSize.SM"
+		[class.p-5]="size === BootstrapSize.LG && !Config.IS_MOBILE"
+		[class.p-4]="size === BootstrapSize.LG && Config.IS_MOBILE"
+		[class.text-white]="textWhite"
+		[style.height]="modalBodyHeight"
+	>
+		<div
+			[class.modal-body-content]="size !== 'fullscreen'"
+			[class.flex-grow-1]="size !== 'fullscreen'"
+			[class.d-flex]="size === 'fullscreen'"
+			[class.flex-column]="size === 'fullscreen'"
+			[class.w-100]="size === 'fullscreen'"
+		>
+			<ng-content select="p-modal-content-body"></ng-content>
+		</div>
+	</div>
+	<div #footer [class.d-none]="!showCustomFooter">
+		<ng-content select="p-modal-content-footer"></ng-content>
+	</div>
+
+	<ng-template [ngIf]="!showCustomFooter">
+		<div class="modal-footer d-flex justify-content-between align-items-center">
+			<div class="modal-footer-content">
+				<button
+					*ngIf="!hideDismissBtn"
+					ngbAutofocus
+
+					type="button"
+					class="btn mr-2"
+					[class.btn-outline-secondary]="!theme"
+					[class.btn-light]="!!theme"
+					(click)="onDismiss.emit('Close click')"
+				>{{ dismissBtnLabel }}</button>
+				<button
+					ngbAutofocus
+
+					type="button"
+					class="btn ml-auto"
+					[class.btn-outline-secondary]="(!closeBtnTheme && !theme) || closeBtnTheme === PThemeEnum.SECONDARY"
+					[class.btn-primary]="closeBtnTheme===PThemeEnum.PRIMARY"
+					[class.btn-dark]="closeBtnTheme===PThemeEnum.DARK"
+					[class.btn-danger]="closeBtnTheme===PThemeEnum.DANGER"
+					[class.btn-success]="closeBtnTheme===PThemeEnum.SUCCESS"
+					[class.btn-light]="(!closeBtnTheme && !!theme) || closeBtnTheme===PThemeEnum.LIGHT"
+					(click)="onClose.emit('Started');"
+					[disabled]="closeBtnDisabled"
+					[class.disabled]="closeBtnDisabled"
+				>{{ closeBtnLabelAsString }}</button>
+			</div>
+		</div>
+	</ng-template>
+</div>

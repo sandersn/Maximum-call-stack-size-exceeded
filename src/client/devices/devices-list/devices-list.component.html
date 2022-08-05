@@ -1,0 +1,13 @@
+<ng-template [ngIf]="!!api.data.allowedTimeStampDevices.length">
+	<div class="mt-3 mb-3" i18n>Die folgende Liste der erlaubten Geräte & Browser ist für alle User sichtbar:</div>
+	<div *ngFor="let device of api.data.allowedTimeStampDevices.iterable()">
+		<p-device-item
+			[device]="device"
+		></p-device-item>
+	</div>
+	<p-alert [theme]="PThemeEnum.LIGHT" class="d-block mt-5" i18n>Falls du die Gerätebeschränkung vollständig aufheben und das Stempeln auf jedem internetfähigen Gerät zulassen möchtest, entferne bitte alle oben aufgelisteten Geräte.</p-alert>
+</ng-template>
+
+<ng-template [ngIf]="!api.data.allowedTimeStampDevices.length">
+	<div class="card card-body" i18n>Aktuell liegt keine Beschränkung vor. Alle User können die Stempeluhr an jedem internetfähigen Gerät benutzen. Um das zu ändern, musst du unten ein Gerät hinzufügen.</div>
+</ng-template>

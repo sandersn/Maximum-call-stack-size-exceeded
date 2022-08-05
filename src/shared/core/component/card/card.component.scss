@@ -1,0 +1,15 @@
+@import "variables";
+@import "bootstrap/scss/mixins/breakpoints";
+@import "bootstrap/scss/mixins/hover";
+@import "bootstrap/scss/mixins/border-radius";
+@import "bootstrap/scss/card";
+
+/* stylelint-disable */
+:host {
+	@extend .card;
+
+	&.rounded-lg {
+		border-radius: map-get($spacers, 2) !important;
+	}
+}
+/* stylelint-enable */

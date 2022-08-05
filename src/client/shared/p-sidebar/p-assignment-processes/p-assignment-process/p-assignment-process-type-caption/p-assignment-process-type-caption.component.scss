@@ -1,0 +1,13 @@
+@import "variables";
+
+.card {
+	overflow: hidden;
+
+	&.isopen {
+		box-shadow: $p-assignment-process-type-caption-card-open;
+	}
+}
+
+.progress {
+	background: $gray-600;
+}

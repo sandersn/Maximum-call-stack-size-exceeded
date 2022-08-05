@@ -1,0 +1,53 @@
+@import "variables";
+
+:host {
+	display: inline-block;
+
+	&.align-left,
+	&.align-right,
+	&.align-center {
+		position: absolute !important;
+		top: -3px !important;
+		z-index: 500;
+	}
+
+	&.align-left {
+		left: -3px;
+	}
+
+	&.align-right {
+		right: -3px;
+	}
+
+	&.align-center {
+		left: 50%;
+		transform: translate(-50%, 0);
+	}
+}
+
+.todo-badge {
+	box-shadow: 0 1px 3px 0 $darken-04;
+	font-size: $font-size-xs;
+}
+
+:host.small {
+	/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+	font-size: 11px !important;
+
+	&.no-text {
+		height: 8px;
+		width: 8px;
+		min-width: unset !important;
+		border-radius: 100%;
+	}
+
+	&.empty {
+		/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+		font-size: 8px !important;
+		min-width: map-get($spacers, 2);
+	}
+}
+
+.icon {
+	font-size: $font-size-xxs;
+}

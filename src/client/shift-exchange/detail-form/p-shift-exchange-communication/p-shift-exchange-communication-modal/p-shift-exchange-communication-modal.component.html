@@ -1,0 +1,248 @@
+<p-modal-content
+	*ngIf="isLoaded; else spinnerTemplate"
+	[modalTitle]="modalTitle"
+	(onDismiss)="onDismiss('Cross click')"
+	(onClose)="onClose()"
+	[modalBodyHeight]="hasCalendar ? '70vh' : null"
+	[size]="'fullscreen'"
+>
+	<p-modal-content-body class="flex-grow-1 d-flex flex-column">
+		<ng-template [ngIf]="communication && !!formGroup">
+			<form [formGroup]="$any(formGroup)" class="flex-grow-1 d-flex flex-column" [class.p-4]="!hasCalendar">
+				<p-alert
+					*ngFor="let warning of initialWarnings"
+					[theme]="warning.style"
+				>{{warning.text}}</p-alert>
+
+				<ng-template [ngIf]="hasCalendar" [ngIfElse]="noCalendarTemplate">
+					<ng-template
+						[ngIf]="!showOfferPickerInsteadOfShiftPicker"
+						[ngIfElse]="offerPickerTemplate"
+					>
+						<p-shift-picker
+							class="flex-grow-1 d-flex flex-column"
+							#shiftPickerRef
+							(onModalClosed)="initFormGroup()"
+
+							[loadDetailedItem]="shiftExchange"
+							[offersRef]="communication.swapOffers"
+
+							[formArray]="formGroup.controls['swapOffers']!"
+							(addItem)="onAddSwapOffersToFormArray(formGroup.controls['swapOffers']!, $event)"
+							(onAddShifts)="onAddShiftsToFormArray(formGroup.controls['swapOffers']!, $event)"
+
+							[availableShifts]="shiftsForShiftPicker"
+
+							[shiftTemplate]="!CONFIG.IS_MOBILE ? shiftTemplate : null"
+						>
+							<ng-template [ngTemplateOutlet]="performActionCommentTemplate"></ng-template>
+							<p-alert
+								*ngIf="!communication.swapOffers.length && previousOfferTurnedInvalid"
+								[@slideVertical]
+								class="pt-2 pl-2 pb-2 small"
+								[theme]="PThemeEnum.DANGER"
+								[dismissable]="true"
+								i18n
+							>Das bisher gemachte Angebot ist nicht mehr gültig, da Schichten in der Vergangenheit liegen oder sich die Besetzung geändert hat.</p-alert>
+							<p-alert
+								class="small p-2"
+								*ngFor="let warning of nonOfferRelatedWarnings.iterableSortedBy('severity', true)"
+								[@slideVertical]
+								[theme]="warning.theme"
+							><span [innerHTML]="warning.text | pSafeHtml"></span></p-alert>
+						</p-shift-picker>
+					</ng-template>
+					<ng-template #offerPickerTemplate>
+						<p-offer-picker
+							class="flex-grow-1 d-flex flex-column"
+							[offers]="communication.swapOffers"
+							[formControl]="formGroup.controls['creatorsSelectedSwapOfferId']!"
+						>
+							<ng-template [ngTemplateOutlet]="performActionCommentTemplate"></ng-template>
+							<p-alert
+								class="small p-2"
+								*ngFor="let warning of nonOfferRelatedWarnings.iterableSortedBy('severity', true)"
+								[@slideVertical]
+								[theme]="warning.theme"
+							><span [innerHTML]="warning.text | pSafeHtml"></span></p-alert>
+						</p-offer-picker>
+					</ng-template>
+					<ng-template #shiftTemplate let-shift let-viewStyle="viewStyle">
+						<p-shifts-info
+							popover="Diese Schicht befindet sich bereits in der Tauschbörse." i18n-popover
+							placement="top"
+
+							*ngIf="shiftExchangeExistsForShift(shift.id) && !isPartOfCreatorsOffer(shift.id); else someOtherShiftTemplate"
+							class="flex-grow-1 muted-item border o-hidden"
+							[shiftId]="shift.id"
+							[showDate]="false"
+						>
+							<p-shift-info-content-left class="ml-2">
+								<fa-icon [fixedWidth]="true" icon="hands-helping"></fa-icon>
+							</p-shift-info-content-left>
+						</p-shifts-info>
+
+						<ng-template #someOtherShiftTemplate>
+							<p-shift-item
+								[class.border-primary]="shiftRefsContainsShiftId(shift.id)"
+								style="margin-top: 0 !important;"
+								[shift]="shift"
+								[emptyMemberSlots]="shift.emptyMemberSlots"
+								[viewStyle]="viewStyle"
+								[selectable]="shiftIsPickable(shift)"
+								[class.muted-item]="!shiftIsPickable(shift)"
+								[showAsList]="true"
+								[showCourseInfo]="true"
+							></p-shift-item>
+						</ng-template>
+					</ng-template>
+				</ng-template>
+				<ng-template #noCalendarTemplate>
+					<div class="mb-2">
+						<ng-template [ngTemplateOutlet]="performActionCommentTemplate"></ng-template>
+					</div>
+
+					<p-form-group
+						*ngIf="showSelectedSwapOffer"
+						label="Von {{shiftExchange.indisposedMember?.firstName}} gewähltes Angebot" i18n-label
+					>
+						<p-picked-offer
+							[readMode]="true"
+							class="mb-3"
+							[offer]="communication.indisposedMembersSelectedSO!"
+						></p-picked-offer>
+					</p-form-group>
+
+					<p-alert
+						*ngFor="let warning of warnings.iterableSortedBy('severity', true)"
+						[@slideVertical]
+						[theme]="warning.theme"
+					><span [innerHTML]="warning.text | pSafeHtml"></span></p-alert>
+				</ng-template>
+
+				<ng-template [ngTemplateOutlet]="managerFormControlsTemplate"></ng-template>
+			</form>
+		</ng-template>
+	</p-modal-content-body>
+	<p-modal-content-footer>
+		<button
+			ngbAutofocus
+
+			type="button"
+			class="btn btn-outline-secondary"
+			(click)="onDismiss()"
+			i18n
+		>Abbrechen</button>
+		<div class="d-flex align-items-center justify-content-end">
+			<ng-template [ngIf]="!!warnings.withSeverityInfoCount">
+				<div hidden><span i18n #translatedSeverityInfoCountTitle>{warnings.withSeverityInfoCount, plural, one {Ein Hinweis} other {{{warnings.withSeverityInfoCount}} Hinweise}} im Formular</span></div>
+				<span class="mr-2" [title]="translatedSeverityInfoCountTitle.textContent!">{{warnings.withSeverityInfoCount}}×<fa-icon class="text-info" [fixedWidth]="true" [icon]="PlanoFaIconPool.MORE_INFO"></fa-icon></span>
+			</ng-template>
+			<ng-template [ngIf]="!!warnings.withSeverityWarningCount">
+				<div hidden><span i18n #translatedSeverityWarningCountTitle>{warnings.withSeverityWarningCount, plural, one {Eine Warnung} other {{{warnings.withSeverityWarningCount}} Warnungen}} im Formular</span></div>
+				<span class="mr-2" [title]="translatedSeverityWarningCountTitle.textContent!">{{warnings.withSeverityWarningCount}}×<fa-icon class="text-warning" [fixedWidth]="true" icon="exclamation-triangle"></fa-icon></span>
+			</ng-template>
+			<ng-template [ngIf]="!!warnings.withSeverityFatalCount">
+				<div hidden><span i18n #translatedSeverityErrorCountTitle>{warnings.withSeverityFatalCount, plural, one {Ein Error} other {{{warnings.withSeverityFatalCount}} Errors}} im Formular</span></div>
+				<span class="mr-2" [title]="translatedSeverityErrorCountTitle.textContent!">{{warnings.withSeverityFatalCount}}×<fa-icon class="text-danger" [fixedWidth]="true" icon="times-circle"></fa-icon></span>
+			</ng-template>
+			<button
+				*ngIf="!showActionButtons; else actionButtonsTemplate"
+
+				ngbAutofocus
+
+				type="button"
+				class="btn btn-primary d-flex align-items-center ml-2"
+
+				[class.progress-bar-striped]="api.isUpdatingWarnings"
+				[class.progress-bar-animated]="api.isUpdatingWarnings"
+
+				[class.disabled]="formIsInvalid"
+				[disabled]="formIsInvalid"
+				(click)="onClose();"
+			>
+				<p-spinner *ngIf="api.isUpdatingWarnings" class="d-inline pr-2"></p-spinner>
+				<span i18n>Speichern</span>
+			</button>
+		</div>
+		<ng-template #actionButtonsTemplate>
+			<div class="ml-auto">
+				<ng-template
+					[ngTemplateOutlet]="actionButtonTemplate"
+					[ngTemplateOutletContext]="{
+						$implicit: actions.CP_WANTS_SWAP_IM_DECLINE_SWAP,
+						disabled: (
+							formGroup!.controls['creatorsSelectedSwapOfferId']!.value !== null
+						)
+					}"
+				></ng-template>
+				<ng-template
+					[ngTemplateOutlet]="actionButtonTemplate"
+					[ngTemplateOutletContext]="{
+						$implicit: actions.CP_WANTS_SWAP_IM_ACCEPT,
+						disabled: (
+							formGroup!.controls['creatorsSelectedSwapOfferId']!.value === null
+						) || warnings.withSeverityFatalCount
+					}"
+				></ng-template>
+			</div>
+		</ng-template>
+	</p-modal-content-footer>
+</p-modal-content>
+
+<ng-template #spinnerTemplate>
+	<p-spinner [size]="BootstrapSize.LG" class="m-3"></p-spinner>
+</ng-template>
+
+<ng-template #managerFormControlsTemplate>
+	<p-generate-shift-exchanges-options
+		*ngIf="generateShiftExchangesIsPossible"
+		[formControl]="formGroup!.controls['generateShiftExchangesOptions']!"
+		[shiftExchange]="shiftExchange"
+	></p-generate-shift-exchanges-options>
+
+
+	<p-generate-absences-options
+		*ngIf="generateAbsencesIsPossible"
+		[formControl]="formGroup!.controls['generateAbsencesOptions']!"
+		[shiftRefs]="shiftExchange.shiftRefs"
+		[indisposedMemberId]="shiftExchange.indisposedMemberId"
+	></p-generate-absences-options>
+
+</ng-template>
+
+<ng-template #actionButtonTemplate let-action let-disabled="disabled">
+	<button
+		*ngIf="!CONFIG.IS_MOBILE || !disabled"
+		ngbAutofocus
+
+		type="button"
+		class="btn btn-outline-secondary ml-2"
+		(click)="onClose(action);"
+		[disabled]="disabled"
+		[class.disabled]="disabled"
+	>
+		<fa-icon
+			*ngIf="pShiftExchangeConceptService.getActionIcon(action)"
+			class="mr-2 flex-grow-0"
+			[class.text-success]="pShiftExchangeConceptService.getActionIconStyle(action) === 'success'"
+			[class.text-danger]="pShiftExchangeConceptService.getActionIconStyle(action) === 'danger'"
+			[fixedWidth]="true"
+			[icon]="pShiftExchangeConceptService.getActionIcon(action)!"
+		></fa-icon>
+		<span class="text-left">{{ getActionText(action) }}</span>
+	</button>
+</ng-template>
+
+<ng-template #performActionCommentTemplate>
+	<p-form-group
+		*ngIf="!hidePerformActionCommentInput"
+		label="Kommentar an {{theOtherMember.firstName}}" i18n-label
+		[control]="formGroup!.controls['performActionComment']!"
+		class="mb-0"
+	>
+		<p-textarea
+			[formControl]="formGroup!.controls['performActionComment']!"
+		></p-textarea>
+	</p-form-group>
+</ng-template>

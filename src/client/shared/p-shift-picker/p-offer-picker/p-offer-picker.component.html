@@ -1,0 +1,135 @@
+<div class="flex-grow-1 d-flex" *ngIf="!CONFIG.IS_MOBILE">
+	<div class="flex-grow-0 flex-shrink-0 d-flex flex-column" style="flex-basis: 30%;">
+		<ng-template [ngTemplateOutlet]="listOfPickedItemsTemplate"></ng-template>
+	</div>
+	<div class="flex-grow-0 flex-shrink-0 d-flex flex-column pl-2 pl-4 pb-0" style="flex-basis: 70%;">
+		<ng-template [ngTemplateOutlet]="pickerCalendarTemplate"></ng-template>
+	</div>
+</div>
+<div class="flex-grow-1 d-flex flex-column" *ngIf="CONFIG.IS_MOBILE">
+	<div class="d-flex mb-3 m-3">
+		<div class="btn-group flex-grow-1" role="group">
+			<button type="button" class="flex-grow-1 btn btn-lg"
+				[class.btn-primary]="showList"
+				[class.btn-light]="!showList"
+				(click)="showList=true"
+				i18n
+			>Angebot</button>
+			<button type="button" class="flex-grow-1 btn btn-lg"
+				[class.btn-primary]="!showList"
+				[class.btn-light]="showList"
+				(click)="showList=false"
+				i18n
+			>Kalender</button>
+		</div>
+	</div>
+	<div [class.d-flex]="!showList" [class.d-none]="showList" class="flex-grow-1 d-flex flex-column">
+		<ng-template [ngTemplateOutlet]="pickerCalendarTemplate"></ng-template>
+	</div>
+	<div [class.d-flex]="showList" [class.d-none]="!showList" class="flex-grow-1 flex-column">
+		<ng-template [ngTemplateOutlet]="listOfPickedItemsTemplate"></ng-template>
+	</div>
+</div>
+
+<ng-template #pickerCalendarTemplate>
+	<div class="picker-calendar d-flex flex-column flex-grow-1">
+		<div class="d-flex justify-content-between">
+			<p-calendar-nav
+				class="mr-2"
+				[size]="CONFIG.IS_MOBILE ? BootstrapSize.LG : BootstrapSize.SM"
+				[calendarMode]="calendarMode"
+				(selectedDateChange)="setSelectedDateAndLoadData($event)"
+				[selectedDate]="selectedDate"
+			></p-calendar-nav>
+			<p-calendar-view-settings
+				[showListBtn]="false"
+				[calendarMode]="calendarMode"
+				(calendarModeChange)="setCalendarModeAndLoadData($event)"
+			></p-calendar-view-settings>
+		</div>
+
+		<h5 class="title mb-0 pt-2 pb-2 d-flex align-items-center justify-content-center">{{ selectedDate | calendarTitle:calendarMode:CONFIG.IS_MOBILE }}</h5>
+		<div class="position-relative flex-grow-1 d-flex flex-column">
+			<nav
+				*ngIf="calendarMode===CalendarModes.WEEK && !CONFIG.IS_MOBILE"
+				class="border-bottom bg-white flex-grow-0"
+				style="margin-right: 12px;"
+			>
+				<p-calendar-weekdays-bar
+					[timestamp]="selectedDate"
+					[timelineMode]="false"
+					[neverShowDayTools]="true"
+					[shifts]="shiftsForOfferPicker"
+				></p-calendar-weekdays-bar>
+			</nav>
+			<div class="position-relative flex-grow-1">
+				<scroll-shadow-box>
+					<p-calendar
+						[shifts]="shiftsForOfferPicker"
+						[absences]="absences"
+						[holidays]="holidays"
+						[birthdays]="birthdays"
+						[calendarMode]="calendarMode"
+						[selectedStartOfDay]="selectedDate"
+						[shiftIsSelectable]="false"
+						[showAsList]="true"
+						[shiftTemplate]="shiftTemplate"
+						[neverShowDayTools]="true"
+					></p-calendar>
+					<ng-template #shiftTemplate let-shift let-viewStyle="viewStyle">
+						<p-shift-item
+							[readMode]="true"
+							[shift]="shift"
+							[emptyMemberSlots]="shift.emptyMemberSlots"
+							[viewStyle]="viewStyle"
+							[selectable]="false"
+							[showAsList]="true"
+							[showCourseInfo]="true"
+						></p-shift-item>
+					</ng-template>
+				</scroll-shadow-box>
+			</div>
+		</div>
+	</div>
+</ng-template>
+<ng-template #listOfPickedItemsTemplate>
+	<p-section
+		class="d-flex flex-column flex-grow-1 h-100 pb-0"
+		[whitespace]="SectionWhitespace.MEDIUM"
+	>
+		<h4
+			class="mb-3"
+			[class.text-danger]="formControl!.invalid"
+			i18n
+		>Tausch-Angebot:</h4>
+		<scroll-shadow-box class="flex-grow-1 d-flex flex-column position-relative">
+			<ng-template [ngIf]="!offers.length">
+				<p-alert
+					[theme]="PThemeEnum.DANGER"
+					i18n
+				>Das bisher gemachte Angebot ist nicht mehr gültig, da Schichten in der Vergangenheit liegen oder sich die Besetzung geändert hat.</p-alert>
+			</ng-template>
+			<ng-template ngFor let-offer [ngForOf]="offers.iterable()">
+				<p-shift-refs
+					class="mt-2"
+					[offer]="offer"
+					[selectable]="!disabled"
+					[selectedOffer]="value?.equals(offer.id) ?? false"
+					(selectedOfferChange)="onSelectOffer($event)"
+				></p-shift-refs>
+				<p-warnings
+					class="mt-0 mb-1 mr-3 ml-3 rounded-bottom small shadow-sm"
+					[disableAnimation]="true"
+					[warnings]="warnings.getByOffer(offer)"
+				></p-warnings>
+			</ng-template>
+
+			<p-validation-hint
+				[control]="formControl!"
+				text="Bitte mindestens eine Schicht auswählen" i18n-text
+				[checkTouched]="false"
+			></p-validation-hint>
+		</scroll-shadow-box>
+		<ng-content></ng-content>
+	</p-section>
+</ng-template>

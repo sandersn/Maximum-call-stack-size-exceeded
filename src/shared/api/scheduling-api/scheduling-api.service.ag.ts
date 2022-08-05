@@ -1,0 +1,20481 @@
+import { Injectable, NgZone, Injector } from '@angular/core';
+import { HttpClient, HttpParams, HttpErrorResponse, HttpResponse } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { ApiBase, INITIALIZED_IN_BACKEND, NullableInDraftMode } from '@plano/shared/api/base/api-base';
+import { Id } from '@plano/shared/api/base/id';
+import { Meta } from '@plano/shared/api/base/meta';
+import { ApiAttributeInfo } from '@plano/shared/api/base/api-attribute-info';
+import { PApiPrimitiveTypes } from '@plano/shared/api/base/generated-types.ag';
+import { ApiSaveArgs, ApiLoadArgs, ShiftId, ShiftSelector, ApiListWrapper, ApiObjectWrapper, AuthenticatedApiRole } from '@plano/shared/api';
+import { DateTime, Date, DateExclusiveEnd, LocalTime, Duration, Minutes, Hours, Days, Months, Years, Percent, Email, Search, Tel, Currency, Password, PostalCode, Integer, Url, Iban, Bic, Image } from '@plano/shared/api/base/generated-types.ag';
+import { Config } from '@plano/shared/core/config';
+import { AbstractControl } from '@angular/forms';
+import { ApiErrorService } from '@plano/shared/api/api-error.service';
+
+import { SchedulingApiRoot } from '@plano/shared/api';
+import { SchedulingApiShifts } from '@plano/shared/api';
+import { SchedulingApiShift } from '@plano/shared/api';
+import { SchedulingApiShiftAssignableMembers } from '@plano/shared/api';
+import { SchedulingApiWorkingTimes } from '@plano/shared/api';
+import { SchedulingApiWorkingTime } from '@plano/shared/api';
+import { SchedulingApiShiftExchanges } from '@plano/shared/api';
+import { SchedulingApiShiftExchange } from '@plano/shared/api';
+import { SchedulingApiShiftExchangeShiftRefs } from '@plano/shared/api';
+import { SchedulingApiShiftExchangeCommunications } from '@plano/shared/api';
+import { SchedulingApiShiftExchangeCommunication } from '@plano/shared/api';
+import { SchedulingApiShiftExchangeCommunicationSwapOffers } from '@plano/shared/api';
+import { SchedulingApiShiftExchangeCommunicationSwapOfferShiftRefs } from '@plano/shared/api';
+import { SchedulingApiAbsences } from '@plano/shared/api';
+import { SchedulingApiAbsence } from '@plano/shared/api';
+import { SchedulingApiAssignmentProcesses } from '@plano/shared/api';
+import { SchedulingApiAssignmentProcess } from '@plano/shared/api';
+import { SchedulingApiAssignmentProcessShiftRefs } from '@plano/shared/api';
+import { SchedulingApiMembers } from '@plano/shared/api';
+import { SchedulingApiMember } from '@plano/shared/api';
+import { SchedulingApiAssignableShiftModels } from '@plano/shared/api';
+import { SchedulingApiAssignableShiftModel } from '@plano/shared/api';
+import { SchedulingApiBookings } from '@plano/shared/api';
+import { SchedulingApiBooking } from '@plano/shared/api';
+import { SchedulingApiBookingParticipant } from '@plano/shared/api';
+import { SchedulingApiShiftModels } from '@plano/shared/api';
+import { SchedulingApiShiftModel } from '@plano/shared/api';
+import { SchedulingApiShiftModelAssignableMembers } from '@plano/shared/api';
+import { SchedulingApiShiftModelAssignableMember } from '@plano/shared/api';
+import { SchedulingApiShiftModelCourseTariffs } from '@plano/shared/api';
+import { SchedulingApiShiftModelCourseTariff } from '@plano/shared/api';
+import { SchedulingApiShiftModelCoursePaymentMethods } from '@plano/shared/api';
+import { SchedulingApiShiftModelCancellationPolicyFeePeriods } from '@plano/shared/api';
+import { SchedulingApiShiftModelCancellationPolicyFeePeriod } from '@plano/shared/api';
+import { SchedulingApiRightGroups } from '@plano/shared/api';
+import { SchedulingApiRightGroup } from '@plano/shared/api';
+import { SchedulingApiRightGroupShiftModelRights } from '@plano/shared/api';
+import { SchedulingApiAccountingPeriods } from '@plano/shared/api';
+import { SchedulingApiAccountingPeriod } from '@plano/shared/api';
+import { SchedulingApiAccountingPeriodExpectedMemberData } from '@plano/shared/api';
+import { SchedulingApiMemos } from '@plano/shared/api';
+import { SchedulingApiTodaysShiftDescriptions } from '@plano/shared/api';
+import { SchedulingApiTodaysShiftDescription } from '@plano/shared/api';
+import { SchedulingApiHolidays } from '@plano/shared/api';
+import { SchedulingApiHoliday } from '@plano/shared/api';
+import { SchedulingApiCustomBookableMails } from '@plano/shared/api';
+import { SchedulingApiVouchers } from '@plano/shared/api';
+import { SchedulingApiVoucher } from '@plano/shared/api';
+import { SchedulingApiTransactions } from '@plano/shared/api';
+import { SchedulingApiTransaction } from '@plano/shared/api';
+import { SchedulingApiWarnings } from '@plano/shared/api';
+import { SchedulingApiWarning } from '@plano/shared/api';
+import { SchedulingApiAdyenAccount } from '@plano/shared/api';
+import { SchedulingApiMailSentToBookingPerson } from '@plano/shared/api';
+import { SchedulingApiShiftChangeSelector } from '@plano/shared/api';
+
+
+/**
+ * This service enables access to the api "scheduling".
+ * This file is auto generated by de.sage.scheduler.api_generator.ApiGenerator.
+ */
+
+// constants
+class Consts
+{
+	EARLY_BIRD_REACHED_NEEDED_MEMBERS_COUNT = 232;
+	SHIFTS = 1;
+	WORKING_TIMES = 2;
+	SHIFT_EXCHANGES = 3;
+	ABSENCES = 4;
+	ASSIGNMENT_PROCESSES = 5;
+	MEMBERS = 6;
+	BOOKINGS = 7;
+	SHIFT_MODELS = 8;
+	IS_PAYPAL_AVAILABLE = 9;
+	IS_USING_BETA_7 = 10;
+	IS_USING_ROUTES_MANAGER = 11;
+	KLETTERSZENE_ID = 12;
+	POS_SYSTEM = 13;
+	NOTIFICATIONS_CONF = 14;
+	RIGHT_GROUPS = 15;
+	ACCOUNTING_PERIODS = 16;
+	MEMOS = 17;
+	TODAYS_SHIFT_DESCRIPTIONS = 18;
+	HOLIDAYS = 19;
+	POSSIBLE_TAXES = 20;
+	SCHEDULE_PREFERENCES = 21;
+	CUSTOM_BOOKABLE_MAILS = 22;
+	NOTIFICATION_SETTINGS = 23;
+	VOUCHER_SETTINGS = 24;
+	VOUCHERS = 25;
+	TRANSACTIONS = 26;
+	WARNINGS = 27;
+	EVALUATION = 28;
+	BOOKING_PAGE_COVER = 29;
+	COMPANY_LOGO = 30;
+	ADYEN_ACCOUNT = 31;
+	IS_ONLINE_PAYMENT_AVAILABLE = 32;
+	RE_CAPTCHA_WHITE_LISTED_HOST_NAMES = 33;
+	MAILS_SENT_TO_BOOKING_PERSON = 34;
+	MESSAGES = 35;
+	SHIFT_CHANGE_SELECTOR = 36;
+	AUTOMATIC_BOOKING_CANCELLATION_SETTINGS = 37;
+	NOTIFICATIONS_CONF_SEND_EMAIL = 1;
+	SHIFT_MY_PREF = 1;
+	SHIFT_ASSIGNABLE_MEMBERS = 2;
+	SHIFT_ASSIGNED_MEMBER_IDS = 3;
+	SHIFT_START = 4;
+	SHIFT_END = 5;
+	SHIFT_NEEDED_MEMBERS_COUNT = 6;
+	SHIFT_MODEL_ID = 7;
+	SHIFT_MEMBER_PREFS = 8;
+	SHIFT_PACKET_SHIFTS = 9;
+	SHIFT_DESCRIPTION = 10;
+	SHIFT_IS_REMOVED = 11;
+	SHIFT_IS_COURSE_CANCELED = 12;
+	SHIFT_IS_COURSE_ONLINE = 13;
+	SHIFT_MIN_COURSE_PARTICIPANT_COUNT = 14;
+	SHIFT_MAX_COURSE_PARTICIPANT_COUNT = 15;
+	SHIFT_CURRENT_COURSE_PARTICIPANT_COUNT = 16;
+	SHIFT_EARLY_BIRD_ASSIGN_TO_ME = 17;
+	SHIFT_NEEDED_MEMBERS_COUNT_CONF = 18;
+	SHIFT_TIME = 19;
+	SHIFT_WORKING_TIME_CREATION_METHOD = 20;
+	SHIFT_REPETITION = 21;
+	SHIFT_CURRENT_COURSE_ATTENDEE_COUNT = 22;
+	SHIFT_ASSIGNABLE_MEMBER_EARNINGS = 1;
+	SHIFT_ASSIGNABLE_MEMBER_ID = 2;
+	SHIFT_PACKET_SHIFT_START = 1;
+	SHIFT_PACKET_SHIFT_END = 2;
+	SHIFT_PACKET_SHIFT_ASSIGNED_MEMBER_IDS = 3;
+	SHIFT_MEMBER_PREF_MEMBER_ID = 1;
+	SHIFT_MEMBER_PREF_VALUE = 2;
+	SHIFT_TIME_START = 1;
+	SHIFT_TIME_END = 2;
+	SHIFT_NEEDED_MEMBERS_COUNT_CONF_NEEDED_MEMBERS_COUNT = 1;
+	SHIFT_NEEDED_MEMBERS_COUNT_CONF_PER_X_PARTICIPANTS = 2;
+	SHIFT_NEEDED_MEMBERS_COUNT_CONF_IS_ZERO_NOT_REACHED_MIN_PARTICIPANTS_COUNT = 3;
+	SHIFT_CHANGE_SELECTOR_SHIFT_MODEL_ID = 1;
+	SHIFT_CHANGE_SELECTOR_SHIFTS_OF_SHIFT_MODEL_ID = 2;
+	SHIFT_CHANGE_SELECTOR_SHIFTS_OF_SHIFT_MODEL_VERSION = 3;
+	SHIFT_CHANGE_SELECTOR_SHIFTS_OF_SERIES_ID = 4;
+	SHIFT_CHANGE_SELECTOR_SHIFTS_OF_PACKET_INDEX = 5;
+	SHIFT_CHANGE_SELECTOR_START = 6;
+	SHIFT_CHANGE_SELECTOR_END = 7;
+	SHIFT_REPETITION_TYPE = 1;
+	SHIFT_REPETITION_X = 2;
+	SHIFT_REPETITION_ENDS_AFTER_REPETITION_COUNT = 3;
+	SHIFT_REPETITION_ENDS_AFTER_DATE = 4;
+	SHIFT_REPETITION_PACKET = 5;
+	SHIFT_REPETITION_ON_MONDAY = 6;
+	SHIFT_REPETITION_ON_TUESDAY = 7;
+	SHIFT_REPETITION_ON_WEDNESDAY = 8;
+	SHIFT_REPETITION_ON_THURSDAY = 9;
+	SHIFT_REPETITION_ON_FRIDAY = 10;
+	SHIFT_REPETITION_ON_SATURDAY = 11;
+	SHIFT_REPETITION_ON_SUNDAY = 12;
+	SHIFT_REPETITION_PACKET_TYPE = 1;
+	SHIFT_REPETITION_PACKET_X = 2;
+	SHIFT_REPETITION_PACKET_ENDS_AFTER_REPETITION_COUNT = 3;
+	SHIFT_REPETITION_PACKET_ON_MONDAY = 4;
+	SHIFT_REPETITION_PACKET_ON_TUESDAY = 5;
+	SHIFT_REPETITION_PACKET_ON_WEDNESDAY = 6;
+	SHIFT_REPETITION_PACKET_ON_THURSDAY = 7;
+	SHIFT_REPETITION_PACKET_ON_FRIDAY = 8;
+	SHIFT_REPETITION_PACKET_ON_SATURDAY = 9;
+	SHIFT_REPETITION_PACKET_ON_SUNDAY = 10;
+	WORKING_TIME_COMMENT = 1;
+	WORKING_TIME_TIME = 2;
+	WORKING_TIME_REGULAR_PAUSE_DURATION = 3;
+	WORKING_TIME_MEMBER_ID = 4;
+	WORKING_TIME_AUTOMATIC_PAUSE_DURATION = 5;
+	WORKING_TIME_PLANNED_START = 6;
+	WORKING_TIME_PLANNED_END = 7;
+	WORKING_TIME_WHEN_MEMBER_STAMPED_START = 8;
+	WORKING_TIME_WHEN_MEMBER_STAMPED_END = 9;
+	WORKING_TIME_HOURLY_EARNINGS = 10;
+	WORKING_TIME_WARN_UNPLANNED_WORK = 11;
+	WORKING_TIME_WARN_STAMPED_NOT_CURRENT_TIME = 12;
+	WORKING_TIME_WARN_STAMPED_NOT_SHIFT_TIME = 13;
+	WORKING_TIME_SHIFT_MODEL_ID = 14;
+	WORKING_TIME_TIME_START = 1;
+	WORKING_TIME_TIME_END = 2;
+	ABSENCE_OWNER_COMMENT = 1;
+	ABSENCE_WORKING_TIME_PER_DAY = 2;
+	ABSENCE_TIME = 3;
+	ABSENCE_HOURLY_EARNINGS = 4;
+	ABSENCE_TYPE = 5;
+	ABSENCE_MEMBER_ID = 6;
+	ABSENCE_SHIFT_EXCHANGE_ID = 7;
+	ABSENCE_VISIBLE_TO_TEAM_MEMBERS = 8;
+	ABSENCE_TIME_START = 1;
+	ABSENCE_TIME_END = 2;
+	ASSIGNMENT_PROCESS_STATE = 1;
+	ASSIGNMENT_PROCESS_DEADLINE = 2;
+	ASSIGNMENT_PROCESS_NAME = 3;
+	ASSIGNMENT_PROCESS_SHIFT_REFS = 4;
+	ASSIGNMENT_PROCESS_ONLY_ASK_PREFS_FOR_UNASSIGNED_SHIFTS = 5;
+	ASSIGNMENT_PROCESS_ASSIGN_MEMBERS_WHEN_NO_PREF_AVAILABLE = 6;
+	ASSIGNMENT_PROCESS_REMOVE_PROCESS_WHEN_EARLY_BIRD_ASSIGNED_ALL_SHIFTS = 7;
+	ASSIGNMENT_PROCESS_ASSIGNMENT_STATE = 8;
+	ASSIGNMENT_PROCESS_MISSING_ASSIGNMENTS_COUNT = 9;
+	ASSIGNMENT_PROCESS_TODO_SHIFTS_COUNT_CURRENT_VIEW = 10;
+	ASSIGNMENT_PROCESS_TODO_SHIFTS_COUNT_RIGHT_VIEW = 11;
+	ASSIGNMENT_PROCESS_TODO_SHIFTS_COUNT_LEFT_VIEW = 12;
+	ASSIGNMENT_PROCESS_TYPE = 13;
+	ASSIGNMENT_PROCESS_MISSING_PREFS_MEMBER_IDS = 14;
+	ASSIGNMENT_PROCESS_CAN_EDIT = 15;
+	ASSIGNMENT_PROCESS_SHIFT_REF_REQUESTER_CAN_SET_PREF = 1;
+	ASSIGNMENT_PROCESS_SHIFT_REF_REQUESTER_CAN_DO_EARLY_BIRD = 2;
+	MEMBER_FIRST_NAME = 1;
+	MEMBER_LAST_NAME = 2;
+	MEMBER_EMAIL = 3;
+	MEMBER_TRASHED = 4;
+	MEMBER_MIN_MONTHLY_EARNINGS = 5;
+	MEMBER_MAX_MONTHLY_EARNINGS = 6;
+	MEMBER_DESIRED_MONTHLY_EARNINGS = 7;
+	MEMBER_RIGHT_GROUP_IDS = 8;
+	MEMBER_AVG_DAYS_PER_WEEK = 9;
+	MEMBER_AVG_HOURS_PER_DAY = 10;
+	MEMBER_ASSIGNABLE_SHIFT_MODELS = 11;
+	MEMBER_BIRTHDAY = 12;
+	MEMBER_PHONE = 13;
+	MEMBER_GENDER = 14;
+	MEMBER_PASSWORD = 15;
+	MEMBER_ADDRESS_STREET = 16;
+	MEMBER_ADDRESS_POSTAL_CODE = 17;
+	MEMBER_ADDRESS_CITY = 18;
+	MEMBER_EMPLOYMENT_BEGIN = 19;
+	MEMBER_EMPLOYMENT_END = 20;
+	MEMBER_COMMENTS = 21;
+	MEMBER_PERSONNEL_NUMBERS = 22;
+	MEMBER_PLACE_OF_BIRTH = 23;
+	MEMBER_SOCIAL_SECURITY_NUMBER = 24;
+	MEMBER_TAX_ID = 25;
+	MEMBER_HEALTH_INSURANCE = 26;
+	MEMBER_NATIONALITY = 27;
+	MEMBER_DENOMINATION = 28;
+	MEMBER_ACCOUNT_IBAN = 29;
+	MEMBER_ACCOUNT_OWNER = 30;
+	MEMBER_EMPLOYMENT_CONTRACTS_COMMENT = 31;
+	MEMBER_MAIN_JOB = 32;
+	MEMBER_CHANGE_SELECTOR = 33;
+	MEMBER_ASSIGNABLE_SHIFT_MODEL_EARNINGS = 1;
+	MEMBER_ASSIGNABLE_SHIFT_MODEL_ID = 2;
+	MEMBER_CHANGE_SELECTOR_START = 1;
+	SHIFT_EXCHANGE_TODO_COUNT = 1;
+	SHIFT_EXCHANGE_STATE = 2;
+	SHIFT_EXCHANGE_COMMUNICATION_INFO = 3;
+	SHIFT_EXCHANGE_LAST_UPDATE = 4;
+	SHIFT_EXCHANGE_REQUESTER_RELATIONSHIP = 5;
+	SHIFT_EXCHANGE_IS_ILLNESS = 6;
+	SHIFT_EXCHANGE_SHIFT_REFS = 7;
+	SHIFT_EXCHANGE_SWAPPED_SHIFT_REFS = 8;
+	SHIFT_EXCHANGE_INDISPOSED_MEMBER_ID = 9;
+	SHIFT_EXCHANGE_NEW_ASSIGNED_MEMBER_ID = 10;
+	SHIFT_EXCHANGE_INDISPOSED_MEMBER_PREFERS_SWAPPING = 11;
+	SHIFT_EXCHANGE_DEADLINE = 12;
+	SHIFT_EXCHANGE_MEMBER_ID_ADDRESSED_TO = 13;
+	SHIFT_EXCHANGE_ILLNESS_RESPONDER_COMMENT_TO_MEMBERS = 14;
+	SHIFT_EXCHANGE_INDISPOSED_MEMBER_COMMENT = 15;
+	SHIFT_EXCHANGE_SHOW_ON_DESK = 16;
+	SHIFT_EXCHANGE_SHOW_IN_LIST = 17;
+	SHIFT_EXCHANGE_COMMUNICATIONS = 18;
+	SHIFT_EXCHANGE_CLOSE_SHIFT_EXCHANGE = 19;
+	SHIFT_EXCHANGE_OPEN_SHIFT_EXCHANGE = 20;
+	SHIFT_EXCHANGE_COMMUNICATION_SWAP_OFFERS = 1;
+	SHIFT_EXCHANGE_COMMUNICATION_INDISPOSED_MEMBERS_SELECTED_SO_ID = 2;
+	SHIFT_EXCHANGE_COMMUNICATION_PERFORM_ACTION = 3;
+	SHIFT_EXCHANGE_COMMUNICATION_PERFORM_ACTION_COMMENT = 4;
+	SHIFT_EXCHANGE_COMMUNICATION_COMMUNICATION_STATE = 5;
+	SHIFT_EXCHANGE_COMMUNICATION_COMMUNICATION_PARTNER_ID = 6;
+	SHIFT_EXCHANGE_COMMUNICATION_LAST_ACTION = 7;
+	SHIFT_EXCHANGE_COMMUNICATION_LAST_ACTION_TIME = 8;
+	SHIFT_EXCHANGE_COMMUNICATION_LAST_ACTION_COMMENT = 9;
+	SHIFT_EXCHANGE_COMMUNICATION_IS_ILLNESS_REVIEW_COMMUNICATION = 10;
+	SHIFT_EXCHANGE_COMMUNICATION_REQUESTER_ROLE = 11;
+	SHIFT_EXCHANGE_COMMUNICATION_HAS_TODO = 12;
+	SHIFT_EXCHANGE_SHIFT_REF_START = 1;
+	SHIFT_EXCHANGE_SHIFT_REF_END = 2;
+	SHIFT_EXCHANGE_COMMUNICATION_SWAP_OFFER_SHIFT_REFS = 1;
+	SHIFT_MODEL_COLOR = 1;
+	SHIFT_MODEL_NAME = 2;
+	SHIFT_MODEL_PARENT_NAME = 3;
+	SHIFT_MODEL_TRASHED = 4;
+	SHIFT_MODEL_ASSIGNABLE_MEMBERS = 5;
+	SHIFT_MODEL_REPETITION = 6;
+	SHIFT_MODEL_TIME = 7;
+	SHIFT_MODEL_COST_CENTRE = 8;
+	SHIFT_MODEL_ARTICLE_GROUP = 9;
+	SHIFT_MODEL_POS_ACCOUNTS = 10;
+	SHIFT_MODEL_IS_COURSE = 11;
+	SHIFT_MODEL_COURSE_TYPE = 12;
+	SHIFT_MODEL_CHANGE_SELECTOR = 13;
+	SHIFT_MODEL_AUTOMATIC_BOOKABLE_MAIL_IDS = 14;
+	SHIFT_MODEL_ONLY_WHOLE_COURSE_BOOKABLE = 15;
+	SHIFT_MODEL_COURSE_TARIFFS = 16;
+	SHIFT_MODEL_COURSE_PAYMENT_METHODS = 17;
+	SHIFT_MODEL_ONLINE_CANCELLATION_FOR_CHARGEABLE_BOOKINGS_ENABLED = 18;
+	SHIFT_MODEL_CURRENT_CANCELLATION_POLICY_ID = 19;
+	SHIFT_MODEL_CANCELLATION_POLICIES = 20;
+	SHIFT_MODEL_IS_COURSE_ONLINE = 21;
+	SHIFT_MODEL_BOOKING_DESIRED_DATE_SETTING = 22;
+	SHIFT_MODEL_COURSE_CODE_PREFIX = 23;
+	SHIFT_MODEL_COURSE_GROUP = 24;
+	SHIFT_MODEL_FREECLIMBER_ARTICLE_ID = 25;
+	SHIFT_MODEL_BOOKING_PERSON_MIN_AGE = 26;
+	SHIFT_MODEL_PARTICIPANT_MIN_AGE = 27;
+	SHIFT_MODEL_PARTICIPANT_MAX_AGE = 28;
+	SHIFT_MODEL_NEEDED_MEMBERS_COUNT_CONF = 29;
+	SHIFT_MODEL_DESCRIPTION = 30;
+	SHIFT_MODEL_ASSIGNED_MEMBER_IDS = 31;
+	SHIFT_MODEL_WORKING_TIME_CREATION_METHOD = 32;
+	SHIFT_MODEL_COURSE_TITLE = 33;
+	SHIFT_MODEL_COURSE_SUBTITLE = 34;
+	SHIFT_MODEL_COURSE_DESCRIPTION = 35;
+	SHIFT_MODEL_COURSE_HIGHLIGHTS = 36;
+	SHIFT_MODEL_COURSE_EQUIPMENT_REQUIREMENTS = 37;
+	SHIFT_MODEL_COURSE_SKILL_REQUIREMENTS = 38;
+	SHIFT_MODEL_COURSE_LOCATION = 39;
+	SHIFT_MODEL_COURSE_CONTACT_NAME = 40;
+	SHIFT_MODEL_COURSE_CONTACT_EMAIL = 41;
+	SHIFT_MODEL_COURSE_CONTACT_PHONE = 42;
+	SHIFT_MODEL_ARRIVAL_TIME_BEFORE_COURSE = 43;
+	SHIFT_MODEL_COURSE_BOOKING_DEADLINE_FROM = 44;
+	SHIFT_MODEL_COURSE_BOOKING_DEADLINE_UNTIL = 45;
+	SHIFT_MODEL_MIN_COURSE_PARTICIPANT_COUNT = 46;
+	SHIFT_MODEL_MAX_COURSE_PARTICIPANT_COUNT = 47;
+	SHIFT_MODEL_IS_CORONA_SLOT_BOOKING = 48;
+	SHIFT_MODEL_ONLINE_CANCELLATION_FOR_FREE_BOOKINGS_ENABLED = 49;
+	SHIFT_MODEL_ONLINE_CANCELLATION_FOR_FREE_BOOKINGS_DEADLINE = 50;
+	SHIFT_MODEL_ONLINE_CANCELLATION_FOR_CHARGEABLE_BOOKINGS_DEADLINE = 51;
+	SHIFT_MODEL_ONLINE_CANCELLATION_FOR_WITHDRAWABLE_BOOKINGS_ALWAYS_ENABLED = 52;
+	SHIFT_MODEL_ONLINE_CANCELLATION_AUTOMATIC_ONLINE_REFUND_ENABLED = 53;
+	SHIFT_MODEL_TIME_START = 1;
+	SHIFT_MODEL_TIME_END = 2;
+	SHIFT_MODEL_NEEDED_MEMBERS_COUNT_CONF_NEEDED_MEMBERS_COUNT = 1;
+	SHIFT_MODEL_NEEDED_MEMBERS_COUNT_CONF_PER_X_PARTICIPANTS = 2;
+	SHIFT_MODEL_NEEDED_MEMBERS_COUNT_CONF_IS_ZERO_NOT_REACHED_MIN_PARTICIPANTS_COUNT = 3;
+	SHIFT_MODEL_ASSIGNABLE_MEMBER_EARNINGS = 1;
+	SHIFT_MODEL_ASSIGNABLE_MEMBER_ID = 2;
+	SHIFT_MODEL_CHANGE_SELECTOR_START = 1;
+	SHIFT_MODEL_REPETITION_TYPE = 1;
+	SHIFT_MODEL_REPETITION_X = 2;
+	SHIFT_MODEL_REPETITION_ENDS_AFTER_REPETITION_COUNT = 3;
+	SHIFT_MODEL_REPETITION_ENDS_AFTER_DATE = 4;
+	SHIFT_MODEL_REPETITION_PACKET = 5;
+	SHIFT_MODEL_REPETITION_ON_MONDAY = 6;
+	SHIFT_MODEL_REPETITION_ON_TUESDAY = 7;
+	SHIFT_MODEL_REPETITION_ON_WEDNESDAY = 8;
+	SHIFT_MODEL_REPETITION_ON_THURSDAY = 9;
+	SHIFT_MODEL_REPETITION_ON_FRIDAY = 10;
+	SHIFT_MODEL_REPETITION_ON_SATURDAY = 11;
+	SHIFT_MODEL_REPETITION_ON_SUNDAY = 12;
+	SHIFT_MODEL_REPETITION_PACKET_TYPE = 1;
+	SHIFT_MODEL_REPETITION_PACKET_X = 2;
+	SHIFT_MODEL_REPETITION_PACKET_ENDS_AFTER_REPETITION_COUNT = 3;
+	SHIFT_MODEL_REPETITION_PACKET_ON_MONDAY = 4;
+	SHIFT_MODEL_REPETITION_PACKET_ON_TUESDAY = 5;
+	SHIFT_MODEL_REPETITION_PACKET_ON_WEDNESDAY = 6;
+	SHIFT_MODEL_REPETITION_PACKET_ON_THURSDAY = 7;
+	SHIFT_MODEL_REPETITION_PACKET_ON_FRIDAY = 8;
+	SHIFT_MODEL_REPETITION_PACKET_ON_SATURDAY = 9;
+	SHIFT_MODEL_REPETITION_PACKET_ON_SUNDAY = 10;
+	SHIFT_MODEL_POS_ACCOUNT_TAX = 1;
+	SHIFT_MODEL_POS_ACCOUNT_NAME = 2;
+	SHIFT_MODEL_COURSE_HIGHLIGHT_TEXT = 1;
+	SHIFT_MODEL_COURSE_TARIFF_NAME = 1;
+	SHIFT_MODEL_COURSE_TARIFF_DESCRIPTION = 2;
+	SHIFT_MODEL_COURSE_TARIFF_IS_INTERNAL = 3;
+	SHIFT_MODEL_COURSE_TARIFF_FEES = 4;
+	SHIFT_MODEL_COURSE_TARIFF_ADDITIONAL_FIELD_LABEL = 5;
+	SHIFT_MODEL_COURSE_TARIFF_FOR_COURSE_DATES_FROM = 6;
+	SHIFT_MODEL_COURSE_TARIFF_FOR_COURSE_DATES_UNTIL = 7;
+	SHIFT_MODEL_COURSE_TARIFF_NEGATE_FOR_COURSE_DATES_INTERVAL = 8;
+	SHIFT_MODEL_COURSE_TARIFF_TRASHED = 9;
+	SHIFT_MODEL_COURSE_TARIFF_APPLY_TO_BOOKING = 10;
+	SHIFT_MODEL_COURSE_TARIFF_APPLY_TO_PARTICIPANT = 11;
+	SHIFT_MODEL_COURSE_TARIFF_FEE_NAME = 1;
+	SHIFT_MODEL_COURSE_TARIFF_FEE_FEE = 2;
+	SHIFT_MODEL_COURSE_TARIFF_FEE_PER_X_PARTICIPANTS = 3;
+	SHIFT_MODEL_COURSE_TARIFF_FEE_TAX_PERCENTAGE = 4;
+	ONLINE_PAYMENT = 1;
+	PAYPAL = 2;
+	MISC = 3;
+	SHIFT_MODEL_COURSE_PAYMENT_METHOD_TYPE = 1;
+	SHIFT_MODEL_COURSE_PAYMENT_METHOD_NAME = 2;
+	SHIFT_MODEL_COURSE_PAYMENT_METHOD_DESCRIPTION = 3;
+	SHIFT_MODEL_COURSE_PAYMENT_METHOD_IS_INTERNAL = 4;
+	SHIFT_MODEL_COURSE_PAYMENT_METHOD_TRASHED = 5;
+	SHIFT_MODEL_COURSE_PAYMENT_METHOD_APPLY_TO_BOOKING = 6;
+	SHIFT_MODEL_CANCELLATION_POLICY_FEE_PERIODS = 1;
+	SHIFT_MODEL_CANCELLATION_POLICY_WITHDRAWAL_ENABLED = 2;
+	SHIFT_MODEL_CANCELLATION_POLICY_WITHDRAWAL_PERIOD = 3;
+	SHIFT_MODEL_CANCELLATION_POLICY_FEE_PERIOD_FEE_FIX = 1;
+	SHIFT_MODEL_CANCELLATION_POLICY_FEE_PERIOD_FEE_PERCENTAGE = 2;
+	SHIFT_MODEL_CANCELLATION_POLICY_FEE_PERIOD_START = 3;
+	SHIFT_MODEL_CANCELLATION_POLICY_FEE_PERIOD_END = 4;
+	RIGHT_GROUP_NAME = 1;
+	CLIENT_DEFAULT = 1;
+	CLIENT_OWNER = 2;
+	RIGHT_GROUP_ROLE = 2;
+	RIGHT_GROUP_CAN_READ_AND_WRITE_BOOKING_SYSTEM_SETTINGS = 3;
+	RIGHT_GROUP_SHIFT_MODEL_RIGHTS = 4;
+	RIGHT_GROUP_SHIFT_MODEL_RIGHT_CAN_READ = 1;
+	RIGHT_GROUP_SHIFT_MODEL_RIGHT_CAN_WRITE = 2;
+	RIGHT_GROUP_SHIFT_MODEL_RIGHT_CAN_WRITE_BOOKINGS = 3;
+	RIGHT_GROUP_SHIFT_MODEL_RIGHT_CAN_ONLINE_REFUND = 4;
+	RIGHT_GROUP_SHIFT_MODEL_RIGHT_CAN_GET_MANAGER_NOTIFICATIONS = 5;
+	RIGHT_GROUP_SHIFT_MODEL_RIGHT_SHIFT_MODEL_ID = 6;
+	RIGHT_GROUP_SHIFT_MODEL_RIGHT_SHIFT_MODEL_PARENT_NAME = 7;
+	ACCOUNTING_PERIOD_START = 1;
+	ACCOUNTING_PERIOD_END = 2;
+	ACCOUNTING_PERIOD_EXPECTED_MEMBER_DATA = 3;
+	ACCOUNTING_PERIOD_EXPECTED_MEMBER_DATA_ITEM_EARNINGS = 1;
+	ACCOUNTING_PERIOD_EXPECTED_MEMBER_DATA_ITEM_WORKING_HOURS = 2;
+	MEMO_MESSAGE = 1;
+	MEMO_START = 2;
+	MEMO_END = 3;
+	TODAYS_SHIFT_DESCRIPTION_DESCRIPTION = 1;
+	TODAYS_SHIFT_DESCRIPTION_SHIFT_START = 2;
+	TODAYS_SHIFT_DESCRIPTION_SHIFT_END = 3;
+	TODAYS_SHIFT_DESCRIPTION_ASSIGNED_MEMBER_IDS = 4;
+	HOLIDAY_TIME = 1;
+	HOLIDAY_TYPE = 2;
+	HOLIDAY_NAME = 3;
+	HOLIDAY_FEDERAL_STATE = 4;
+	HOLIDAY_TIME_START = 1;
+	HOLIDAY_TIME_END = 2;
+	SCHEDULE_PREFERENCES_PRIORITIES = 1;
+	SCHEDULE_PREFERENCES_DESIRED_SHIFT_DIST = 2;
+	SCHEDULE_PREFERENCES_FATAL_SHIFT_DIST = 3;
+	SCHEDULE_PREFERENCES_PRIORITIES_SHIFT_PREF = 1;
+	SCHEDULE_PREFERENCES_PRIORITIES_DESIRED_EARNINGS = 2;
+	SCHEDULE_PREFERENCES_PRIORITIES_SHIFTS_TOO_CLOSE = 3;
+	BOOKING_STATE = 1;
+	BOOKING_OWNER_COMMENT = 2;
+	BOOKING_BOOKING_NUMBER = 3;
+	BOOKING_COURSE_SELECTOR = 4;
+	BOOKING_SHIFT_MODEL_ID = 5;
+	BOOKING_DATE_OF_BOOKING = 6;
+	BOOKING_BOOKING_COMMENT = 7;
+	BOOKING_ALL_SHIFTS_REMOVED = 8;
+	BOOKING_FIRST_NAME = 9;
+	BOOKING_LAST_NAME = 10;
+	BOOKING_FIRST_SHIFT_START = 11;
+	BOOKING_PARTICIPANT_COUNT = 12;
+	BOOKING_CURRENTLY_PAID = 13;
+	BOOKING_CANCELLATION_FEE = 14;
+	BOOKING_PARTICIPANTS = 15;
+	BOOKING_OVERALL_TARIFF_ID = 16;
+	BOOKING_FIRST_SHIFT_END = 17;
+	BOOKING_FIRST_SHIFT_SELECTOR = 18;
+	BOOKING_ATTENDED = 19;
+	BOOKING_CAN_WRITE_ATTENDED = 20;
+	BOOKING_ATTENDED_SET_BY_POS = 21;
+	BOOKING_DATE_OF_BIRTH = 22;
+	BOOKING_STREET_AND_HOUSE_NUMBER = 23;
+	BOOKING_CITY = 24;
+	BOOKING_POSTAL_CODE = 25;
+	BOOKING_EMAIL = 26;
+	BOOKING_PHONE_MOBILE = 27;
+	BOOKING_PHONE_LANDLINE = 28;
+	BOOKING_PAYMENT_METHOD_ID = 29;
+	BOOKING_DESIRED_DATE = 30;
+	BOOKING_WANTS_NEWSLETTER = 31;
+	BOOKING_PAID_BEFORE_TRANSACTION_LIST_INTRODUCTION = 32;
+	BOOKING_COMPANY = 33;
+	BOOKING_ADDITIONAL_FIELD_VALUE = 34;
+	BOOKING_AGE_MIN = 35;
+	BOOKING_AGE_MAX = 36;
+	BOOKING_CANCELLATION_POLICY_ID = 37;
+	BOOKING_HAS_RIGHT_OF_WITHDRAWAL = 38;
+	BOOKING_APPLICABLE_CANCELLATION_FEE_PERIOD_ID = 39;
+	BOOKING_ACCOUNT_REFUND_LIMIT_DUE_TO_ONLINE_BALANCE = 40;
+	BOOKING_IS_ANONYMIZED = 41;
+	BOOKING_TESTING_DEFERRED_PAYMENT_TOKEN = 42;
+	BOOKING_PARTICIPANT_ATTENDED = 1;
+	BOOKING_PARTICIPANT_IS_BOOKING_PERSON = 2;
+	BOOKING_PARTICIPANT_FIRST_NAME = 3;
+	BOOKING_PARTICIPANT_LAST_NAME = 4;
+	BOOKING_PARTICIPANT_EMAIL = 5;
+	BOOKING_PARTICIPANT_DATE_OF_BIRTH = 6;
+	BOOKING_PARTICIPANT_TARIFF_ID = 7;
+	BOOKING_PARTICIPANT_ADDITIONAL_FIELD_VALUE = 8;
+	CUSTOM_BOOKABLE_MAIL_NAME = 1;
+	CUSTOM_BOOKABLE_MAIL_EVENT_TYPE = 2;
+	CUSTOM_BOOKABLE_MAIL_SEND_TO_BOOKING_PERSON = 3;
+	CUSTOM_BOOKABLE_MAIL_SEND_TO_PARTICIPANTS = 4;
+	CUSTOM_BOOKABLE_MAIL_SUBJECT_TEMPLATE = 5;
+	CUSTOM_BOOKABLE_MAIL_TEXT_TEMPLATE = 6;
+	CUSTOM_BOOKABLE_MAIL_REPLY_TO = 7;
+	NOTIFICATION_SETTINGS_PUSH_TOKENS = 1;
+	NOTIFICATION_SETTINGS_SETTINGS_FOR_DEVICE_TYPES = 2;
+	NOTIFICATION_SETTINGS_PUSH_TOKEN_TOKEN = 1;
+	NOTIFICATION_SETTINGS_PUSH_TOKEN_TYPE = 2;
+	NOTIFICATION_SETTINGS_PUSH_TOKEN_ACTION = 3;
+	NOTIFICATION_SETTINGS_SETTINGS_FOR_DEVICE_TYPE_NOTIFICATION_GROUPS = 1;
+	NOTIFICATION_SETTINGS_SETTINGS_FOR_DEVICE_TYPE_DEVICE_TYPE = 2;
+	NOTIFICATION_SETTINGS_SETTINGS_FOR_DEVICE_TYPE_NOTIFICATION_GROUP_ENABLED = 1;
+	NOTIFICATION_SETTINGS_SETTINGS_FOR_DEVICE_TYPE_NOTIFICATION_GROUP_IS_RECOMMENDED_TO_RECEIVE = 2;
+	NOTIFICATION_SETTINGS_SETTINGS_FOR_DEVICE_TYPE_NOTIFICATION_GROUP_GROUP = 3;
+	NOTIFICATION_SETTINGS_SETTINGS_FOR_DEVICE_TYPE_NOTIFICATION_GROUP_TITLE = 4;
+	VOUCHER_SETTINGS_IS_VOUCHER_SALE_ENABLED = 1;
+	VOUCHER_SETTINGS_VOUCHER_MIN_PRICE = 2;
+	VOUCHER_SETTINGS_VOUCHER_MAX_PRICE = 3;
+	VOUCHER_SETTINGS_VOUCHER_HOMEPAGE_DESCRIPTION_TEXT = 4;
+	VOUCHER_SETTINGS_VOUCHER_EXPIRATION_DURATION = 5;
+	VOUCHER_SETTINGS_VOUCHER_MAIL_REPLY_TO = 6;
+	VOUCHER_SETTINGS_VOUCHER_CODE_PREFIX = 7;
+	VOUCHER_SETTINGS_VOUCHER_CODE_LENGTH = 8;
+	VOUCHER_SETTINGS_VOUCHER_CODE_ONLY_CONTAINS_DIGITS = 9;
+	TRANSACTION_TYPE = 1;
+	TRANSACTION_DATE_TIME = 2;
+	TRANSACTION_PAYMENT_METHOD_TYPE = 3;
+	TRANSACTION_MISC_PAYMENT_METHOD_NAME = 4;
+	TRANSACTION_DR_PLANO_FEE_NET = 5;
+	TRANSACTION_BALANCE_CHANGE = 6;
+	TRANSACTION_OFFER_NAME = 7;
+	TRANSACTION_BOOKING_NUMBER = 8;
+	TRANSACTION_REFERENCED_PERSON = 9;
+	TRANSACTION_BOOKING_ID = 10;
+	TRANSACTION_VOUCHER_ID = 11;
+	TRANSACTION_SHIFT_MODEL_ID = 12;
+	TRANSACTION_FAILED_CHILD_ID = 13;
+	TRANSACTION_TESTING_PSP_REFERENCE = 14;
+	TRANSACTION_TESTING_ORIGINAL_PSP_REFERENCE = 15;
+	TRANSACTION_TESTING_TRANSFER_FUNDS_AMOUNT = 16;
+	TRANSACTION_TESTING_TRANSFER_FUNDS_PSP = 17;
+	TRANSACTION_TESTING_TRANSFER_FUNDS_STATE = 18;
+	TRANSACTION_TESTING_IS_SETTLED = 19;
+	TRANSACTION_ABS_AMOUNT = 20;
+	TRANSACTION_CHILD_CHARGEBACK_ID = 21;
+	TRANSACTION_CHILD_CHARGEBACK_REVERSED_ID = 22;
+	TRANSACTION_CHILD_SECOND_CHARGEBACK_ID = 23;
+	TRANSACTION_VAT_PERCENT = 24;
+	TRANSACTION_INTERNAL_COMMENT = 25;
+	TRANSACTION_BALANCE = 26;
+	TRANSACTION_CREATOR_ID = 27;
+	TRANSACTION_BANK_ACCOUNT_HINT = 28;
+	TRANSACTION_BANK_DESCRIPTION = 29;
+	TRANSACTION_PARENT_ID = 30;
+	TRANSACTION_FAILED_REASON = 31;
+	TRANSACTION_DR_PLANO_FEE_VAT_DEPRECATED = 32;
+	VOUCHER_FIRST_NAME = 1;
+	VOUCHER_LAST_NAME = 2;
+	VOUCHER_BOOKING_NUMBER = 3;
+	VOUCHER_CODE = 4;
+	VOUCHER_CURRENT_VALUE = 5;
+	VOUCHER_DATE_OF_BOOKING = 6;
+	VOUCHER_PRICE = 7;
+	VOUCHER_CURRENTLY_PAID = 8;
+	VOUCHER_EMAIL = 9;
+	VOUCHER_EXPIRATION_DATE = 10;
+	VOUCHER_FOR_DESCRIPTION = 11;
+	VOUCHER_PAID_BEFORE_TRANSACTION_LIST_INTRODUCTION = 12;
+	VOUCHER_ACCOUNT_REFUND_LIMIT_DUE_TO_ONLINE_BALANCE = 13;
+	VOUCHER_IS_ANONYMIZED = 14;
+	VOUCHER_TESTING_DEFERRED_PAYMENT_TOKEN = 15;
+	WARNING_TEXT = 1;
+	WARNING_SEVERITY = 2;
+	WARNING_CONCERNS_MEMBER_ID = 3;
+	WARNING_FOR_SWAP_OFFER_ID = 4;
+	WARNING_FOR_SWAP_OFFER_NEW_ITEM_ID = 5;
+	EVALUATION_GENERATE = 1;
+	ADYEN_ACCOUNT_BALANCE = 1;
+	ADYEN_ACCOUNT_HOLDER_STATE = 2;
+	ADYEN_ACCOUNT_HOLDER_PAYOUT_STATE = 3;
+	ADYEN_ACCOUNT_HOLDER_PROCESSING_STATE = 4;
+	ADYEN_ACCOUNT_ONBOARDING_URL = 5;
+	ADYEN_ACCOUNT_DEADLINE_DATE = 6;
+	ADYEN_ACCOUNT_UPCOMING_DEADLINE_STATE = 7;
+	ADYEN_ACCOUNT_TESTING_DESIRED_DEPOSIT = 8;
+	ADYEN_ACCOUNT_TESTING_ACCOUNT_HOLDER_CODE = 9;
+	ADYEN_ACCOUNT_TESTING_ACCOUNT_HOLDER_PAYMENT_ACCOUNT = 10;
+	ADYEN_ACCOUNT_TESTING_LIABLE_PAYMENT_ACCOUNT = 11;
+	ADYEN_ACCOUNT_ONBOARDING_ACTION_REQUIRED_OR_PENDING = 12;
+	ADYEN_ACCOUNT_PAYOUT_SCHEDULE = 13;
+	ADYEN_ACCOUNT_NEXT_PAYOUT_DATE = 14;
+	MESSAGES_REMOVED_DUPLICATE_RE_CAPTCHA_WHITE_LISTED_HOST_NAME = 1;
+	MESSAGES_ONLINE_REFUND_INFO = 2;
+	MESSAGES_CUSTOM_BOOKABLE_MAILS_INFO = 3;
+	MESSAGES_CUSTOM_BOOKABLE_MAILS_INFO_AFFECTED_SHIFT_MODEL_ID = 1;
+	MESSAGES_CUSTOM_BOOKABLE_MAILS_INFO_EVENT_TRIGGERED = 2;
+	MESSAGES_CUSTOM_BOOKABLE_MAILS_INFO_EMAIL_SEND_TO_BOOKING_PERSON = 3;
+	MESSAGES_CUSTOM_BOOKABLE_MAILS_INFO_EMAIL_SEND_TO_PARTICIPANTS = 4;
+	MAIL_SENT_TO_BOOKING_PERSON_DATE_TIME = 1;
+	MAIL_SENT_TO_BOOKING_PERSON_EVENT_TYPE = 2;
+	MAIL_SENT_TO_BOOKING_PERSON_RECIPIENT_EMAIL = 3;
+	MAIL_SENT_TO_BOOKING_PERSON_SUBJECT = 4;
+	MAIL_SENT_TO_BOOKING_PERSON_TEXT = 5;
+	MAIL_SENT_TO_BOOKING_PERSON_RESEND_REQUESTER_ID = 6;
+	MAIL_SENT_TO_BOOKING_PERSON_RESEND = 7;
+	AUTOMATIC_BOOKING_CANCELLATION_SETTINGS_NO_CANCELLATION_FEES = 1;
+	AUTOMATIC_BOOKING_CANCELLATION_SETTINGS_AUTOMATIC_ONLINE_REFUND = 2;
+	AUTOMATIC_BOOKING_CANCELLATION_SETTINGS_TRANSACTION_INTERNAL_COMMENT = 3;
+}
+
+
+@Injectable({
+  providedIn: 'root',
+})
+export class SchedulingApiServiceBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiBase
+{
+	consts = new Consts();
+
+	constructor(h : HttpClient
+			,	router : Router
+			,	apiE : ApiErrorService
+			,	zone : NgZone
+			,	injector : Injector) {
+		super(h, router, apiE, zone, injector, 'scheduling');
+	}
+
+	protected version() : string {
+		return 'a8081ceb2838c688a9f28c5564fee2b2,4c90e29b32587ae0860f1b2603fa2af6';
+	}
+
+	private dataWrapper = new SchedulingApiRoot<ValidationMode>(this);
+
+	get data() : SchedulingApiRoot<ValidationMode> {
+		return this.dataWrapper;
+	}
+
+	protected getRootWrapper() : SchedulingApiRoot<ValidationMode> {
+		return this.dataWrapper;
+	}
+
+	protected recreateRootWrapper() : void {
+		this.dataWrapper = new SchedulingApiRoot<ValidationMode>(this);
+	}
+}
+
+		 
+export class SchedulingApiRootBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiRoot as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+		this.shiftsWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.workingTimesWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.shiftExchangesWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.absencesWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.assignmentProcessesWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.membersWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.bookingsWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.shiftModelsWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.notificationsConfWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.rightGroupsWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.accountingPeriodsWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.memosWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.todaysShiftDescriptionsWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.holidaysWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.possibleTaxesWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.schedulePreferencesWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.customBookableMailsWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.notificationSettingsWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.voucherSettingsWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.vouchersWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.transactionsWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.warningsWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.evaluationWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.adyenAccountWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.reCaptchaWhiteListedHostNamesWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.mailsSentToBookingPersonWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.messagesWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.shiftChangeSelectorWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+		this.automaticBookingCancellationSettingsWrapper.parent = this as any as SchedulingApiRoot<ValidationMode>;
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiRoot<ValidationMode>, SchedulingApiRoot<ValidationMode>> = new ApiAttributeInfo<SchedulingApiRoot<ValidationMode>, SchedulingApiRoot<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiRoot<ValidationMode>,
+			name: '',
+			id: 'ROOT',
+		});
+	attributeInfoIsPaypalAvailable =  new ApiAttributeInfo<SchedulingApiRoot<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiRoot<ValidationMode>,
+			name: 'isPaypalAvailable',
+			id: 'IS_PAYPAL_AVAILABLE',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoIsUsingBeta7 =  new ApiAttributeInfo<SchedulingApiRoot<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiRoot<ValidationMode>,
+			name: 'isUsingBeta7',
+			id: 'IS_USING_BETA_7',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: function(this : SchedulingApiRoot<ValidationMode>) {
+		if(!(( (this.api!.rightsService.canReadAndWriteBookingSystemSettings) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiRoot<ValidationMode>) {
+						if(!(( (this.api!.rightsService.canReadAndWriteBookingSystemSettings) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+	attributeInfoIsUsingRoutesManager =  new ApiAttributeInfo<SchedulingApiRoot<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiRoot<ValidationMode>,
+			name: 'isUsingRoutesManager',
+			id: 'IS_USING_ROUTES_MANAGER',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: function(this : SchedulingApiRoot<ValidationMode>) {
+		if(!(( (this.api!.rightsService.canReadAndWriteBookingSystemSettings) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiRoot<ValidationMode>) {
+						if(!(( (this.api!.rightsService.canReadAndWriteBookingSystemSettings) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+	attributeInfoKletterszeneId =  new ApiAttributeInfo<SchedulingApiRoot<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiRoot<ValidationMode>,
+			name: 'kletterszeneId',
+			id: 'KLETTERSZENE_ID',
+			primitiveType: PApiPrimitiveTypes.string,
+			canEdit: function(this : SchedulingApiRoot<ValidationMode>) {
+		if(!(( (this.api!.rightsService.canReadAndWriteBookingSystemSettings) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiRoot<ValidationMode>) {
+						if(!(( (this.api!.rightsService.canReadAndWriteBookingSystemSettings) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+	attributeInfoPosSystem =  new ApiAttributeInfo<SchedulingApiRoot<ValidationMode>, SchedulingApiPosSystem>({
+			apiObjWrapper: this as any as SchedulingApiRoot<ValidationMode>,
+			name: 'posSystem',
+			id: 'POS_SYSTEM',
+			primitiveType: PApiPrimitiveTypes.Enum,
+			canEdit: function(this : SchedulingApiRoot<ValidationMode>) {
+		if(!(( (this.api!.rightsService.canReadAndWriteBookingSystemSettings) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiRoot<ValidationMode>) {
+						if(!(( (this.api!.rightsService.canReadAndWriteBookingSystemSettings) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+	attributeInfoBookingPageCover =  new ApiAttributeInfo<SchedulingApiRoot<ValidationMode>, Image>({
+			apiObjWrapper: this as any as SchedulingApiRoot<ValidationMode>,
+			name: 'bookingPageCover',
+			id: 'BOOKING_PAGE_COVER',
+			primitiveType: PApiPrimitiveTypes.Image,
+			validations: function(this : SchedulingApiRoot<ValidationMode>) {
+				return [
+					() => {
+						return this.api!.validators.imageRatio(2.6315789);
+					},
+					() => {
+						return this.api!.validators.imageMaxFileSize(10240);
+					},
+					() => {
+						return this.api!.validators.imageMinWidth(900);
+					},
+					() => {
+						return this.api!.validators.imageMinHeight(342);
+					},
+					() => {
+						return this.api!.validators.imageMaxWidth(1800);
+					},
+					() => {
+						return this.api!.validators.imageMaxHeight(684);
+					},
+				];
+			},
+		});
+	attributeInfoCompanyLogo =  new ApiAttributeInfo<SchedulingApiRoot<ValidationMode>, Image>({
+			apiObjWrapper: this as any as SchedulingApiRoot<ValidationMode>,
+			name: 'companyLogo',
+			id: 'COMPANY_LOGO',
+			primitiveType: PApiPrimitiveTypes.Image,
+			validations: function(this : SchedulingApiRoot<ValidationMode>) {
+				return [
+					() => {
+						return this.api!.validators.imageRatio(1.0);
+					},
+					() => {
+						return this.api!.validators.imageMaxFileSize(5120);
+					},
+					() => {
+						return this.api!.validators.imageMinWidth(180);
+					},
+					() => {
+						return this.api!.validators.imageMinHeight(180);
+					},
+					() => {
+						return this.api!.validators.imageMaxWidth(360);
+					},
+					() => {
+						return this.api!.validators.imageMaxHeight(360);
+					},
+				];
+			},
+		});
+	attributeInfoIsOnlinePaymentAvailable =  new ApiAttributeInfo<SchedulingApiRoot<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiRoot<ValidationMode>,
+			name: 'isOnlinePaymentAvailable',
+			id: 'IS_ONLINE_PAYMENT_AVAILABLE',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+
+	private shiftsWrapper : SchedulingApiShifts<ValidationMode> = new SchedulingApiShifts<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of the shifts in time interval between query parameters "start" and "end". Only send for query parameter "data=calendar".
+     */
+	get shifts() : SchedulingApiShifts<ValidationMode> {
+		return this.shiftsWrapper;
+	}
+
+	set shiftsTestSetter(v : SchedulingApiShifts<ValidationMode>) {
+        this.setterImpl(1, v.rawData, 'shifts', () => {this.shiftsWrapper = v;});
+	}
+
+	private workingTimesWrapper : SchedulingApiWorkingTimes<ValidationMode> = new SchedulingApiWorkingTimes<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of working times. Only send for query parameter "data=reporting".
+     */
+	get workingTimes() : SchedulingApiWorkingTimes<ValidationMode> {
+		return this.workingTimesWrapper;
+	}
+
+	set workingTimesTestSetter(v : SchedulingApiWorkingTimes<ValidationMode>) {
+        this.setterImpl(2, v.rawData, 'workingTimes', () => {this.workingTimesWrapper = v;});
+	}
+
+	private shiftExchangesWrapper : SchedulingApiShiftExchanges<ValidationMode> = new SchedulingApiShiftExchanges<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of shift-exchange items. NOTE: Currently it is crucial that shift-exchanges are deserialized before absences because absences can have a reference to shift-exchange items.
+     */
+	get shiftExchanges() : SchedulingApiShiftExchanges<ValidationMode> {
+		return this.shiftExchangesWrapper;
+	}
+
+	set shiftExchangesTestSetter(v : SchedulingApiShiftExchanges<ValidationMode>) {
+        this.setterImpl(3, v.rawData, 'shiftExchanges', () => {this.shiftExchangesWrapper = v;});
+	}
+
+	private absencesWrapper : SchedulingApiAbsences<ValidationMode> = new SchedulingApiAbsences<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of absences. Only send for query parameter data equal "calendar" and "reporting".
+     */
+	get absences() : SchedulingApiAbsences<ValidationMode> {
+		return this.absencesWrapper;
+	}
+
+	set absencesTestSetter(v : SchedulingApiAbsences<ValidationMode>) {
+        this.setterImpl(4, v.rawData, 'absences', () => {this.absencesWrapper = v;});
+	}
+
+	private assignmentProcessesWrapper : SchedulingApiAssignmentProcesses<ValidationMode> = new SchedulingApiAssignmentProcesses<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of assignment processes. Only send for query parameter data equal "calendar", "reporting" or "shiftExchange".
+     */
+	get assignmentProcesses() : SchedulingApiAssignmentProcesses<ValidationMode> {
+		return this.assignmentProcessesWrapper;
+	}
+
+	set assignmentProcessesTestSetter(v : SchedulingApiAssignmentProcesses<ValidationMode>) {
+        this.setterImpl(5, v.rawData, 'assignmentProcesses', () => {this.assignmentProcessesWrapper = v;});
+	}
+
+	private membersWrapper : SchedulingApiMembers<ValidationMode> = new SchedulingApiMembers<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of the members.
+     */
+	get members() : SchedulingApiMembers<ValidationMode> {
+		return this.membersWrapper;
+	}
+
+	set membersTestSetter(v : SchedulingApiMembers<ValidationMode>) {
+        this.setterImpl(6, v.rawData, 'members', () => {this.membersWrapper = v;});
+	}
+
+	private bookingsWrapper : SchedulingApiBookings<ValidationMode> = new SchedulingApiBookings<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of course bookings. NOTE: Currently it is crucial that bookings are deserialized before shift-models because shift-model tariff serialization depends on bookings data (see applyTo... values)
+     */
+	get bookings() : SchedulingApiBookings<ValidationMode> {
+		return this.bookingsWrapper;
+	}
+
+	set bookingsTestSetter(v : SchedulingApiBookings<ValidationMode>) {
+        this.setterImpl(7, v.rawData, 'bookings', () => {this.bookingsWrapper = v;});
+	}
+
+	private shiftModelsWrapper : SchedulingApiShiftModels<ValidationMode> = new SchedulingApiShiftModels<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of the shift models.
+     */
+	get shiftModels() : SchedulingApiShiftModels<ValidationMode> {
+		return this.shiftModelsWrapper;
+	}
+
+	set shiftModelsTestSetter(v : SchedulingApiShiftModels<ValidationMode>) {
+        this.setterImpl(8, v.rawData, 'shiftModels', () => {this.shiftModelsWrapper = v;});
+	}
+
+	/**
+     *  Has client given us authorization for his paypal account? Read only.
+	 *
+	 * @type {boolean}
+     */
+	get isPaypalAvailable() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[9];
+	}
+
+	set isPaypalAvailableTestSetter(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(9, v, 'isPaypalAvailable');
+	}
+
+	/**
+     *  Is this client using the Beta7 api?
+	 *
+	 * @type {boolean}
+     */
+	get isUsingBeta7() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[10];
+	}
+
+	set isUsingBeta7(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(10, v, 'isUsingBeta7');
+	}
+
+	/**
+     *  Is this client using the Routes Manager api?
+	 *
+	 * @type {boolean}
+     */
+	get isUsingRoutesManager() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[11];
+	}
+
+	set isUsingRoutesManager(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(11, v, 'isUsingRoutesManager');
+	}
+
+	/**
+     *  Is this client using the kletterszene.com api? If yes, then here the kletterszene.com client id is stored.
+	 *
+	 * @type {string}
+     */
+	get kletterszeneId() : string | null {
+		return this.data[12];
+	}
+
+	set kletterszeneId(v : string | null) {
+        this.setterImpl(12, v, 'kletterszeneId');
+	}
+
+	/**
+     *  Pos system currently being used by this client. Can be edited with "canReadAndWriteBookingSystemSettings" right.
+	 *
+	 * @type {SchedulingApiPosSystem}
+     */
+	get posSystem() : SchedulingApiPosSystem | null {
+		return this.data[13];
+	}
+
+	set posSystem(v : SchedulingApiPosSystem | null) {
+        this.setterImpl(13, v, 'posSystem');
+	}
+
+	private notificationsConfWrapper : SchedulingApiNotificationsConf<ValidationMode> = new SchedulingApiNotificationsConf<ValidationMode>(this.api);
+
+	/**
+     *  Object to configure notifications for current action.
+     */
+	get notificationsConf() : SchedulingApiNotificationsConf<ValidationMode> {
+		return this.notificationsConfWrapper;
+	}
+
+	set notificationsConfTestSetter(v : SchedulingApiNotificationsConf<ValidationMode>) {
+        this.setterImpl(14, v.rawData, 'notificationsConf', () => {this.notificationsConfWrapper = v;});
+	}
+
+	private rightGroupsWrapper : SchedulingApiRightGroups<ValidationMode> = new SchedulingApiRightGroups<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of the right groups. A default member only gets the right group which is assigned to him.
+     */
+	get rightGroups() : SchedulingApiRightGroups<ValidationMode> {
+		return this.rightGroupsWrapper;
+	}
+
+	set rightGroupsTestSetter(v : SchedulingApiRightGroups<ValidationMode>) {
+        this.setterImpl(15, v.rawData, 'rightGroups', () => {this.rightGroupsWrapper = v;});
+	}
+
+	private accountingPeriodsWrapper : SchedulingApiAccountingPeriods<ValidationMode> = new SchedulingApiAccountingPeriods<ValidationMode>(this.api, false);
+
+	/**
+     *  A list with information about the different accounting-periods intersecting given time interval. Only send for query parameter data equal "calendar", "reporting" and "shiftExchange".
+     */
+	get accountingPeriods() : SchedulingApiAccountingPeriods<ValidationMode> {
+		return this.accountingPeriodsWrapper;
+	}
+
+	set accountingPeriodsTestSetter(v : SchedulingApiAccountingPeriods<ValidationMode>) {
+        this.setterImpl(16, v.rawData, 'accountingPeriods', () => {this.accountingPeriodsWrapper = v;});
+	}
+
+	private memosWrapper : SchedulingApiMemos<ValidationMode> = new SchedulingApiMemos<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of memos. For query parameter "calendar", "reporting" and "shiftExchange" this list contains todays memos. For query parameter "calendar" additionally it contains all memos in interval "time". For other query parameters no memos are returned.
+     */
+	get memos() : SchedulingApiMemos<ValidationMode> {
+		return this.memosWrapper;
+	}
+
+	set memosTestSetter(v : SchedulingApiMemos<ValidationMode>) {
+        this.setterImpl(17, v.rawData, 'memos', () => {this.memosWrapper = v;});
+	}
+
+	private todaysShiftDescriptionsWrapper : SchedulingApiTodaysShiftDescriptions<ValidationMode> = new SchedulingApiTodaysShiftDescriptions<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of all todays shift descriptions.
+     */
+	get todaysShiftDescriptions() : SchedulingApiTodaysShiftDescriptions<ValidationMode> {
+		return this.todaysShiftDescriptionsWrapper;
+	}
+
+	set todaysShiftDescriptionsTestSetter(v : SchedulingApiTodaysShiftDescriptions<ValidationMode>) {
+        this.setterImpl(18, v.rawData, 'todaysShiftDescriptions', () => {this.todaysShiftDescriptionsWrapper = v;});
+	}
+
+	private holidaysWrapper : SchedulingApiHolidays<ValidationMode> = new SchedulingApiHolidays<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of holidays. Only send for query parameter "data=calendar". Read-only.
+     */
+	get holidays() : SchedulingApiHolidays<ValidationMode> {
+		return this.holidaysWrapper;
+	}
+
+	set holidaysTestSetter(v : SchedulingApiHolidays<ValidationMode>) {
+        this.setterImpl(19, v.rawData, 'holidays', () => {this.holidaysWrapper = v;});
+	}
+
+	private possibleTaxesWrapper : SchedulingApiPossibleTaxes<ValidationMode> = new SchedulingApiPossibleTaxes<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of possible tax values for this account.
+     */
+	get possibleTaxes() : SchedulingApiPossibleTaxes<ValidationMode> {
+		return this.possibleTaxesWrapper;
+	}
+
+	set possibleTaxesTestSetter(v : SchedulingApiPossibleTaxes<ValidationMode>) {
+        this.setterImpl(20, v.rawData, 'possibleTaxes', () => {this.possibleTaxesWrapper = v;});
+	}
+
+	private schedulePreferencesWrapper : SchedulingApiSchedulePreferences<ValidationMode> = new SchedulingApiSchedulePreferences<ValidationMode>(this.api);
+
+	/**
+     *  An object containing the schedule preferences for the Dr. Plano algorithm (Only send to client owners).
+     */
+	get schedulePreferences() : SchedulingApiSchedulePreferences<ValidationMode> {
+		return this.schedulePreferencesWrapper;
+	}
+
+	set schedulePreferencesTestSetter(v : SchedulingApiSchedulePreferences<ValidationMode>) {
+        this.setterImpl(21, v.rawData, 'schedulePreferences', () => {this.schedulePreferencesWrapper = v;});
+	}
+
+	private customBookableMailsWrapper : SchedulingApiCustomBookableMails<ValidationMode> = new SchedulingApiCustomBookableMails<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of custom bookable emails which define email templates. Only send for query parameter data equal "calendar" and "bookingSystemSettings". Only editable by client owners.
+     */
+	get customBookableMails() : SchedulingApiCustomBookableMails<ValidationMode> {
+		return this.customBookableMailsWrapper;
+	}
+
+	set customBookableMailsTestSetter(v : SchedulingApiCustomBookableMails<ValidationMode>) {
+        this.setterImpl(22, v.rawData, 'customBookableMails', () => {this.customBookableMailsWrapper = v;});
+	}
+
+	private notificationSettingsWrapper : SchedulingApiNotificationSettings<ValidationMode> = new SchedulingApiNotificationSettings<ValidationMode>(this.api);
+
+	/**
+     *  Notification settings of current user.
+     */
+	get notificationSettings() : SchedulingApiNotificationSettings<ValidationMode> {
+		return this.notificationSettingsWrapper;
+	}
+
+	set notificationSettingsTestSetter(v : SchedulingApiNotificationSettings<ValidationMode>) {
+        this.setterImpl(23, v.rawData, 'notificationSettings', () => {this.notificationSettingsWrapper = v;});
+	}
+
+	private voucherSettingsWrapper : SchedulingApiVoucherSettings<ValidationMode> = new SchedulingApiVoucherSettings<ValidationMode>(this.api);
+
+	/**
+     *  Voucher settings. Send for data equal "bookingSystemSettings".
+     */
+	get voucherSettings() : SchedulingApiVoucherSettings<ValidationMode> {
+		return this.voucherSettingsWrapper;
+	}
+
+	set voucherSettingsTestSetter(v : SchedulingApiVoucherSettings<ValidationMode>) {
+        this.setterImpl(24, v.rawData, 'voucherSettings', () => {this.voucherSettingsWrapper = v;});
+	}
+
+	private vouchersWrapper : SchedulingApiVouchers<ValidationMode> = new SchedulingApiVouchers<ValidationMode>(this.api, false);
+
+	/**
+     *  List of available vouchers. Send for data equal "vouchers".
+     */
+	get vouchers() : SchedulingApiVouchers<ValidationMode> {
+		return this.vouchersWrapper;
+	}
+
+	set vouchersTestSetter(v : SchedulingApiVouchers<ValidationMode>) {
+        this.setterImpl(25, v.rawData, 'vouchers', () => {this.vouchersWrapper = v;});
+	}
+
+	private transactionsWrapper : SchedulingApiTransactions<ValidationMode> = new SchedulingApiTransactions<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of transactions.
+     */
+	get transactions() : SchedulingApiTransactions<ValidationMode> {
+		return this.transactionsWrapper;
+	}
+
+	set transactionsTestSetter(v : SchedulingApiTransactions<ValidationMode>) {
+        this.setterImpl(26, v.rawData, 'transactions', () => {this.transactionsWrapper = v;});
+	}
+
+	private warningsWrapper : SchedulingApiWarnings<ValidationMode> = new SchedulingApiWarnings<ValidationMode>(this.api, false);
+
+	/**
+     *  Warnings for current request. Read-only.
+     */
+	get warnings() : SchedulingApiWarnings<ValidationMode> {
+		return this.warningsWrapper;
+	}
+
+	set warningsTestSetter(v : SchedulingApiWarnings<ValidationMode>) {
+        this.setterImpl(27, v.rawData, 'warnings', () => {this.warningsWrapper = v;});
+	}
+
+	private evaluationWrapper : SchedulingApiEvaluation<ValidationMode> = new SchedulingApiEvaluation<ValidationMode>(this.api);
+
+	/**
+     *  An object containing the schedule evaluation (Only send to client owners).
+     */
+	get evaluation() : SchedulingApiEvaluation<ValidationMode> {
+		return this.evaluationWrapper;
+	}
+
+	set evaluationTestSetter(v : SchedulingApiEvaluation<ValidationMode>) {
+        this.setterImpl(28, v.rawData, 'evaluation', () => {this.evaluationWrapper = v;});
+	}
+
+	/**
+     * 
+	 *
+	 * @type {Image}
+     */
+	get bookingPageCover() : Image | null {
+		const path = this.data[29] as string;
+		return path ? Config.API_IMAGE_BASE_URL + path : path;
+	}
+
+	set bookingPageCover(v : Image | null) {
+        this.setterImpl(29, v, 'bookingPageCover');
+	}
+
+	/**
+     * 
+	 *
+	 * @type {Image}
+     */
+	get companyLogo() : Image | null {
+		const path = this.data[30] as string;
+		return path ? Config.API_IMAGE_BASE_URL + path : path;
+	}
+
+	set companyLogo(v : Image | null) {
+        this.setterImpl(30, v, 'companyLogo');
+	}
+
+	private adyenAccountWrapper : SchedulingApiAdyenAccount<ValidationMode> = new SchedulingApiAdyenAccount<ValidationMode>(this.api);
+
+	/**
+     *  Adyen data.
+     */
+	get adyenAccount() : SchedulingApiAdyenAccount<ValidationMode> {
+		return this.adyenAccountWrapper;
+	}
+
+	set adyenAccountTestSetter(v : SchedulingApiAdyenAccount<ValidationMode>) {
+        this.setterImpl(31, v.rawData, 'adyenAccount', () => {this.adyenAccountWrapper = v;});
+	}
+
+	/**
+     *  Has client onboarded to Adyen? Read only.
+	 *
+	 * @type {boolean}
+     */
+	get isOnlinePaymentAvailable() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[32];
+	}
+
+	set isOnlinePaymentAvailableTestSetter(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(32, v, 'isOnlinePaymentAvailable');
+	}
+
+	private reCaptchaWhiteListedHostNamesWrapper : SchedulingApiReCaptchaWhiteListedHostNames<ValidationMode> = new SchedulingApiReCaptchaWhiteListedHostNames<ValidationMode>(this.api, false);
+
+	/**
+     *  Host-names being permitted during Google reCaptcha Token validation. Send for data equal "bookingSystemSettings".
+     */
+	get reCaptchaWhiteListedHostNames() : SchedulingApiReCaptchaWhiteListedHostNames<ValidationMode> {
+		return this.reCaptchaWhiteListedHostNamesWrapper;
+	}
+
+	set reCaptchaWhiteListedHostNamesTestSetter(v : SchedulingApiReCaptchaWhiteListedHostNames<ValidationMode>) {
+        this.setterImpl(33, v.rawData, 'reCaptchaWhiteListedHostNames', () => {this.reCaptchaWhiteListedHostNamesWrapper = v;});
+	}
+
+	private mailsSentToBookingPersonWrapper : SchedulingApiMailsSentToBookingPerson<ValidationMode> = new SchedulingApiMailsSentToBookingPerson<ValidationMode>(this.api, false);
+
+	/**
+     *  All mails send to the booking person. Only sent when a booking or voucher is loaded detailed.
+     */
+	get mailsSentToBookingPerson() : SchedulingApiMailsSentToBookingPerson<ValidationMode> {
+		return this.mailsSentToBookingPersonWrapper;
+	}
+
+	set mailsSentToBookingPersonTestSetter(v : SchedulingApiMailsSentToBookingPerson<ValidationMode>) {
+        this.setterImpl(34, v.rawData, 'mailsSentToBookingPerson', () => {this.mailsSentToBookingPersonWrapper = v;});
+	}
+
+	private messagesWrapper : SchedulingApiMessages<ValidationMode> = new SchedulingApiMessages<ValidationMode>(this.api);
+
+	/**
+     *  Messages which backend sends to frontend.
+     */
+	get messages() : SchedulingApiMessages<ValidationMode> {
+		return this.messagesWrapper;
+	}
+
+	set messagesTestSetter(v : SchedulingApiMessages<ValidationMode>) {
+        this.setterImpl(35, v.rawData, 'messages', () => {this.messagesWrapper = v;});
+	}
+
+	private shiftChangeSelectorWrapper : SchedulingApiShiftChangeSelector<ValidationMode> = new SchedulingApiShiftChangeSelector<ValidationMode>(this.api);
+
+	/**
+     *  Set by user to define on what the shift changes should be applied.
+     */
+	get shiftChangeSelector() : SchedulingApiShiftChangeSelector<ValidationMode> {
+		return this.shiftChangeSelectorWrapper;
+	}
+
+	set shiftChangeSelectorTestSetter(v : SchedulingApiShiftChangeSelector<ValidationMode>) {
+        this.setterImpl(36, v.rawData, 'shiftChangeSelector', () => {this.shiftChangeSelectorWrapper = v;});
+	}
+
+	private automaticBookingCancellationSettingsWrapper : SchedulingApiAutomaticBookingCancellationSettings<ValidationMode> = new SchedulingApiAutomaticBookingCancellationSettings<ValidationMode>(this.api);
+
+	/**
+     *  Here you can configure the automatic booking cancellation when a shift is removed or cancelled.
+     */
+	get automaticBookingCancellationSettings() : SchedulingApiAutomaticBookingCancellationSettings<ValidationMode> {
+		return this.automaticBookingCancellationSettingsWrapper;
+	}
+
+	set automaticBookingCancellationSettingsTestSetter(v : SchedulingApiAutomaticBookingCancellationSettings<ValidationMode>) {
+        this.setterImpl(37, v.rawData, 'automaticBookingCancellationSettings', () => {this.automaticBookingCancellationSettingsWrapper = v;});
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.shiftsWrapper._fixIds(_idReplacements);
+		this.workingTimesWrapper._fixIds(_idReplacements);
+		this.shiftExchangesWrapper._fixIds(_idReplacements);
+		this.absencesWrapper._fixIds(_idReplacements);
+		this.assignmentProcessesWrapper._fixIds(_idReplacements);
+		this.membersWrapper._fixIds(_idReplacements);
+		this.bookingsWrapper._fixIds(_idReplacements);
+		this.shiftModelsWrapper._fixIds(_idReplacements);
+		this.notificationsConfWrapper._fixIds(_idReplacements);
+		this.rightGroupsWrapper._fixIds(_idReplacements);
+		this.accountingPeriodsWrapper._fixIds(_idReplacements);
+		this.memosWrapper._fixIds(_idReplacements);
+		this.todaysShiftDescriptionsWrapper._fixIds(_idReplacements);
+		this.holidaysWrapper._fixIds(_idReplacements);
+		this.possibleTaxesWrapper._fixIds(_idReplacements);
+		this.schedulePreferencesWrapper._fixIds(_idReplacements);
+		this.customBookableMailsWrapper._fixIds(_idReplacements);
+		this.notificationSettingsWrapper._fixIds(_idReplacements);
+		this.voucherSettingsWrapper._fixIds(_idReplacements);
+		this.vouchersWrapper._fixIds(_idReplacements);
+		this.transactionsWrapper._fixIds(_idReplacements);
+		this.warningsWrapper._fixIds(_idReplacements);
+		this.evaluationWrapper._fixIds(_idReplacements);
+		this.adyenAccountWrapper._fixIds(_idReplacements);
+		this.reCaptchaWhiteListedHostNamesWrapper._fixIds(_idReplacements);
+		this.mailsSentToBookingPersonWrapper._fixIds(_idReplacements);
+		this.messagesWrapper._fixIds(_idReplacements);
+		this.shiftChangeSelectorWrapper._fixIds(_idReplacements);
+		this.automaticBookingCancellationSettingsWrapper._fixIds(_idReplacements);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 38);
+
+			if(data[1] === null)
+				data[1] = Meta.createNewList();
+			if(data[2] === null)
+				data[2] = Meta.createNewList();
+			if(data[3] === null)
+				data[3] = Meta.createNewList();
+			if(data[4] === null)
+				data[4] = Meta.createNewList();
+			if(data[5] === null)
+				data[5] = Meta.createNewList();
+			if(data[6] === null)
+				data[6] = Meta.createNewList();
+			if(data[7] === null)
+				data[7] = Meta.createNewList();
+			if(data[8] === null)
+				data[8] = Meta.createNewList();
+			data[9] = false;
+			data[10] = false;
+			data[11] = false;
+			if(data[14] === null)
+				data[14] = Meta.createNewObject(false);
+			if(data[15] === null)
+				data[15] = Meta.createNewList();
+			if(data[16] === null)
+				data[16] = Meta.createNewList();
+			if(data[17] === null)
+				data[17] = Meta.createNewList();
+			if(data[18] === null)
+				data[18] = Meta.createNewList();
+			if(data[19] === null)
+				data[19] = Meta.createNewList();
+			if(data[20] === null)
+				data[20] = Meta.createNewList();
+			if(data[21] === null)
+				data[21] = Meta.createNewObject(false);
+			if(data[22] === null)
+				data[22] = Meta.createNewList();
+			if(data[23] === null)
+				data[23] = Meta.createNewObject(false);
+			if(data[24] === null)
+				data[24] = Meta.createNewObject(false);
+			if(data[25] === null)
+				data[25] = Meta.createNewList();
+			if(data[26] === null)
+				data[26] = Meta.createNewList();
+			if(data[27] === null)
+				data[27] = Meta.createNewList();
+			if(data[28] === null)
+				data[28] = Meta.createNewObject(false);
+			if(data[31] === null)
+				data[31] = Meta.createNewObject(false);
+			data[32] = false;
+			if(data[33] === null)
+				data[33] = Meta.createNewList();
+			if(data[34] === null)
+				data[34] = Meta.createNewList();
+			if(data[35] === null)
+				data[35] = Meta.createNewObject(false);
+			if(data[36] === null)
+				data[36] = Meta.createNewObject(false);
+			if(data[37] === null)
+				data[37] = Meta.createNewObject(false);
+		}
+
+		// propagate new raw data to children
+		this.shiftsWrapper._updateRawData(data ? data[1] : null, generateMissingData);
+		this.workingTimesWrapper._updateRawData(data ? data[2] : null, generateMissingData);
+		this.shiftExchangesWrapper._updateRawData(data ? data[3] : null, generateMissingData);
+		this.absencesWrapper._updateRawData(data ? data[4] : null, generateMissingData);
+		this.assignmentProcessesWrapper._updateRawData(data ? data[5] : null, generateMissingData);
+		this.membersWrapper._updateRawData(data ? data[6] : null, generateMissingData);
+		this.bookingsWrapper._updateRawData(data ? data[7] : null, generateMissingData);
+		this.shiftModelsWrapper._updateRawData(data ? data[8] : null, generateMissingData);
+		this.notificationsConfWrapper._updateRawData(data ? data[14] : null, generateMissingData);
+		this.rightGroupsWrapper._updateRawData(data ? data[15] : null, generateMissingData);
+		this.accountingPeriodsWrapper._updateRawData(data ? data[16] : null, generateMissingData);
+		this.memosWrapper._updateRawData(data ? data[17] : null, generateMissingData);
+		this.todaysShiftDescriptionsWrapper._updateRawData(data ? data[18] : null, generateMissingData);
+		this.holidaysWrapper._updateRawData(data ? data[19] : null, generateMissingData);
+		this.possibleTaxesWrapper._updateRawData(data ? data[20] : null, generateMissingData);
+		this.schedulePreferencesWrapper._updateRawData(data ? data[21] : null, generateMissingData);
+		this.customBookableMailsWrapper._updateRawData(data ? data[22] : null, generateMissingData);
+		this.notificationSettingsWrapper._updateRawData(data ? data[23] : null, generateMissingData);
+		this.voucherSettingsWrapper._updateRawData(data ? data[24] : null, generateMissingData);
+		this.vouchersWrapper._updateRawData(data ? data[25] : null, generateMissingData);
+		this.transactionsWrapper._updateRawData(data ? data[26] : null, generateMissingData);
+		this.warningsWrapper._updateRawData(data ? data[27] : null, generateMissingData);
+		this.evaluationWrapper._updateRawData(data ? data[28] : null, generateMissingData);
+		this.adyenAccountWrapper._updateRawData(data ? data[31] : null, generateMissingData);
+		this.reCaptchaWhiteListedHostNamesWrapper._updateRawData(data ? data[33] : null, generateMissingData);
+		this.mailsSentToBookingPersonWrapper._updateRawData(data ? data[34] : null, generateMissingData);
+		this.messagesWrapper._updateRawData(data ? data[35] : null, generateMissingData);
+		this.shiftChangeSelectorWrapper._updateRawData(data ? data[36] : null, generateMissingData);
+		this.automaticBookingCancellationSettingsWrapper._updateRawData(data ? data[37] : null, generateMissingData);
+	}
+
+	protected get dni() : string {
+		return '1';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '1', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiRoot<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiShiftsBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'shifts');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiShift<ValidationMode> {
+		const newWrapper = new SchedulingApiShift<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiShifts<ValidationMode> {
+		return new SchedulingApiShifts<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '2';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiShift<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('shifts');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShifts<ValidationMode>, SchedulingApiShifts<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShifts<ValidationMode>, SchedulingApiShifts<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShifts<ValidationMode>,
+			name: 'shifts',
+			id: 'SHIFTS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+		});
+}
+
+				 
+export class SchedulingApiShiftBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShift as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+		this.assignableMembersWrapper.parent = this as any as SchedulingApiShift<ValidationMode>;
+		this.assignedMemberIdsWrapper.parent = this as any as SchedulingApiShift<ValidationMode>;
+		this.memberPrefsWrapper.parent = this as any as SchedulingApiShift<ValidationMode>;
+		this.packetShiftsWrapper.parent = this as any as SchedulingApiShift<ValidationMode>;
+		this.neededMembersCountConfWrapper.parent = this as any as SchedulingApiShift<ValidationMode>;
+		this.timeWrapper.parent = this as any as SchedulingApiShift<ValidationMode>;
+		this.repetitionWrapper.parent = this as any as SchedulingApiShift<ValidationMode>;
+	}
+
+
+	private _id : ShiftId | null = null;
+	get id() : ShiftId {
+		return this._id !== null ? this._id : ShiftId.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShift<ValidationMode>, SchedulingApiShift<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShift<ValidationMode>, SchedulingApiShift<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShift<ValidationMode>,
+			name: 'shift',
+			id: 'SHIFT',
+		});
+	attributeInfoMyPref =  new ApiAttributeInfo<SchedulingApiShift<ValidationMode>, SchedulingApiShiftMemberPrefValue>({
+			apiObjWrapper: this as any as SchedulingApiShift<ValidationMode>,
+			name: 'myPref',
+			id: 'SHIFT_MY_PREF',
+			primitiveType: PApiPrimitiveTypes.Enum,
+		});
+	attributeInfoStart =  new ApiAttributeInfo<SchedulingApiShift<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiShift<ValidationMode>,
+			name: 'start',
+			id: 'SHIFT_START',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+		});
+	attributeInfoEnd =  new ApiAttributeInfo<SchedulingApiShift<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiShift<ValidationMode>,
+			name: 'end',
+			id: 'SHIFT_END',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+		});
+	attributeInfoNeededMembersCount =  new ApiAttributeInfo<SchedulingApiShift<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiShift<ValidationMode>,
+			name: 'neededMembersCount',
+			id: 'SHIFT_NEEDED_MEMBERS_COUNT',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+	attributeInfoShiftModelId =  new ApiAttributeInfo<SchedulingApiShift<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiShift<ValidationMode>,
+			name: 'shiftModelId',
+			id: 'SHIFT_MODEL_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+	attributeInfoDescription =  new ApiAttributeInfo<SchedulingApiShift<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShift<ValidationMode>,
+			name: 'description',
+			id: 'SHIFT_DESCRIPTION',
+			primitiveType: PApiPrimitiveTypes.string,
+			canEdit: function(this : SchedulingApiShift<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShift<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoIsRemoved =  new ApiAttributeInfo<SchedulingApiShift<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShift<ValidationMode>,
+			name: 'isRemoved',
+			id: 'SHIFT_IS_REMOVED',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsCourseCanceled =  new ApiAttributeInfo<SchedulingApiShift<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShift<ValidationMode>,
+			name: 'isCourseCanceled',
+			id: 'SHIFT_IS_COURSE_CANCELED',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: function(this : SchedulingApiShift<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShift<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoIsCourseOnline =  new ApiAttributeInfo<SchedulingApiShift<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShift<ValidationMode>,
+			name: 'isCourseOnline',
+			id: 'SHIFT_IS_COURSE_ONLINE',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: function(this : SchedulingApiShift<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShift<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoMinCourseParticipantCount =  new ApiAttributeInfo<SchedulingApiShift<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiShift<ValidationMode>,
+			name: 'minCourseParticipantCount',
+			id: 'SHIFT_MIN_COURSE_PARTICIPANT_COUNT',
+			primitiveType: PApiPrimitiveTypes.Integer,
+			canEdit: function(this : SchedulingApiShift<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShift<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoMaxCourseParticipantCount =  new ApiAttributeInfo<SchedulingApiShift<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiShift<ValidationMode>,
+			name: 'maxCourseParticipantCount',
+			id: 'SHIFT_MAX_COURSE_PARTICIPANT_COUNT',
+			primitiveType: PApiPrimitiveTypes.Integer,
+			canEdit: function(this : SchedulingApiShift<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShift<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoCurrentCourseParticipantCount =  new ApiAttributeInfo<SchedulingApiShift<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiShift<ValidationMode>,
+			name: 'currentCourseParticipantCount',
+			id: 'SHIFT_CURRENT_COURSE_PARTICIPANT_COUNT',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+	attributeInfoEarlyBirdAssignToMe =  new ApiAttributeInfo<SchedulingApiShift<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShift<ValidationMode>,
+			name: 'earlyBirdAssignToMe',
+			id: 'SHIFT_EARLY_BIRD_ASSIGN_TO_ME',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoWorkingTimeCreationMethod =  new ApiAttributeInfo<SchedulingApiShift<ValidationMode>, SchedulingApiWorkingTimeCreationMethod>({
+			apiObjWrapper: this as any as SchedulingApiShift<ValidationMode>,
+			name: 'workingTimeCreationMethod',
+			id: 'SHIFT_WORKING_TIME_CREATION_METHOD',
+			primitiveType: PApiPrimitiveTypes.Enum,
+			show: function(this : SchedulingApiShift<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: function(this : SchedulingApiShift<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShift<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoCurrentCourseAttendeeCount =  new ApiAttributeInfo<SchedulingApiShift<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiShift<ValidationMode>,
+			name: 'currentCourseAttendeeCount',
+			id: 'SHIFT_CURRENT_COURSE_ATTENDEE_COUNT',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+
+	/**
+     *  Shift preference of logged in user.
+	 *
+	 * @type {SchedulingApiShiftMemberPrefValue}
+     */
+	get myPref() : SchedulingApiShiftMemberPrefValue | null {
+		return this.data[1];
+	}
+
+	set myPref(v : SchedulingApiShiftMemberPrefValue | null) {
+        this.setterImpl(1, v, 'myPref');
+	}
+
+	private assignableMembersWrapper : SchedulingApiShiftAssignableMembers<ValidationMode> = new SchedulingApiShiftAssignableMembers<ValidationMode>(this.api, false);
+
+	/**
+     *  Only editable by client owners. Which members are assignable to this shift. Make sure this is deserialized before assignedMemberIds because this is a prerequisite. Can be used with "shiftChangeSelector".
+     */
+	get assignableMembers() : SchedulingApiShiftAssignableMembers<ValidationMode> {
+		return this.assignableMembersWrapper;
+	}
+
+	set assignableMembersTestSetter(v : SchedulingApiShiftAssignableMembers<ValidationMode>) {
+        this.setterImpl(2, v.rawData, 'assignableMembers', () => {this.assignableMembersWrapper = v;});
+	}
+
+	private assignedMemberIdsWrapper : SchedulingApiShiftAssignedMemberIds<ValidationMode> = new SchedulingApiShiftAssignedMemberIds<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of the assigned members' ids. Can be used with "shiftChangeSelector".
+     */
+	get assignedMemberIds() : SchedulingApiShiftAssignedMemberIds<ValidationMode> {
+		return this.assignedMemberIdsWrapper;
+	}
+
+	set assignedMemberIdsTestSetter(v : SchedulingApiShiftAssignedMemberIds<ValidationMode>) {
+        this.setterImpl(3, v.rawData, 'assignedMemberIds', () => {this.assignedMemberIdsWrapper = v;});
+	}
+
+	/**
+     *  Start of shift (inclusive). This value is not editable. You can instead edit "time.start".
+	 *
+	 * @type {DateTime}
+     */
+	get start() : NullableInDraftMode<DateTime, ValidationMode> {
+		return this.data[4];
+	}
+
+	set start(v : NullableInDraftMode<DateTime, ValidationMode>) {
+        this.setterImpl(4, v, 'start');
+	}
+
+	/**
+     *  End of shift (exclusive). This value is not editable. You can instead edit "time.end".
+	 *
+	 * @type {DateTime}
+     */
+	get end() : NullableInDraftMode<DateTime, ValidationMode> {
+		return this.data[5];
+	}
+
+	set end(v : NullableInDraftMode<DateTime, ValidationMode>) {
+        this.setterImpl(5, v, 'end');
+	}
+
+	/**
+     *  How many members should be assigned to this shift? Read only. Modify "neededMembersCountConf" instead.
+	 *
+	 * @type {Integer}
+     */
+	get neededMembersCount() : NullableInDraftMode<Integer, ValidationMode> {
+		return this.data[6];
+	}
+
+	set neededMembersCount(v : NullableInDraftMode<Integer, ValidationMode>) {
+        this.setterImpl(6, v, 'neededMembersCount');
+	}
+
+	private shiftModelIdWrapper : NullableInDraftMode<Id, ValidationMode> = null!;
+
+	/**
+     *  Id of the shift model to which this shift belongs.
+	 *
+	 * @type {Id}
+     */
+	get shiftModelId() : NullableInDraftMode<Id, ValidationMode> {
+		return this.shiftModelIdWrapper;
+	}
+
+	set shiftModelId(v : NullableInDraftMode<Id, ValidationMode>) {
+        this.setterImpl(7, v, 'shiftModelId', () => {this.shiftModelIdWrapper = v;});
+	}
+
+	private memberPrefsWrapper : SchedulingApiShiftMemberPrefs<ValidationMode> = new SchedulingApiShiftMemberPrefs<ValidationMode>(this.api, false);
+
+	/**
+     *  Only send to client owners. A list of the member preferences for this shift.
+     */
+	get memberPrefs() : SchedulingApiShiftMemberPrefs<ValidationMode> {
+		return this.memberPrefsWrapper;
+	}
+
+	set memberPrefsTestSetter(v : SchedulingApiShiftMemberPrefs<ValidationMode>) {
+        this.setterImpl(8, v.rawData, 'memberPrefs', () => {this.memberPrefsWrapper = v;});
+	}
+
+	private packetShiftsWrapper : SchedulingApiShiftPacketShifts<ValidationMode> = new SchedulingApiShiftPacketShifts<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of all packet shifts belonging to this shift. Note that this list is empty if this shift does not belong to a packet.
+     */
+	get packetShifts() : SchedulingApiShiftPacketShifts<ValidationMode> {
+		return this.packetShiftsWrapper;
+	}
+
+	set packetShiftsTestSetter(v : SchedulingApiShiftPacketShifts<ValidationMode>) {
+        this.setterImpl(9, v.rawData, 'packetShifts', () => {this.packetShiftsWrapper = v;});
+	}
+
+	/**
+     *  Description of the shift. Can be used with "shiftChangeSelector".
+	 *
+	 * @type {string}
+     */
+	get description() : string | null {
+		return this.data[10];
+	}
+
+	set description(v : string | null) {
+        this.setterImpl(10, v, 'description');
+	}
+
+	/**
+     *  Is this shift removed?
+	 *
+	 * @type {boolean}
+     */
+	get isRemoved() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[11];
+	}
+
+	set isRemoved(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(11, v, 'isRemoved');
+	}
+
+	/**
+     *  Is the course canceled?
+	 *
+	 * @type {boolean}
+     */
+	get isCourseCanceled() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[12];
+	}
+
+	set isCourseCanceled(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(12, v, 'isCourseCanceled');
+	}
+
+	/**
+     *  Is the course online? Can be used with "shiftChangeSelector".
+	 *
+	 * @type {boolean}
+     */
+	get isCourseOnline() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[13];
+	}
+
+	set isCourseOnline(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(13, v, 'isCourseOnline');
+	}
+
+	/**
+     *  Minimal course participant count. Can be used with "shiftChangeSelector".
+	 *
+	 * @type {Integer}
+     */
+	get minCourseParticipantCount() : NullableInDraftMode<Integer, ValidationMode> {
+		return this.data[14];
+	}
+
+	set minCourseParticipantCount(v : NullableInDraftMode<Integer, ValidationMode>) {
+        this.setterImpl(14, v, 'minCourseParticipantCount');
+	}
+
+	/**
+     *  Maximal course participant count. Can be used with "shiftChangeSelector".
+	 *
+	 * @type {Integer}
+     */
+	get maxCourseParticipantCount() : Integer | null {
+		return this.data[15];
+	}
+
+	set maxCourseParticipantCount(v : Integer | null) {
+        this.setterImpl(15, v, 'maxCourseParticipantCount');
+	}
+
+	/**
+     *  Current course participant count? Read only. Being determined by bookings.
+	 *
+	 * @type {Integer}
+     */
+	get currentCourseParticipantCount() : NullableInDraftMode<Integer, ValidationMode> {
+		return this.data[16];
+	}
+
+	set currentCourseParticipantCount(v : NullableInDraftMode<Integer, ValidationMode>) {
+        this.setterImpl(16, v, 'currentCourseParticipantCount');
+	}
+
+	/**
+     *  Assign this shift by early bird assignment process to me.
+	 *
+	 * @type {boolean}
+     */
+	get earlyBirdAssignToMe() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[17];
+	}
+
+	set earlyBirdAssignToMe(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(17, v, 'earlyBirdAssignToMe');
+	}
+
+	private neededMembersCountConfWrapper : SchedulingApiShiftNeededMembersCountConf<ValidationMode> = new SchedulingApiShiftNeededMembersCountConf<ValidationMode>(this.api);
+
+	/**
+     * (Detail)  Configuration values from which "neededMembersCount" is calculated. Can be used with "changeSelector".
+     */
+	get neededMembersCountConf() : SchedulingApiShiftNeededMembersCountConf<ValidationMode> {
+		return this.neededMembersCountConfWrapper;
+	}
+
+	set neededMembersCountConfTestSetter(v : SchedulingApiShiftNeededMembersCountConf<ValidationMode>) {
+        this.setterImpl(18, v.rawData, 'neededMembersCountConf', () => {this.neededMembersCountConfWrapper = v;});
+	}
+
+	private timeWrapper : SchedulingApiShiftTime<ValidationMode> = new SchedulingApiShiftTime<ValidationMode>(this.api);
+
+	/**
+     * (Detail)  The time when this shift will start (relative to current day). Can be used with "shiftChangeSelector".
+     */
+	get time() : SchedulingApiShiftTime<ValidationMode> {
+		return this.timeWrapper;
+	}
+
+	set timeTestSetter(v : SchedulingApiShiftTime<ValidationMode>) {
+        this.setterImpl(19, v.rawData, 'time', () => {this.timeWrapper = v;});
+	}
+
+	/**
+     * (Detail)  How is the corresponding working-time to this shift going to be created? Only send to client owners. Can be used with "shiftChangeSelector".
+	 *
+	 * @type {SchedulingApiWorkingTimeCreationMethod}
+     */
+	get workingTimeCreationMethod() : NullableInDraftMode<SchedulingApiWorkingTimeCreationMethod, ValidationMode> {
+		return this.data[20];
+	}
+
+	set workingTimeCreationMethod(v : NullableInDraftMode<SchedulingApiWorkingTimeCreationMethod, ValidationMode>) {
+        this.setterImpl(20, v, 'workingTimeCreationMethod');
+	}
+
+	private repetitionWrapper : SchedulingApiShiftRepetition<ValidationMode> = new SchedulingApiShiftRepetition<ValidationMode>(this.api);
+
+	/**
+     * (Detail)  Repetition pattern of this shift.
+     */
+	get repetition() : SchedulingApiShiftRepetition<ValidationMode> {
+		return this.repetitionWrapper;
+	}
+
+	set repetitionTestSetter(v : SchedulingApiShiftRepetition<ValidationMode>) {
+        this.setterImpl(21, v.rawData, 'repetition', () => {this.repetitionWrapper = v;});
+	}
+
+	/**
+     * (Detail)  Current course attendee count? Read only. Being determined by bookings.
+	 *
+	 * @type {Integer}
+     */
+	get currentCourseAttendeeCount() : NullableInDraftMode<Integer, ValidationMode> {
+		return this.data[22];
+	}
+
+	set currentCourseAttendeeCount(v : NullableInDraftMode<Integer, ValidationMode>) {
+        this.setterImpl(22, v, 'currentCourseAttendeeCount');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.assignableMembersWrapper._fixIds(_idReplacements);
+		this.assignedMemberIdsWrapper._fixIds(_idReplacements);
+		this.data[7] = Meta.getReplacedId(this.data[7], _idReplacements);
+		this.shiftModelIdWrapper = Id.create(this.data[7]);
+		this.memberPrefsWrapper._fixIds(_idReplacements);
+		this.packetShiftsWrapper._fixIds(_idReplacements);
+		this.neededMembersCountConfWrapper._fixIds(_idReplacements);
+		this.timeWrapper._fixIds(_idReplacements);
+		this.repetitionWrapper._fixIds(_idReplacements);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : ShiftId.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 23);
+
+			if(data[2] === null)
+				data[2] = Meta.createNewList();
+			if(data[3] === null)
+				data[3] = Meta.createNewList();
+			if(data[8] === null)
+				data[8] = Meta.createNewList();
+			if(data[9] === null)
+				data[9] = Meta.createNewList();
+			data[11] = false;
+			data[12] = false;
+			data[13] = false;
+			data[17] = false;
+			if(data[18] === null)
+				data[18] = Meta.createNewObject(true);
+			if(data[19] === null)
+				data[19] = Meta.createNewObject(true);
+			if(data[21] === null)
+				data[21] = Meta.createNewObject(true);
+		}
+
+		// propagate new raw data to children
+		this.assignableMembersWrapper._updateRawData(data ? data[2] : null, generateMissingData);
+		this.assignedMemberIdsWrapper._updateRawData(data ? data[3] : null, generateMissingData);
+		if(!Meta.isSameId(data ? data[7] : null, this.shiftModelIdWrapper))
+			this.shiftModelIdWrapper = data && data[7] ? Id.create(data[7]) : null!;
+		this.memberPrefsWrapper._updateRawData(data ? data[8] : null, generateMissingData);
+		this.packetShiftsWrapper._updateRawData(data ? data[9] : null, generateMissingData);
+		this.neededMembersCountConfWrapper._updateRawData(data ? data[18] : null, generateMissingData);
+		this.timeWrapper._updateRawData(data ? data[19] : null, generateMissingData);
+		this.repetitionWrapper._updateRawData(data ? data[21] : null, generateMissingData);
+	}
+
+	protected get dni() : string {
+		return '40';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : ShiftId
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '40', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShift<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+export enum SchedulingApiShiftMemberPrefValue {
+	CANNOT = 1,
+	CAN = 2,
+	WANT = 3,
+}
+		 export class SchedulingApiShiftAssignableMembersBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'assignableMembers');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiShiftAssignableMember<ValidationMode> {
+		const newWrapper = new SchedulingApiShiftAssignableMember<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiShiftAssignableMembers<ValidationMode> {
+		return new SchedulingApiShiftAssignableMembers<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '42';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiShiftAssignableMember<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('assignableMembers');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftAssignableMembers<ValidationMode>, SchedulingApiShiftAssignableMembers<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftAssignableMembers<ValidationMode>, SchedulingApiShiftAssignableMembers<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftAssignableMembers<ValidationMode>,
+			name: 'assignableMembers',
+			id: 'SHIFT_ASSIGNABLE_MEMBERS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			canEdit: function(this : SchedulingApiShiftAssignableMembers<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this.parent!))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftAssignableMembers<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+}
+
+				 
+export class SchedulingApiShiftAssignableMember<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftAssignableMember as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftAssignableMember<ValidationMode>, SchedulingApiShiftAssignableMember<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftAssignableMember<ValidationMode>, SchedulingApiShiftAssignableMember<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftAssignableMember<ValidationMode>,
+			name: 'shiftAssignableMember',
+			id: 'SHIFT_ASSIGNABLE_MEMBER',
+		});
+	attributeInfoHourlyEarnings =  new ApiAttributeInfo<SchedulingApiShiftAssignableMember<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiShiftAssignableMember<ValidationMode>,
+			name: 'hourlyEarnings',
+			id: 'SHIFT_ASSIGNABLE_MEMBER_EARNINGS',
+			primitiveType: PApiPrimitiveTypes.Currency,
+		});
+	attributeInfoMemberId =  new ApiAttributeInfo<SchedulingApiShiftAssignableMember<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiShiftAssignableMember<ValidationMode>,
+			name: 'memberId',
+			id: 'SHIFT_ASSIGNABLE_MEMBER_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+
+	/**
+     *  Members hourly earnings for this shift model
+	 *
+	 * @type {Currency}
+     */
+	get hourlyEarnings() : NullableInDraftMode<Currency, ValidationMode> {
+		return this.data[1];
+	}
+
+	set hourlyEarnings(v : NullableInDraftMode<Currency, ValidationMode>) {
+        this.setterImpl(1, v, 'hourlyEarnings');
+	}
+
+	private memberIdWrapper : NullableInDraftMode<Id, ValidationMode> = null!;
+
+	/**
+     *  Id of assignable member
+	 *
+	 * @type {Id}
+     */
+	get memberId() : NullableInDraftMode<Id, ValidationMode> {
+		return this.memberIdWrapper;
+	}
+
+	set memberId(v : NullableInDraftMode<Id, ValidationMode>) {
+        this.setterImpl(2, v, 'memberId', () => {this.memberIdWrapper = v;});
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.data[2] = Meta.getReplacedId(this.data[2], _idReplacements);
+		this.memberIdWrapper = Id.create(this.data[2]);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 3);
+
+		}
+
+		// propagate new raw data to children
+		if(!Meta.isSameId(data ? data[2] : null, this.memberIdWrapper))
+			this.memberIdWrapper = data && data[2] ? Id.create(data[2]) : null!;
+	}
+
+	protected get dni() : string {
+		return '63';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '63', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftAssignableMember<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiShiftAssignedMemberIds<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'assignedMemberIds');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : Id {
+		return Id.create(item);
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return true;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiShiftAssignedMemberIds<ValidationMode> {
+		return new SchedulingApiShiftAssignedMemberIds<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '43';
+	}
+
+	override createNewItem() : Id {
+		const newItemRaw = null;
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('assignedMemberIds');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftAssignedMemberIds<ValidationMode>, SchedulingApiShiftAssignedMemberIds<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftAssignedMemberIds<ValidationMode>, SchedulingApiShiftAssignedMemberIds<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftAssignedMemberIds<ValidationMode>,
+			name: 'assignedMemberIds',
+			id: 'SHIFT_ASSIGNED_MEMBER_IDS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			show: function(this : SchedulingApiShiftAssignedMemberIds<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> SHIFT_ASSIGNED_MEMBER_IDS is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> SHIFT_ASSIGNED_MEMBER_IDS is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+		});
+	attributeInfoShiftAssignedMemberId =  new ApiAttributeInfo<SchedulingApiShiftAssignedMemberIds<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiShiftAssignedMemberIds<ValidationMode>,
+			name: 'shiftAssignedMemberId',
+			id: 'SHIFT_ASSIGNED_MEMBER_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+}
+
+				 export class SchedulingApiShiftMemberPrefs<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'memberPrefs');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiShiftMemberPref<ValidationMode> {
+		const newWrapper = new SchedulingApiShiftMemberPref<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiShiftMemberPrefs<ValidationMode> {
+		return new SchedulingApiShiftMemberPrefs<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '48';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiShiftMemberPref<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('memberPrefs');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftMemberPrefs<ValidationMode>, SchedulingApiShiftMemberPrefs<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftMemberPrefs<ValidationMode>, SchedulingApiShiftMemberPrefs<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftMemberPrefs<ValidationMode>,
+			name: 'memberPrefs',
+			id: 'SHIFT_MEMBER_PREFS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			show: function(this : SchedulingApiShiftMemberPrefs<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this.parent!))))
+		{
+			return false;
+		}
+				return true;
+			},
+		});
+}
+
+				 
+export class SchedulingApiShiftMemberPref<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftMemberPref as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftMemberPref<ValidationMode>, SchedulingApiShiftMemberPref<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftMemberPref<ValidationMode>, SchedulingApiShiftMemberPref<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftMemberPref<ValidationMode>,
+			name: 'shiftMemberPref',
+			id: 'SHIFT_MEMBER_PREF',
+		});
+	attributeInfoMemberId =  new ApiAttributeInfo<SchedulingApiShiftMemberPref<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiShiftMemberPref<ValidationMode>,
+			name: 'memberId',
+			id: 'SHIFT_MEMBER_PREF_MEMBER_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+	attributeInfoPref =  new ApiAttributeInfo<SchedulingApiShiftMemberPref<ValidationMode>, SchedulingApiShiftMemberPrefValue>({
+			apiObjWrapper: this as any as SchedulingApiShiftMemberPref<ValidationMode>,
+			name: 'pref',
+			id: 'SHIFT_MEMBER_PREF_VALUE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+		});
+
+	private memberIdWrapper : NullableInDraftMode<Id, ValidationMode> = null!;
+
+	/**
+     *  Id of the member
+	 *
+	 * @type {Id}
+     */
+	get memberId() : NullableInDraftMode<Id, ValidationMode> {
+		return this.memberIdWrapper;
+	}
+
+	set memberId(v : NullableInDraftMode<Id, ValidationMode>) {
+        this.setterImpl(1, v, 'memberId', () => {this.memberIdWrapper = v;});
+	}
+
+	/**
+     *  Preference of the member
+	 *
+	 * @type {SchedulingApiShiftMemberPrefValue}
+     */
+	get pref() : NullableInDraftMode<SchedulingApiShiftMemberPrefValue, ValidationMode> {
+		return this.data[2];
+	}
+
+	set pref(v : NullableInDraftMode<SchedulingApiShiftMemberPrefValue, ValidationMode>) {
+        this.setterImpl(2, v, 'pref');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.data[1] = Meta.getReplacedId(this.data[1], _idReplacements);
+		this.memberIdWrapper = Id.create(this.data[1]);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 3);
+
+		}
+
+		// propagate new raw data to children
+		if(!Meta.isSameId(data ? data[1] : null, this.memberIdWrapper))
+			this.memberIdWrapper = data && data[1] ? Id.create(data[1]) : null!;
+	}
+
+	protected get dni() : string {
+		return '72';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '72', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftMemberPref<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiShiftPacketShifts<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'packetShifts');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiShiftPacketShift<ValidationMode> {
+		const newWrapper = new SchedulingApiShiftPacketShift<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiShiftPacketShifts<ValidationMode> {
+		return new SchedulingApiShiftPacketShifts<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '49';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiShiftPacketShift<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('packetShifts');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftPacketShifts<ValidationMode>, SchedulingApiShiftPacketShifts<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftPacketShifts<ValidationMode>, SchedulingApiShiftPacketShifts<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftPacketShifts<ValidationMode>,
+			name: 'packetShifts',
+			id: 'SHIFT_PACKET_SHIFTS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+		});
+}
+
+				 
+export class SchedulingApiShiftPacketShift<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftPacketShift as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+		this.assignedMemberIdsWrapper.parent = this as any as SchedulingApiShiftPacketShift<ValidationMode>;
+	}
+
+
+	private _id : ShiftId | null = null;
+	get id() : ShiftId {
+		return this._id !== null ? this._id : ShiftId.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftPacketShift<ValidationMode>, SchedulingApiShiftPacketShift<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftPacketShift<ValidationMode>, SchedulingApiShiftPacketShift<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftPacketShift<ValidationMode>,
+			name: 'shiftPacketShift',
+			id: 'SHIFT_PACKET_SHIFT',
+		});
+	attributeInfoStart =  new ApiAttributeInfo<SchedulingApiShiftPacketShift<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiShiftPacketShift<ValidationMode>,
+			name: 'start',
+			id: 'SHIFT_PACKET_SHIFT_START',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+		});
+	attributeInfoEnd =  new ApiAttributeInfo<SchedulingApiShiftPacketShift<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiShiftPacketShift<ValidationMode>,
+			name: 'end',
+			id: 'SHIFT_PACKET_SHIFT_END',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+		});
+
+	/**
+     *  Start of the packet shift (inclusive). This value is not editable.
+	 *
+	 * @type {DateTime}
+     */
+	get start() : NullableInDraftMode<DateTime, ValidationMode> {
+		return this.data[1];
+	}
+
+	set start(v : NullableInDraftMode<DateTime, ValidationMode>) {
+        this.setterImpl(1, v, 'start');
+	}
+
+	/**
+     *  End of the packet shift (exclusive). This value is not editable.
+	 *
+	 * @type {DateTime}
+     */
+	get end() : NullableInDraftMode<DateTime, ValidationMode> {
+		return this.data[2];
+	}
+
+	set end(v : NullableInDraftMode<DateTime, ValidationMode>) {
+        this.setterImpl(2, v, 'end');
+	}
+
+	private assignedMemberIdsWrapper : SchedulingApiShiftPacketShiftAssignedMemberIds<ValidationMode> = new SchedulingApiShiftPacketShiftAssignedMemberIds<ValidationMode>(this.api, false);
+
+	/**
+     * (Detail)  List of member ids being assigned to this shift.
+     */
+	get assignedMemberIds() : SchedulingApiShiftPacketShiftAssignedMemberIds<ValidationMode> {
+		return this.assignedMemberIdsWrapper;
+	}
+
+	set assignedMemberIdsTestSetter(v : SchedulingApiShiftPacketShiftAssignedMemberIds<ValidationMode>) {
+        this.setterImpl(3, v.rawData, 'assignedMemberIds', () => {this.assignedMemberIdsWrapper = v;});
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.assignedMemberIdsWrapper._fixIds(_idReplacements);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : ShiftId.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 4);
+
+			if(data[3] === null)
+				data[3] = Meta.createNewList();
+		}
+
+		// propagate new raw data to children
+		this.assignedMemberIdsWrapper._updateRawData(data ? data[3] : null, generateMissingData);
+	}
+
+	protected get dni() : string {
+		return '66';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : ShiftId
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '66', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftPacketShift<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiShiftPacketShiftAssignedMemberIds<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'assignedMemberIds');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : Id {
+		return Id.create(item);
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return true;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiShiftPacketShiftAssignedMemberIds<ValidationMode> {
+		return new SchedulingApiShiftPacketShiftAssignedMemberIds<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '69';
+	}
+
+	override createNewItem() : Id {
+		const newItemRaw = null;
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('assignedMemberIds');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftPacketShiftAssignedMemberIds<ValidationMode>, SchedulingApiShiftPacketShiftAssignedMemberIds<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftPacketShiftAssignedMemberIds<ValidationMode>, SchedulingApiShiftPacketShiftAssignedMemberIds<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftPacketShiftAssignedMemberIds<ValidationMode>,
+			name: 'assignedMemberIds',
+			id: 'SHIFT_PACKET_SHIFT_ASSIGNED_MEMBER_IDS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+		});
+	attributeInfoShiftPacketShiftAssignedMemberId =  new ApiAttributeInfo<SchedulingApiShiftPacketShiftAssignedMemberIds<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiShiftPacketShiftAssignedMemberIds<ValidationMode>,
+			name: 'shiftPacketShiftAssignedMemberId',
+			id: 'SHIFT_PACKET_SHIFT_ASSIGNED_MEMBER_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+}
+
+				 
+export class SchedulingApiShiftNeededMembersCountConf<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftNeededMembersCountConf as any);
+
+		this._updateRawData(Meta.createNewObject(true, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftNeededMembersCountConf<ValidationMode>, SchedulingApiShiftNeededMembersCountConf<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftNeededMembersCountConf<ValidationMode>, SchedulingApiShiftNeededMembersCountConf<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftNeededMembersCountConf<ValidationMode>,
+			name: 'neededMembersCountConf',
+			id: 'SHIFT_NEEDED_MEMBERS_COUNT_CONF',
+			canEdit: function(this : SchedulingApiShiftNeededMembersCountConf<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this.parent!))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftNeededMembersCountConf<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoNeededMembersCount =  new ApiAttributeInfo<SchedulingApiShiftNeededMembersCountConf<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiShiftNeededMembersCountConf<ValidationMode>,
+			name: 'neededMembersCount',
+			id: 'SHIFT_NEEDED_MEMBERS_COUNT_CONF_NEEDED_MEMBERS_COUNT',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+	attributeInfoPerXParticipants =  new ApiAttributeInfo<SchedulingApiShiftNeededMembersCountConf<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiShiftNeededMembersCountConf<ValidationMode>,
+			name: 'perXParticipants',
+			id: 'SHIFT_NEEDED_MEMBERS_COUNT_CONF_PER_X_PARTICIPANTS',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+	attributeInfoIsZeroNotReachedMinParticipantsCount =  new ApiAttributeInfo<SchedulingApiShiftNeededMembersCountConf<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftNeededMembersCountConf<ValidationMode>,
+			name: 'isZeroNotReachedMinParticipantsCount',
+			id: 'SHIFT_NEEDED_MEMBERS_COUNT_CONF_IS_ZERO_NOT_REACHED_MIN_PARTICIPANTS_COUNT',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+
+	/**
+     *  See perXParticipants for documentation.
+	 *
+	 * @type {Integer}
+     */
+	get neededMembersCount() : NullableInDraftMode<Integer, ValidationMode> {
+		return this.data[1];
+	}
+
+	set neededMembersCount(v : NullableInDraftMode<Integer, ValidationMode>) {
+        this.setterImpl(1, v, 'neededMembersCount');
+	}
+
+	/**
+     *  If this value is "null" then the final needed-members-count will be just "neededMembersCount". Otherwise it will be "neededMembersCount * ceil(participant-count / perXParticipants)". The calculated needed-members-count can be retrieved in shift.neededMembersCount.
+	 *
+	 * @type {Integer}
+     */
+	get perXParticipants() : Integer | null {
+		return this.data[2];
+	}
+
+	set perXParticipants(v : Integer | null) {
+        this.setterImpl(2, v, 'perXParticipants');
+	}
+
+	/**
+     *  If "true" then needed-members-count will be zero when participants count has not reached min-participants-count.
+	 *
+	 * @type {boolean}
+     */
+	get isZeroNotReachedMinParticipantsCount() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[3];
+	}
+
+	set isZeroNotReachedMinParticipantsCount(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(3, v, 'isZeroNotReachedMinParticipantsCount');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 4);
+
+			data[3] = false;
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '58';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '58', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftNeededMembersCountConf<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 
+export class SchedulingApiShiftTime<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftTime as any);
+
+		this._updateRawData(Meta.createNewObject(true, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftTime<ValidationMode>, SchedulingApiShiftTime<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftTime<ValidationMode>, SchedulingApiShiftTime<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftTime<ValidationMode>,
+			name: 'time',
+			id: 'SHIFT_TIME',
+			canEdit: function(this : SchedulingApiShiftTime<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this.parent!))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftTime<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoStart =  new ApiAttributeInfo<SchedulingApiShiftTime<ValidationMode>, LocalTime>({
+			apiObjWrapper: this as any as SchedulingApiShiftTime<ValidationMode>,
+			name: 'start',
+			id: 'SHIFT_TIME_START',
+			primitiveType: PApiPrimitiveTypes.LocalTime,
+		});
+	attributeInfoEnd =  new ApiAttributeInfo<SchedulingApiShiftTime<ValidationMode>, LocalTime>({
+			apiObjWrapper: this as any as SchedulingApiShiftTime<ValidationMode>,
+			name: 'end',
+			id: 'SHIFT_TIME_END',
+			primitiveType: PApiPrimitiveTypes.LocalTime,
+		});
+
+	/**
+     *  The time when this shift will start. Note that you can edit this value but not "shift.start".
+	 *
+	 * @type {LocalTime}
+     */
+	get start() : NullableInDraftMode<LocalTime, ValidationMode> {
+		return this.data[1];
+	}
+
+	set start(v : NullableInDraftMode<LocalTime, ValidationMode>) {
+        this.setterImpl(1, v, 'start');
+	}
+
+	/**
+     *  The time when this shift will end. Note that you can edit this value but not "shift.end".
+	 *
+	 * @type {LocalTime}
+     */
+	get end() : NullableInDraftMode<LocalTime, ValidationMode> {
+		return this.data[2];
+	}
+
+	set end(v : NullableInDraftMode<LocalTime, ValidationMode>) {
+        this.setterImpl(2, v, 'end');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 3);
+
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '59';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '59', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftTime<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+export enum SchedulingApiWorkingTimeCreationMethod {
+	TIME_STAMP = 1,
+	AUTOMATIC = 2,
+}
+		 
+export class SchedulingApiShiftRepetition<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftRepetition as any);
+
+		this._updateRawData(Meta.createNewObject(true, idRaw), true);
+
+		// set parent attribute
+		this.packetRepetitionWrapper.parent = this as any as SchedulingApiShiftRepetition<ValidationMode>;
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftRepetition<ValidationMode>, SchedulingApiShiftRepetition<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftRepetition<ValidationMode>, SchedulingApiShiftRepetition<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftRepetition<ValidationMode>,
+			name: 'repetition',
+			id: 'SHIFT_REPETITION',
+		});
+	attributeInfoType =  new ApiAttributeInfo<SchedulingApiShiftRepetition<ValidationMode>, SchedulingApiShiftRepetitionType>({
+			apiObjWrapper: this as any as SchedulingApiShiftRepetition<ValidationMode>,
+			name: 'type',
+			id: 'SHIFT_REPETITION_TYPE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+		});
+	attributeInfoX =  new ApiAttributeInfo<SchedulingApiShiftRepetition<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiShiftRepetition<ValidationMode>,
+			name: 'x',
+			id: 'SHIFT_REPETITION_X',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+	attributeInfoEndsAfterRepetitionCount =  new ApiAttributeInfo<SchedulingApiShiftRepetition<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiShiftRepetition<ValidationMode>,
+			name: 'endsAfterRepetitionCount',
+			id: 'SHIFT_REPETITION_ENDS_AFTER_REPETITION_COUNT',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+	attributeInfoEndsAfterDate =  new ApiAttributeInfo<SchedulingApiShiftRepetition<ValidationMode>, DateExclusiveEnd>({
+			apiObjWrapper: this as any as SchedulingApiShiftRepetition<ValidationMode>,
+			name: 'endsAfterDate',
+			id: 'SHIFT_REPETITION_ENDS_AFTER_DATE',
+			primitiveType: PApiPrimitiveTypes.DateExclusiveEnd,
+		});
+	attributeInfoIsRepeatingOnMonday =  new ApiAttributeInfo<SchedulingApiShiftRepetition<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftRepetition<ValidationMode>,
+			name: 'isRepeatingOnMonday',
+			id: 'SHIFT_REPETITION_ON_MONDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsRepeatingOnTuesday =  new ApiAttributeInfo<SchedulingApiShiftRepetition<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftRepetition<ValidationMode>,
+			name: 'isRepeatingOnTuesday',
+			id: 'SHIFT_REPETITION_ON_TUESDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsRepeatingOnWednesday =  new ApiAttributeInfo<SchedulingApiShiftRepetition<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftRepetition<ValidationMode>,
+			name: 'isRepeatingOnWednesday',
+			id: 'SHIFT_REPETITION_ON_WEDNESDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsRepeatingOnThursday =  new ApiAttributeInfo<SchedulingApiShiftRepetition<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftRepetition<ValidationMode>,
+			name: 'isRepeatingOnThursday',
+			id: 'SHIFT_REPETITION_ON_THURSDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsRepeatingOnFriday =  new ApiAttributeInfo<SchedulingApiShiftRepetition<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftRepetition<ValidationMode>,
+			name: 'isRepeatingOnFriday',
+			id: 'SHIFT_REPETITION_ON_FRIDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsRepeatingOnSaturday =  new ApiAttributeInfo<SchedulingApiShiftRepetition<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftRepetition<ValidationMode>,
+			name: 'isRepeatingOnSaturday',
+			id: 'SHIFT_REPETITION_ON_SATURDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsRepeatingOnSunday =  new ApiAttributeInfo<SchedulingApiShiftRepetition<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftRepetition<ValidationMode>,
+			name: 'isRepeatingOnSunday',
+			id: 'SHIFT_REPETITION_ON_SUNDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+
+	/**
+     *  repetition type. "NONE" means no repetition
+	 *
+	 * @type {SchedulingApiShiftRepetitionType}
+     */
+	get type() : NullableInDraftMode<SchedulingApiShiftRepetitionType, ValidationMode> {
+		return this.data[1];
+	}
+
+	set type(v : NullableInDraftMode<SchedulingApiShiftRepetitionType, ValidationMode>) {
+        this.setterImpl(1, v, 'type');
+	}
+
+	/**
+     *  This is the "x" value defined by the type property (e.g. EVERY_X_DAYS or EVERY_X_WEEKS).
+	 *
+	 * @type {Integer}
+     */
+	get x() : NullableInDraftMode<Integer, ValidationMode> {
+		return this.data[2];
+	}
+
+	set x(v : NullableInDraftMode<Integer, ValidationMode>) {
+        this.setterImpl(2, v, 'x');
+	}
+
+	/**
+     *  Should the repetition end after a given count? If not, set to "0".
+	 *
+	 * @type {Integer}
+     */
+	get endsAfterRepetitionCount() : NullableInDraftMode<Integer, ValidationMode> {
+		return this.data[3];
+	}
+
+	set endsAfterRepetitionCount(v : NullableInDraftMode<Integer, ValidationMode>) {
+        this.setterImpl(3, v, 'endsAfterRepetitionCount');
+	}
+
+	/**
+     *  Should the repetition end after a given date?
+	 *
+	 * @type {DateExclusiveEnd}
+     */
+	get endsAfterDate() : NullableInDraftMode<DateExclusiveEnd, ValidationMode> {
+		return this.data[4];
+	}
+
+	set endsAfterDate(v : NullableInDraftMode<DateExclusiveEnd, ValidationMode>) {
+        this.setterImpl(4, v, 'endsAfterDate');
+	}
+
+	private packetRepetitionWrapper : SchedulingApiShiftRepetitionPacket<ValidationMode> = new SchedulingApiShiftRepetitionPacket<ValidationMode>(this.api);
+
+	/**
+     *  The packet repetition pattern.
+     */
+	get packetRepetition() : SchedulingApiShiftRepetitionPacket<ValidationMode> {
+		return this.packetRepetitionWrapper;
+	}
+
+	set packetRepetitionTestSetter(v : SchedulingApiShiftRepetitionPacket<ValidationMode>) {
+        this.setterImpl(5, v.rawData, 'packetRepetition', () => {this.packetRepetitionWrapper = v;});
+	}
+
+	/**
+     *  Is there a repetition on Monday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnMonday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[6];
+	}
+
+	set isRepeatingOnMonday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(6, v, 'isRepeatingOnMonday');
+	}
+
+	/**
+     *  Is there a repetition on Tuesday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnTuesday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[7];
+	}
+
+	set isRepeatingOnTuesday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(7, v, 'isRepeatingOnTuesday');
+	}
+
+	/**
+     *  Is there a repetition on Wednesday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnWednesday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[8];
+	}
+
+	set isRepeatingOnWednesday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(8, v, 'isRepeatingOnWednesday');
+	}
+
+	/**
+     *  Is there a repetition on Thursday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnThursday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[9];
+	}
+
+	set isRepeatingOnThursday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(9, v, 'isRepeatingOnThursday');
+	}
+
+	/**
+     *  Is there a repetition on Friday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnFriday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[10];
+	}
+
+	set isRepeatingOnFriday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(10, v, 'isRepeatingOnFriday');
+	}
+
+	/**
+     *  Is there a repetition on Saturday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnSaturday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[11];
+	}
+
+	set isRepeatingOnSaturday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(11, v, 'isRepeatingOnSaturday');
+	}
+
+	/**
+     *  Is there a repetition on Sunday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnSunday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[12];
+	}
+
+	set isRepeatingOnSunday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(12, v, 'isRepeatingOnSunday');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.packetRepetitionWrapper._fixIds(_idReplacements);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 13);
+
+			if(data[5] === null)
+				data[5] = Meta.createNewObject(true);
+			data[6] = false;
+			data[7] = false;
+			data[8] = false;
+			data[9] = false;
+			data[10] = false;
+			data[11] = false;
+			data[12] = false;
+		}
+
+		// propagate new raw data to children
+		this.packetRepetitionWrapper._updateRawData(data ? data[5] : null, generateMissingData);
+	}
+
+	protected get dni() : string {
+		return '61';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '61', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftRepetition<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+export enum SchedulingApiShiftRepetitionType {
+	NONE = 1,
+	EVERY_X_DAYS = 2,
+	EVERY_X_WEEKS = 3,
+	EVERY_X_MONTHS = 4,
+	EVERY_X_YEARS = 5,
+}
+		 
+export class SchedulingApiShiftRepetitionPacket<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftRepetitionPacket as any);
+
+		this._updateRawData(Meta.createNewObject(true, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftRepetitionPacket<ValidationMode>, SchedulingApiShiftRepetitionPacket<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftRepetitionPacket<ValidationMode>, SchedulingApiShiftRepetitionPacket<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftRepetitionPacket<ValidationMode>,
+			name: 'packetRepetition',
+			id: 'SHIFT_REPETITION_PACKET',
+		});
+	attributeInfoType =  new ApiAttributeInfo<SchedulingApiShiftRepetitionPacket<ValidationMode>, SchedulingApiShiftRepetitionType>({
+			apiObjWrapper: this as any as SchedulingApiShiftRepetitionPacket<ValidationMode>,
+			name: 'type',
+			id: 'SHIFT_REPETITION_PACKET_TYPE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+		});
+	attributeInfoX =  new ApiAttributeInfo<SchedulingApiShiftRepetitionPacket<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiShiftRepetitionPacket<ValidationMode>,
+			name: 'x',
+			id: 'SHIFT_REPETITION_PACKET_X',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+	attributeInfoEndsAfterRepetitionCount =  new ApiAttributeInfo<SchedulingApiShiftRepetitionPacket<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiShiftRepetitionPacket<ValidationMode>,
+			name: 'endsAfterRepetitionCount',
+			id: 'SHIFT_REPETITION_PACKET_ENDS_AFTER_REPETITION_COUNT',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+	attributeInfoIsRepeatingOnMonday =  new ApiAttributeInfo<SchedulingApiShiftRepetitionPacket<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftRepetitionPacket<ValidationMode>,
+			name: 'isRepeatingOnMonday',
+			id: 'SHIFT_REPETITION_PACKET_ON_MONDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsRepeatingOnTuesday =  new ApiAttributeInfo<SchedulingApiShiftRepetitionPacket<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftRepetitionPacket<ValidationMode>,
+			name: 'isRepeatingOnTuesday',
+			id: 'SHIFT_REPETITION_PACKET_ON_TUESDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsRepeatingOnWednesday =  new ApiAttributeInfo<SchedulingApiShiftRepetitionPacket<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftRepetitionPacket<ValidationMode>,
+			name: 'isRepeatingOnWednesday',
+			id: 'SHIFT_REPETITION_PACKET_ON_WEDNESDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsRepeatingOnThursday =  new ApiAttributeInfo<SchedulingApiShiftRepetitionPacket<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftRepetitionPacket<ValidationMode>,
+			name: 'isRepeatingOnThursday',
+			id: 'SHIFT_REPETITION_PACKET_ON_THURSDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsRepeatingOnFriday =  new ApiAttributeInfo<SchedulingApiShiftRepetitionPacket<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftRepetitionPacket<ValidationMode>,
+			name: 'isRepeatingOnFriday',
+			id: 'SHIFT_REPETITION_PACKET_ON_FRIDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsRepeatingOnSaturday =  new ApiAttributeInfo<SchedulingApiShiftRepetitionPacket<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftRepetitionPacket<ValidationMode>,
+			name: 'isRepeatingOnSaturday',
+			id: 'SHIFT_REPETITION_PACKET_ON_SATURDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsRepeatingOnSunday =  new ApiAttributeInfo<SchedulingApiShiftRepetitionPacket<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftRepetitionPacket<ValidationMode>,
+			name: 'isRepeatingOnSunday',
+			id: 'SHIFT_REPETITION_PACKET_ON_SUNDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+
+	/**
+     *  repetition type. "NONE" means no repetition
+	 *
+	 * @type {SchedulingApiShiftRepetitionType}
+     */
+	get type() : NullableInDraftMode<SchedulingApiShiftRepetitionType, ValidationMode> {
+		return this.data[1];
+	}
+
+	set type(v : NullableInDraftMode<SchedulingApiShiftRepetitionType, ValidationMode>) {
+        this.setterImpl(1, v, 'type');
+	}
+
+	/**
+     *  This is the "x" value defined by the type property (e.g. EVERY_X_DAYS or EVERY_X_WEEKS).
+	 *
+	 * @type {Integer}
+     */
+	get x() : NullableInDraftMode<Integer, ValidationMode> {
+		return this.data[2];
+	}
+
+	set x(v : NullableInDraftMode<Integer, ValidationMode>) {
+        this.setterImpl(2, v, 'x');
+	}
+
+	/**
+     *  Should the repetition end after a given count? If not, set to "0".
+	 *
+	 * @type {Integer}
+     */
+	get endsAfterRepetitionCount() : NullableInDraftMode<Integer, ValidationMode> {
+		return this.data[3];
+	}
+
+	set endsAfterRepetitionCount(v : NullableInDraftMode<Integer, ValidationMode>) {
+        this.setterImpl(3, v, 'endsAfterRepetitionCount');
+	}
+
+	/**
+     *  Is there a repetition on Monday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnMonday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[4];
+	}
+
+	set isRepeatingOnMonday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(4, v, 'isRepeatingOnMonday');
+	}
+
+	/**
+     *  Is there a repetition on Tuesday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnTuesday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[5];
+	}
+
+	set isRepeatingOnTuesday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(5, v, 'isRepeatingOnTuesday');
+	}
+
+	/**
+     *  Is there a repetition on Wednesday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnWednesday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[6];
+	}
+
+	set isRepeatingOnWednesday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(6, v, 'isRepeatingOnWednesday');
+	}
+
+	/**
+     *  Is there a repetition on Thursday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnThursday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[7];
+	}
+
+	set isRepeatingOnThursday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(7, v, 'isRepeatingOnThursday');
+	}
+
+	/**
+     *  Is there a repetition on Friday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnFriday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[8];
+	}
+
+	set isRepeatingOnFriday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(8, v, 'isRepeatingOnFriday');
+	}
+
+	/**
+     *  Is there a repetition on Saturday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnSaturday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[9];
+	}
+
+	set isRepeatingOnSaturday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(9, v, 'isRepeatingOnSaturday');
+	}
+
+	/**
+     *  Is there a repetition on Sunday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnSunday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[10];
+	}
+
+	set isRepeatingOnSunday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(10, v, 'isRepeatingOnSunday');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 11);
+
+			data[4] = false;
+			data[5] = false;
+			data[6] = false;
+			data[7] = false;
+			data[8] = false;
+			data[9] = false;
+			data[10] = false;
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '91';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '91', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftRepetitionPacket<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiWorkingTimesBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'workingTimes');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiWorkingTime<ValidationMode> {
+		const newWrapper = new SchedulingApiWorkingTime<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiWorkingTimes<ValidationMode> {
+		return new SchedulingApiWorkingTimes<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '3';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiWorkingTime<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('workingTimes');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiWorkingTimes<ValidationMode>, SchedulingApiWorkingTimes<ValidationMode>> = new ApiAttributeInfo<SchedulingApiWorkingTimes<ValidationMode>, SchedulingApiWorkingTimes<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiWorkingTimes<ValidationMode>,
+			name: 'workingTimes',
+			id: 'WORKING_TIMES',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			canEdit: function(this : SchedulingApiWorkingTimes<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiWorkingTimes<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+}
+
+				 
+export class SchedulingApiWorkingTimeBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiWorkingTime as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+		this.timeWrapper.parent = this as any as SchedulingApiWorkingTime<ValidationMode>;
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiWorkingTime<ValidationMode>, SchedulingApiWorkingTime<ValidationMode>> = new ApiAttributeInfo<SchedulingApiWorkingTime<ValidationMode>, SchedulingApiWorkingTime<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiWorkingTime<ValidationMode>,
+			name: 'workingTime',
+			id: 'WORKING_TIME',
+		});
+	attributeInfoComment =  new ApiAttributeInfo<SchedulingApiWorkingTime<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiWorkingTime<ValidationMode>,
+			name: 'comment',
+			id: 'WORKING_TIME_COMMENT',
+			primitiveType: PApiPrimitiveTypes.string,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoRegularPauseDuration =  new ApiAttributeInfo<SchedulingApiWorkingTime<ValidationMode>, Duration>({
+			apiObjWrapper: this as any as SchedulingApiWorkingTime<ValidationMode>,
+			name: 'regularPauseDuration',
+			id: 'WORKING_TIME_REGULAR_PAUSE_DURATION',
+			primitiveType: PApiPrimitiveTypes.Duration,
+		});
+	attributeInfoMemberId =  new ApiAttributeInfo<SchedulingApiWorkingTime<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiWorkingTime<ValidationMode>,
+			name: 'memberId',
+			id: 'WORKING_TIME_MEMBER_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+	attributeInfoAutomaticPauseDuration =  new ApiAttributeInfo<SchedulingApiWorkingTime<ValidationMode>, Duration>({
+			apiObjWrapper: this as any as SchedulingApiWorkingTime<ValidationMode>,
+			name: 'automaticPauseDuration',
+			id: 'WORKING_TIME_AUTOMATIC_PAUSE_DURATION',
+			primitiveType: PApiPrimitiveTypes.Duration,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoPlannedStart =  new ApiAttributeInfo<SchedulingApiWorkingTime<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiWorkingTime<ValidationMode>,
+			name: 'plannedStart',
+			id: 'WORKING_TIME_PLANNED_START',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoPlannedEnd =  new ApiAttributeInfo<SchedulingApiWorkingTime<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiWorkingTime<ValidationMode>,
+			name: 'plannedEnd',
+			id: 'WORKING_TIME_PLANNED_END',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoWhenMemberStampedStart =  new ApiAttributeInfo<SchedulingApiWorkingTime<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiWorkingTime<ValidationMode>,
+			name: 'whenMemberStampedStart',
+			id: 'WORKING_TIME_WHEN_MEMBER_STAMPED_START',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoWhenMemberStampedEnd =  new ApiAttributeInfo<SchedulingApiWorkingTime<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiWorkingTime<ValidationMode>,
+			name: 'whenMemberStampedEnd',
+			id: 'WORKING_TIME_WHEN_MEMBER_STAMPED_END',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoHourlyEarnings =  new ApiAttributeInfo<SchedulingApiWorkingTime<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiWorkingTime<ValidationMode>,
+			name: 'hourlyEarnings',
+			id: 'WORKING_TIME_HOURLY_EARNINGS',
+			primitiveType: PApiPrimitiveTypes.Currency,
+		});
+	attributeInfoWarnUnplannedWork =  new ApiAttributeInfo<SchedulingApiWorkingTime<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiWorkingTime<ValidationMode>,
+			name: 'warnUnplannedWork',
+			id: 'WORKING_TIME_WARN_UNPLANNED_WORK',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoWarnStampedNotCurrentTime =  new ApiAttributeInfo<SchedulingApiWorkingTime<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiWorkingTime<ValidationMode>,
+			name: 'warnStampedNotCurrentTime',
+			id: 'WORKING_TIME_WARN_STAMPED_NOT_CURRENT_TIME',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoWarnStampedNotShiftTime =  new ApiAttributeInfo<SchedulingApiWorkingTime<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiWorkingTime<ValidationMode>,
+			name: 'warnStampedNotShiftTime',
+			id: 'WORKING_TIME_WARN_STAMPED_NOT_SHIFT_TIME',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoShiftModelId =  new ApiAttributeInfo<SchedulingApiWorkingTime<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiWorkingTime<ValidationMode>,
+			name: 'shiftModelId',
+			id: 'WORKING_TIME_SHIFT_MODEL_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+
+	/**
+     *  Comment of member. Editable only by member.
+	 *
+	 * @type {string}
+     */
+	get comment() : string | null {
+		return this.data[1];
+	}
+
+	set commentTestSetter(v : string | null) {
+        this.setterImpl(1, v, 'comment');
+	}
+
+	private timeWrapper : SchedulingApiWorkingTimeTime<ValidationMode> = new SchedulingApiWorkingTimeTime<ValidationMode>(this.api);
+
+	/**
+     *  Time of working time.
+     */
+	get time() : SchedulingApiWorkingTimeTime<ValidationMode> {
+		return this.timeWrapper;
+	}
+
+	set timeTestSetter(v : SchedulingApiWorkingTimeTime<ValidationMode>) {
+        this.setterImpl(2, v.rawData, 'time', () => {this.timeWrapper = v;});
+	}
+
+	/**
+     *  Regular pause duration (done by member).
+	 *
+	 * @type {Duration}
+     */
+	get regularPauseDuration() : NullableInDraftMode<Duration, ValidationMode> {
+		return this.data[3];
+	}
+
+	set regularPauseDuration(v : NullableInDraftMode<Duration, ValidationMode>) {
+        this.setterImpl(3, v, 'regularPauseDuration');
+	}
+
+	private memberIdWrapper : NullableInDraftMode<Id, ValidationMode> = null!;
+
+	/**
+     *  The member id to which this working time belongs.
+	 *
+	 * @type {Id}
+     */
+	get memberId() : NullableInDraftMode<Id, ValidationMode> {
+		return this.memberIdWrapper;
+	}
+
+	set memberId(v : NullableInDraftMode<Id, ValidationMode>) {
+        this.setterImpl(4, v, 'memberId', () => {this.memberIdWrapper = v;});
+	}
+
+	/**
+     *  Automatic pause duration (added by Dr. Plano).
+	 *
+	 * @type {Duration}
+     */
+	get automaticPauseDuration() : NullableInDraftMode<Duration, ValidationMode> {
+		return this.data[5];
+	}
+
+	set automaticPauseDurationTestSetter(v : NullableInDraftMode<Duration, ValidationMode>) {
+        this.setterImpl(5, v, 'automaticPauseDuration');
+	}
+
+	/**
+     *  Start time of shift (inclusive). Is "null" if no shift is associated with this working-time. Read only.
+	 *
+	 * @type {DateTime}
+     */
+	get plannedStart() : DateTime | null {
+		return this.data[6];
+	}
+
+	set plannedStartTestSetter(v : DateTime | null) {
+        this.setterImpl(6, v, 'plannedStart');
+	}
+
+	/**
+     *  End time of shift (exclusive). Is "null" if no shift is associated with this working-time. Read only.
+	 *
+	 * @type {DateTime}
+     */
+	get plannedEnd() : DateTime | null {
+		return this.data[7];
+	}
+
+	set plannedEndTestSetter(v : DateTime | null) {
+        this.setterImpl(7, v, 'plannedEnd');
+	}
+
+	/**
+     *  When was the start-time stamped (using time-stamp). This value can be for any case "null" (considering legacy data for which we have not stored this value).
+	 *
+	 * @type {DateTime}
+     */
+	get whenMemberStampedStart() : DateTime | null {
+		return this.data[8];
+	}
+
+	set whenMemberStampedStartTestSetter(v : DateTime | null) {
+        this.setterImpl(8, v, 'whenMemberStampedStart');
+	}
+
+	/**
+     *  When was the end-time stamped (using time-stamp). This value can be for any case "null" (considering legacy data for which we have not stored this value).
+	 *
+	 * @type {DateTime}
+     */
+	get whenMemberStampedEnd() : DateTime | null {
+		return this.data[9];
+	}
+
+	set whenMemberStampedEndTestSetter(v : DateTime | null) {
+        this.setterImpl(9, v, 'whenMemberStampedEnd');
+	}
+
+	/**
+     *  Hourly earnings.
+	 *
+	 * @type {Currency}
+     */
+	get hourlyEarnings() : NullableInDraftMode<Currency, ValidationMode> {
+		return this.data[10];
+	}
+
+	set hourlyEarnings(v : NullableInDraftMode<Currency, ValidationMode>) {
+        this.setterImpl(10, v, 'hourlyEarnings');
+	}
+
+	/**
+     *  Unplanned work warning? Read only.
+	 *
+	 * @type {boolean}
+     */
+	get warnUnplannedWork() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[11];
+	}
+
+	set warnUnplannedWorkTestSetter(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(11, v, 'warnUnplannedWork');
+	}
+
+	/**
+     *  Stamped not current time warning? Read only.
+	 *
+	 * @type {boolean}
+     */
+	get warnStampedNotCurrentTime() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[12];
+	}
+
+	set warnStampedNotCurrentTimeTestSetter(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(12, v, 'warnStampedNotCurrentTime');
+	}
+
+	/**
+     *  Stamped not shift time warning? Read only.
+	 *
+	 * @type {boolean}
+     */
+	get warnStampedNotShiftTime() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[13];
+	}
+
+	set warnStampedNotShiftTimeTestSetter(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(13, v, 'warnStampedNotShiftTime');
+	}
+
+	private shiftModelIdWrapper : NullableInDraftMode<Id, ValidationMode> = null!;
+
+	/**
+     *  The shift model id to which this working time belongs. Read only.
+	 *
+	 * @type {Id}
+     */
+	get shiftModelId() : NullableInDraftMode<Id, ValidationMode> {
+		return this.shiftModelIdWrapper;
+	}
+
+	set shiftModelId(v : NullableInDraftMode<Id, ValidationMode>) {
+        this.setterImpl(14, v, 'shiftModelId', () => {this.shiftModelIdWrapper = v;});
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.timeWrapper._fixIds(_idReplacements);
+		this.data[4] = Meta.getReplacedId(this.data[4], _idReplacements);
+		this.memberIdWrapper = Id.create(this.data[4]);
+		this.data[14] = Meta.getReplacedId(this.data[14], _idReplacements);
+		this.shiftModelIdWrapper = Id.create(this.data[14]);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 15);
+
+			if(data[2] === null)
+				data[2] = Meta.createNewObject(true);
+			data[11] = false;
+			data[12] = false;
+			data[13] = false;
+		}
+
+		// propagate new raw data to children
+		this.timeWrapper._updateRawData(data ? data[2] : null, generateMissingData);
+		if(!Meta.isSameId(data ? data[4] : null, this.memberIdWrapper))
+			this.memberIdWrapper = data && data[4] ? Id.create(data[4]) : null!;
+		if(!Meta.isSameId(data ? data[14] : null, this.shiftModelIdWrapper))
+			this.shiftModelIdWrapper = data && data[14] ? Id.create(data[14]) : null!;
+	}
+
+	protected get dni() : string {
+		return '109';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '109', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiWorkingTime<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 
+export class SchedulingApiWorkingTimeTime<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiWorkingTimeTime as any);
+
+		this._updateRawData(Meta.createNewObject(true, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiWorkingTimeTime<ValidationMode>, SchedulingApiWorkingTimeTime<ValidationMode>> = new ApiAttributeInfo<SchedulingApiWorkingTimeTime<ValidationMode>, SchedulingApiWorkingTimeTime<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiWorkingTimeTime<ValidationMode>,
+			name: 'time',
+			id: 'WORKING_TIME_TIME',
+		});
+	attributeInfoStart =  new ApiAttributeInfo<SchedulingApiWorkingTimeTime<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiWorkingTimeTime<ValidationMode>,
+			name: 'start',
+			id: 'WORKING_TIME_TIME_START',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+			validations: function(this : SchedulingApiWorkingTimeTime<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.max(() => this.end, false, PApiPrimitiveTypes.DateTime, 'WORKING_TIME_TIME_END', undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoEnd =  new ApiAttributeInfo<SchedulingApiWorkingTimeTime<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiWorkingTimeTime<ValidationMode>,
+			name: 'end',
+			id: 'WORKING_TIME_TIME_END',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+			validations: function(this : SchedulingApiWorkingTimeTime<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.min(() => this.start, false, PApiPrimitiveTypes.DateTime, 'WORKING_TIME_TIME_START', undefined);
+							return null;
+					},
+				];
+			},
+		});
+
+	/**
+     *  Start time of working-time (inclusive).
+	 *
+	 * @type {DateTime}
+     */
+	get start() : NullableInDraftMode<DateTime, ValidationMode> {
+		return this.data[1];
+	}
+
+	set start(v : NullableInDraftMode<DateTime, ValidationMode>) {
+        this.setterImpl(1, v, 'start');
+	}
+
+	/**
+     *  End time of working-time (exclusive).
+	 *
+	 * @type {DateTime}
+     */
+	get end() : NullableInDraftMode<DateTime, ValidationMode> {
+		return this.data[2];
+	}
+
+	set end(v : NullableInDraftMode<DateTime, ValidationMode>) {
+        this.setterImpl(2, v, 'end');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 3);
+
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '111';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '111', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiWorkingTimeTime<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiShiftExchangesBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'shiftExchanges');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiShiftExchange<ValidationMode> {
+		const newWrapper = new SchedulingApiShiftExchange<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiShiftExchanges<ValidationMode> {
+		return new SchedulingApiShiftExchanges<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '4';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiShiftExchange<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('shiftExchanges');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftExchanges<ValidationMode>, SchedulingApiShiftExchanges<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftExchanges<ValidationMode>, SchedulingApiShiftExchanges<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchanges<ValidationMode>,
+			name: 'shiftExchanges',
+			id: 'SHIFT_EXCHANGES',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+		});
+}
+
+				 
+export class SchedulingApiShiftExchangeBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftExchange as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+		this.shiftRefsWrapper.parent = this as any as SchedulingApiShiftExchange<ValidationMode>;
+		this.swappedShiftRefsWrapper.parent = this as any as SchedulingApiShiftExchange<ValidationMode>;
+		this.communicationsWrapper.parent = this as any as SchedulingApiShiftExchange<ValidationMode>;
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftExchange<ValidationMode>, SchedulingApiShiftExchange<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftExchange<ValidationMode>, SchedulingApiShiftExchange<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchange<ValidationMode>,
+			name: 'shiftExchange',
+			id: 'SHIFT_EXCHANGE',
+		});
+	attributeInfoTodoCount =  new ApiAttributeInfo<SchedulingApiShiftExchange<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchange<ValidationMode>,
+			name: 'todoCount',
+			id: 'SHIFT_EXCHANGE_TODO_COUNT',
+			primitiveType: PApiPrimitiveTypes.Integer,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoState =  new ApiAttributeInfo<SchedulingApiShiftExchange<ValidationMode>, SchedulingApiShiftExchangeState>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchange<ValidationMode>,
+			name: 'state',
+			id: 'SHIFT_EXCHANGE_STATE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoCommunicationInfo =  new ApiAttributeInfo<SchedulingApiShiftExchange<ValidationMode>, SchedulingApiShiftExchangeCommunicationInfo>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchange<ValidationMode>,
+			name: 'communicationInfo',
+			id: 'SHIFT_EXCHANGE_COMMUNICATION_INFO',
+			primitiveType: PApiPrimitiveTypes.Enum,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoLastUpdate =  new ApiAttributeInfo<SchedulingApiShiftExchange<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchange<ValidationMode>,
+			name: 'lastUpdate',
+			id: 'SHIFT_EXCHANGE_LAST_UPDATE',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoRequesterRelationship =  new ApiAttributeInfo<SchedulingApiShiftExchange<ValidationMode>, SchedulingApiShiftExchangeRequesterRelationship>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchange<ValidationMode>,
+			name: 'requesterRelationship',
+			id: 'SHIFT_EXCHANGE_REQUESTER_RELATIONSHIP',
+			primitiveType: PApiPrimitiveTypes.Enum,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoIsIllness =  new ApiAttributeInfo<SchedulingApiShiftExchange<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchange<ValidationMode>,
+			name: 'isIllness',
+			id: 'SHIFT_EXCHANGE_IS_ILLNESS',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: function(this : SchedulingApiShiftExchange<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_IS_ILLNESS is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_IS_ILLNESS is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftExchange<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoIndisposedMemberId =  new ApiAttributeInfo<SchedulingApiShiftExchange<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchange<ValidationMode>,
+			name: 'indisposedMemberId',
+			id: 'SHIFT_EXCHANGE_INDISPOSED_MEMBER_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+	attributeInfoNewAssignedMemberId =  new ApiAttributeInfo<SchedulingApiShiftExchange<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchange<ValidationMode>,
+			name: 'newAssignedMemberId',
+			id: 'SHIFT_EXCHANGE_NEW_ASSIGNED_MEMBER_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoIndisposedMemberPrefersSwapping =  new ApiAttributeInfo<SchedulingApiShiftExchange<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchange<ValidationMode>,
+			name: 'indisposedMemberPrefersSwapping',
+			id: 'SHIFT_EXCHANGE_INDISPOSED_MEMBER_PREFERS_SWAPPING',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoDeadline =  new ApiAttributeInfo<SchedulingApiShiftExchange<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchange<ValidationMode>,
+			name: 'deadline',
+			id: 'SHIFT_EXCHANGE_DEADLINE',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+			canEdit: function(this : SchedulingApiShiftExchange<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_DEADLINE is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_DEADLINE is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftExchange<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoMemberIdAddressedTo =  new ApiAttributeInfo<SchedulingApiShiftExchange<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchange<ValidationMode>,
+			name: 'memberIdAddressedTo',
+			id: 'SHIFT_EXCHANGE_MEMBER_ID_ADDRESSED_TO',
+			primitiveType: PApiPrimitiveTypes.Id,
+			canEdit: function(this : SchedulingApiShiftExchange<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_MEMBER_ID_ADDRESSED_TO is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_MEMBER_ID_ADDRESSED_TO is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftExchange<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoIllnessResponderCommentToMembers =  new ApiAttributeInfo<SchedulingApiShiftExchange<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchange<ValidationMode>,
+			name: 'illnessResponderCommentToMembers',
+			id: 'SHIFT_EXCHANGE_ILLNESS_RESPONDER_COMMENT_TO_MEMBERS',
+			primitiveType: PApiPrimitiveTypes.string,
+			canEdit: function(this : SchedulingApiShiftExchange<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_ILLNESS_RESPONDER_COMMENT_TO_MEMBERS is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_ILLNESS_RESPONDER_COMMENT_TO_MEMBERS is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftExchange<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoIndisposedMemberComment =  new ApiAttributeInfo<SchedulingApiShiftExchange<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchange<ValidationMode>,
+			name: 'indisposedMemberComment',
+			id: 'SHIFT_EXCHANGE_INDISPOSED_MEMBER_COMMENT',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiShiftExchange<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_INDISPOSED_MEMBER_COMMENT is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_INDISPOSED_MEMBER_COMMENT is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+			canEdit: function(this : SchedulingApiShiftExchange<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_INDISPOSED_MEMBER_COMMENT is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_INDISPOSED_MEMBER_COMMENT is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftExchange<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoShowOnDesk =  new ApiAttributeInfo<SchedulingApiShiftExchange<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchange<ValidationMode>,
+			name: 'showOnDesk',
+			id: 'SHIFT_EXCHANGE_SHOW_ON_DESK',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoShowInList =  new ApiAttributeInfo<SchedulingApiShiftExchange<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchange<ValidationMode>,
+			name: 'showInList',
+			id: 'SHIFT_EXCHANGE_SHOW_IN_LIST',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoCloseShiftExchange =  new ApiAttributeInfo<SchedulingApiShiftExchange<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchange<ValidationMode>,
+			name: 'closeShiftExchange',
+			id: 'SHIFT_EXCHANGE_CLOSE_SHIFT_EXCHANGE',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			show: function(this : SchedulingApiShiftExchange<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_CLOSE_SHIFT_EXCHANGE is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_CLOSE_SHIFT_EXCHANGE is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+			canEdit: function(this : SchedulingApiShiftExchange<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_CLOSE_SHIFT_EXCHANGE is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_CLOSE_SHIFT_EXCHANGE is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftExchange<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoOpenShiftExchange =  new ApiAttributeInfo<SchedulingApiShiftExchange<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchange<ValidationMode>,
+			name: 'openShiftExchange',
+			id: 'SHIFT_EXCHANGE_OPEN_SHIFT_EXCHANGE',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			show: function(this : SchedulingApiShiftExchange<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_OPEN_SHIFT_EXCHANGE is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_OPEN_SHIFT_EXCHANGE is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+			canEdit: function(this : SchedulingApiShiftExchange<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_OPEN_SHIFT_EXCHANGE is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_OPEN_SHIFT_EXCHANGE is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftExchange<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+
+	/**
+     *  Todo count to be shown as badge on the shift-exchange item. Read-only.
+	 *
+	 * @type {Integer}
+     */
+	get todoCount() : NullableInDraftMode<Integer, ValidationMode> {
+		return this.data[1];
+	}
+
+	set todoCountTestSetter(v : NullableInDraftMode<Integer, ValidationMode>) {
+        this.setterImpl(1, v, 'todoCount');
+	}
+
+	/**
+     *  Global state of this shift-exchange. This value is the same independent of the requester. See in contrast "communicationInfo". This value is read-only and is automatically updated by backend.
+	 *
+	 * @type {SchedulingApiShiftExchangeState}
+     */
+	get state() : NullableInDraftMode<SchedulingApiShiftExchangeState, ValidationMode> {
+		return this.data[2];
+	}
+
+	set stateTestSetter(v : NullableInDraftMode<SchedulingApiShiftExchangeState, ValidationMode>) {
+        this.setterImpl(2, v, 'state');
+	}
+
+	/**
+     *  Info about current communication state from the perspective of current requester. Read-only.
+	 *
+	 * @type {SchedulingApiShiftExchangeCommunicationInfo}
+     */
+	get communicationInfo() : NullableInDraftMode<SchedulingApiShiftExchangeCommunicationInfo, ValidationMode> {
+		return this.data[3];
+	}
+
+	set communicationInfoTestSetter(v : NullableInDraftMode<SchedulingApiShiftExchangeCommunicationInfo, ValidationMode>) {
+        this.setterImpl(3, v, 'communicationInfo');
+	}
+
+	/**
+     *  When was this item last updated? Note that this is from perspective of current requester. A member who only sees one communication will not be notified of any updated concerning other communications. Read-only.
+	 *
+	 * @type {DateTime}
+     */
+	get lastUpdate() : NullableInDraftMode<DateTime, ValidationMode> {
+		return this.data[4];
+	}
+
+	set lastUpdateTestSetter(v : NullableInDraftMode<DateTime, ValidationMode>) {
+        this.setterImpl(4, v, 'lastUpdate');
+	}
+
+	/**
+     *  What's the requester's relationship to this shift-exchange? Read-only.
+	 *
+	 * @type {SchedulingApiShiftExchangeRequesterRelationship}
+     */
+	get requesterRelationship() : NullableInDraftMode<SchedulingApiShiftExchangeRequesterRelationship, ValidationMode> {
+		return this.data[5];
+	}
+
+	set requesterRelationshipTestSetter(v : NullableInDraftMode<SchedulingApiShiftExchangeRequesterRelationship, ValidationMode>) {
+        this.setterImpl(5, v, 'requesterRelationship');
+	}
+
+	/**
+     *  Is the cause of this shift-exchange an illness?
+	 *
+	 * @type {boolean}
+     */
+	get isIllness() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[6];
+	}
+
+	set isIllness(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(6, v, 'isIllness');
+	}
+
+	private shiftRefsWrapper : SchedulingApiShiftExchangeShiftRefs<ValidationMode> = new SchedulingApiShiftExchangeShiftRefs<ValidationMode>(this.api, false);
+
+	/**
+     *  References to shift(s) for which this shift-exchange was created.
+     */
+	get shiftRefs() : SchedulingApiShiftExchangeShiftRefs<ValidationMode> {
+		return this.shiftRefsWrapper;
+	}
+
+	set shiftRefsTestSetter(v : SchedulingApiShiftExchangeShiftRefs<ValidationMode>) {
+        this.setterImpl(7, v.rawData, 'shiftRefs', () => {this.shiftRefsWrapper = v;});
+	}
+
+	private swappedShiftRefsWrapper : SchedulingApiShiftExchangeSwappedShiftRefs<ValidationMode> = new SchedulingApiShiftExchangeSwappedShiftRefs<ValidationMode>(this.api, false);
+
+	/**
+     *  Reference to shift(s) being swapped.
+     */
+	get swappedShiftRefs() : SchedulingApiShiftExchangeSwappedShiftRefs<ValidationMode> {
+		return this.swappedShiftRefsWrapper;
+	}
+
+	set swappedShiftRefsTestSetter(v : SchedulingApiShiftExchangeSwappedShiftRefs<ValidationMode>) {
+        this.setterImpl(8, v.rawData, 'swappedShiftRefs', () => {this.swappedShiftRefsWrapper = v;});
+	}
+
+	private indisposedMemberIdWrapper : NullableInDraftMode<Id, ValidationMode> = null!;
+
+	/**
+     *  The id of the member who was originally assigned and who can do this shift and needs a replacement. Can only be set during item creation. A requester with assignment-process rights may set here the id of another member. Otherwise this has to be the id of the requester.
+	 *
+	 * @type {Id}
+     */
+	get indisposedMemberId() : NullableInDraftMode<Id, ValidationMode> {
+		return this.indisposedMemberIdWrapper;
+	}
+
+	set indisposedMemberId(v : NullableInDraftMode<Id, ValidationMode>) {
+        this.setterImpl(9, v, 'indisposedMemberId', () => {this.indisposedMemberIdWrapper = v;});
+	}
+
+	private newAssignedMemberIdWrapper : Id | null = null!;
+
+	/**
+     *  After a successful shift-exchange this property contains the id of the member who is now assigned to the shift.
+	 *
+	 * @type {Id}
+     */
+	get newAssignedMemberId() : Id | null {
+		return this.newAssignedMemberIdWrapper;
+	}
+
+	set newAssignedMemberIdTestSetter(v : Id | null) {
+        this.setterImpl(10, v, 'newAssignedMemberId', () => {this.newAssignedMemberIdWrapper = v;});
+	}
+
+	/**
+     *  Does the indisposed member prefers swapping? If no then he prefers that the shift is just taken.
+	 *
+	 * @type {boolean}
+     */
+	get indisposedMemberPrefersSwapping() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[11];
+	}
+
+	set indisposedMemberPrefersSwapping(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(11, v, 'indisposedMemberPrefersSwapping');
+	}
+
+	/**
+     *  The deadline for this shift-exchange until when the shift-exchange should be successful.
+	 *
+	 * @type {DateTime}
+     */
+	get deadline() : DateTime | null {
+		return this.data[12];
+	}
+
+	set deadline(v : DateTime | null) {
+        this.setterImpl(12, v, 'deadline');
+	}
+
+	private memberIdAddressedToWrapper : Id | null = null!;
+
+	/**
+     *  Id of the member to whom this shift-exchange is addressed. If not set it is offered to everyone who could take this shift.
+	 *
+	 * @type {Id}
+     */
+	get memberIdAddressedTo() : Id | null {
+		return this.memberIdAddressedToWrapper;
+	}
+
+	set memberIdAddressedTo(v : Id | null) {
+        this.setterImpl(13, v, 'memberIdAddressedTo', () => {this.memberIdAddressedToWrapper = v;});
+	}
+
+	/**
+     *  Comment to members by the admin who responded this illness inquiry.
+	 *
+	 * @type {string}
+     */
+	get illnessResponderCommentToMembers() : string | null {
+		return this.data[14];
+	}
+
+	set illnessResponderCommentToMembers(v : string | null) {
+        this.setterImpl(14, v, 'illnessResponderCommentToMembers');
+	}
+
+	/**
+     *  Comment of the indisposed member.
+	 *
+	 * @type {string}
+     */
+	get indisposedMemberComment() : string | null {
+		return this.data[15];
+	}
+
+	set indisposedMemberComment(v : string | null) {
+        this.setterImpl(15, v, 'indisposedMemberComment');
+	}
+
+	/**
+     *  Should this shift-exchange been shown on requester's desk? Read-only.
+	 *
+	 * @type {boolean}
+     */
+	get showOnDesk() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[16];
+	}
+
+	set showOnDeskTestSetter(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(16, v, 'showOnDesk');
+	}
+
+	/**
+     *  Should this shift-exchange been shown in the shift-exchange list? Read-only.
+	 *
+	 * @type {boolean}
+     */
+	get showInList() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[17];
+	}
+
+	set showInListTestSetter(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(17, v, 'showInList');
+	}
+
+	private communicationsWrapper : SchedulingApiShiftExchangeCommunications<ValidationMode> = new SchedulingApiShiftExchangeCommunications<ValidationMode>(this.api, false);
+
+	/**
+     * (Detail)  List of communications with other members about this shift-exchange. Only send when data="shiftExchange" or when detailed view of this item was requested.
+     */
+	get communications() : SchedulingApiShiftExchangeCommunications<ValidationMode> {
+		return this.communicationsWrapper;
+	}
+
+	set communicationsTestSetter(v : SchedulingApiShiftExchangeCommunications<ValidationMode>) {
+        this.setterImpl(18, v.rawData, 'communications', () => {this.communicationsWrapper = v;});
+	}
+
+	/**
+     * (Detail)  When this shift-exchange can be close this has the value "false". Set it to "true" to close this shift-exchange.
+	 *
+	 * @type {boolean}
+     */
+	get closeShiftExchange() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[19];
+	}
+
+	set closeShiftExchange(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(19, v, 'closeShiftExchange');
+	}
+
+	/**
+     * (Detail)  When this shift-exchange can be opened this has the value "false". Set it to "true" to open this shift-exchange.
+	 *
+	 * @type {boolean}
+     */
+	get openShiftExchange() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[20];
+	}
+
+	set openShiftExchange(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(20, v, 'openShiftExchange');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.shiftRefsWrapper._fixIds(_idReplacements);
+		this.swappedShiftRefsWrapper._fixIds(_idReplacements);
+		this.data[9] = Meta.getReplacedId(this.data[9], _idReplacements);
+		this.indisposedMemberIdWrapper = Id.create(this.data[9]);
+		this.data[10] = Meta.getReplacedId(this.data[10], _idReplacements);
+		this.newAssignedMemberIdWrapper = Id.create(this.data[10]);
+		this.data[13] = Meta.getReplacedId(this.data[13], _idReplacements);
+		this.memberIdAddressedToWrapper = Id.create(this.data[13]);
+		this.communicationsWrapper._fixIds(_idReplacements);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 21);
+
+			data[6] = false;
+			if(data[7] === null)
+				data[7] = Meta.createNewList();
+			if(data[8] === null)
+				data[8] = Meta.createNewList();
+			data[11] = false;
+			data[16] = false;
+			data[17] = false;
+			if(data[18] === null)
+				data[18] = Meta.createNewList();
+			data[19] = false;
+			data[20] = false;
+		}
+
+		// propagate new raw data to children
+		this.shiftRefsWrapper._updateRawData(data ? data[7] : null, generateMissingData);
+		this.swappedShiftRefsWrapper._updateRawData(data ? data[8] : null, generateMissingData);
+		if(!Meta.isSameId(data ? data[9] : null, this.indisposedMemberIdWrapper))
+			this.indisposedMemberIdWrapper = data && data[9] ? Id.create(data[9]) : null!;
+		if(!Meta.isSameId(data ? data[10] : null, this.newAssignedMemberIdWrapper))
+			this.newAssignedMemberIdWrapper = data && data[10] ? Id.create(data[10]) : null!;
+		if(!Meta.isSameId(data ? data[13] : null, this.memberIdAddressedToWrapper))
+			this.memberIdAddressedToWrapper = data && data[13] ? Id.create(data[13]) : null!;
+		this.communicationsWrapper._updateRawData(data ? data[18] : null, generateMissingData);
+	}
+
+	protected get dni() : string {
+		return '196';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '196', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftExchange<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+export enum SchedulingApiShiftExchangeState {
+	SWAP_SUCCESSFUL = 1,
+	TAKE_SUCCESSFUL = 2,
+	ILLNESS_NEEDS_CONFIRMATION = 3,
+	ILLNESS_DECLINED = 4,
+	ILLNESS_ACCEPT_WITHOUT_SHIFT_EXCHANGE = 5,
+	ACTIVE = 6,
+	FAILED_DEADLINE_PASSED = 7,
+	FAILED_SHIFTS_STARTED = 8,
+	FAILED_EVERYONE_DECLINED = 9,
+	REMOVED_FROM_SHIFT = 10,
+	SHIFTS_REMOVED = 11,
+	CLOSED_MANUALLY = 12,
+}
+export enum SchedulingApiShiftExchangeCommunicationInfo {
+	NOT_ACTIVE = 1,
+	IM_MUST_ACCEPT = 2,
+	CP_MUST_ACCEPT = 3,
+	NO_OFFER_YET = 4,
+	NO_OFFER_YET_CP_CANNOT = 5,
+	NO_OFFER_YET_IM_RESPONDED_NO = 6,
+	NO_OFFER_YET_CP_RESPONDED_NO = 7,
+}
+export enum SchedulingApiShiftExchangeRequesterRelationship {
+	A = 1,
+	IM = 2,
+	CP = 3,
+	A_IN_COMMUNICATION = 4,
+	MEMBER_NOT_ASSIGNABLE = 5,
+}
+		 export class SchedulingApiShiftExchangeShiftRefsBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'shiftRefs');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiShiftExchangeShiftRef<ValidationMode> {
+		const newWrapper = new SchedulingApiShiftExchangeShiftRef<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiShiftExchangeShiftRefs<ValidationMode> {
+		return new SchedulingApiShiftExchangeShiftRefs<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '203';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiShiftExchangeShiftRef<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('shiftRefs');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftExchangeShiftRefs<ValidationMode>, SchedulingApiShiftExchangeShiftRefs<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftExchangeShiftRefs<ValidationMode>, SchedulingApiShiftExchangeShiftRefs<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchangeShiftRefs<ValidationMode>,
+			name: 'shiftRefs',
+			id: 'SHIFT_EXCHANGE_SHIFT_REFS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+		});
+}
+
+				 
+export class SchedulingApiShiftExchangeShiftRef<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftExchangeShiftRef as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : ShiftId | null = null;
+	get id() : ShiftId {
+		return this._id !== null ? this._id : ShiftId.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftExchangeShiftRef<ValidationMode>, SchedulingApiShiftExchangeShiftRef<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftExchangeShiftRef<ValidationMode>, SchedulingApiShiftExchangeShiftRef<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchangeShiftRef<ValidationMode>,
+			name: 'shiftExchangeShiftRef',
+			id: 'SHIFT_EXCHANGE_SHIFT_REF',
+		});
+	attributeInfoStart =  new ApiAttributeInfo<SchedulingApiShiftExchangeShiftRef<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchangeShiftRef<ValidationMode>,
+			name: 'start',
+			id: 'SHIFT_EXCHANGE_SHIFT_REF_START',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+		});
+	attributeInfoEnd =  new ApiAttributeInfo<SchedulingApiShiftExchangeShiftRef<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchangeShiftRef<ValidationMode>,
+			name: 'end',
+			id: 'SHIFT_EXCHANGE_SHIFT_REF_END',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+		});
+
+	/**
+     *  Start of the shift
+	 *
+	 * @type {DateTime}
+     */
+	get start() : NullableInDraftMode<DateTime, ValidationMode> {
+		return this.data[1];
+	}
+
+	set start(v : NullableInDraftMode<DateTime, ValidationMode>) {
+        this.setterImpl(1, v, 'start');
+	}
+
+	/**
+     *  Start of the shift
+	 *
+	 * @type {DateTime}
+     */
+	get end() : NullableInDraftMode<DateTime, ValidationMode> {
+		return this.data[2];
+	}
+
+	set end(v : NullableInDraftMode<DateTime, ValidationMode>) {
+        this.setterImpl(2, v, 'end');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : ShiftId.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 3);
+
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '230';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : ShiftId
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '230', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftExchangeShiftRef<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiShiftExchangeSwappedShiftRefs<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'swappedShiftRefs');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiShiftExchangeSwappedShiftRef<ValidationMode> {
+		const newWrapper = new SchedulingApiShiftExchangeSwappedShiftRef<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiShiftExchangeSwappedShiftRefs<ValidationMode> {
+		return new SchedulingApiShiftExchangeSwappedShiftRefs<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '204';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiShiftExchangeSwappedShiftRef<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('swappedShiftRefs');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftExchangeSwappedShiftRefs<ValidationMode>, SchedulingApiShiftExchangeSwappedShiftRefs<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftExchangeSwappedShiftRefs<ValidationMode>, SchedulingApiShiftExchangeSwappedShiftRefs<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchangeSwappedShiftRefs<ValidationMode>,
+			name: 'swappedShiftRefs',
+			id: 'SHIFT_EXCHANGE_SWAPPED_SHIFT_REFS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoShiftExchangeSwappedShiftRef =  new ApiAttributeInfo<SchedulingApiShiftExchangeSwappedShiftRefs<ValidationMode>, SchedulingApiShiftExchangeSwappedShiftRef<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchangeSwappedShiftRefs<ValidationMode>,
+			name: 'shiftExchangeSwappedShiftRef',
+			id: 'SHIFT_EXCHANGE_SWAPPED_SHIFT_REF',
+			canEdit: () => false,
+			readMode: () => true,
+		});
+}
+
+				 
+export class SchedulingApiShiftExchangeSwappedShiftRef<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftExchangeSwappedShiftRef as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : ShiftId | null = null;
+	get id() : ShiftId {
+		return this._id !== null ? this._id : ShiftId.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftExchangeSwappedShiftRef<ValidationMode>, SchedulingApiShiftExchangeSwappedShiftRef<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftExchangeSwappedShiftRef<ValidationMode>, SchedulingApiShiftExchangeSwappedShiftRef<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchangeSwappedShiftRef<ValidationMode>,
+			name: 'shiftExchangeSwappedShiftRef',
+			id: 'SHIFT_EXCHANGE_SWAPPED_SHIFT_REF',
+			canEdit: () => false,
+			readMode: () => true,
+		});
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : ShiftId.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 1);
+
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '233';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : ShiftId
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '233', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftExchangeSwappedShiftRef<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiShiftExchangeCommunicationsBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'communications');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiShiftExchangeCommunication<ValidationMode> {
+		const newWrapper = new SchedulingApiShiftExchangeCommunication<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiShiftExchangeCommunications<ValidationMode> {
+		return new SchedulingApiShiftExchangeCommunications<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '214';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiShiftExchangeCommunication<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('communications');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftExchangeCommunications<ValidationMode>, SchedulingApiShiftExchangeCommunications<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftExchangeCommunications<ValidationMode>, SchedulingApiShiftExchangeCommunications<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchangeCommunications<ValidationMode>,
+			name: 'communications',
+			id: 'SHIFT_EXCHANGE_COMMUNICATIONS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+		});
+}
+
+				 
+export class SchedulingApiShiftExchangeCommunicationBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftExchangeCommunication as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+		this.swapOffersWrapper.parent = this as any as SchedulingApiShiftExchangeCommunication<ValidationMode>;
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftExchangeCommunication<ValidationMode>, SchedulingApiShiftExchangeCommunication<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftExchangeCommunication<ValidationMode>, SchedulingApiShiftExchangeCommunication<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchangeCommunication<ValidationMode>,
+			name: 'shiftExchangeCommunication',
+			id: 'SHIFT_EXCHANGE_COMMUNICATION',
+			canEdit: function(this : SchedulingApiShiftExchangeCommunication<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_COMMUNICATION is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_COMMUNICATION is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftExchangeCommunication<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoIndisposedMembersSelectedSOId =  new ApiAttributeInfo<SchedulingApiShiftExchangeCommunication<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchangeCommunication<ValidationMode>,
+			name: 'indisposedMembersSelectedSOId',
+			id: 'SHIFT_EXCHANGE_COMMUNICATION_INDISPOSED_MEMBERS_SELECTED_SO_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+	attributeInfoPerformAction =  new ApiAttributeInfo<SchedulingApiShiftExchangeCommunication<ValidationMode>, SchedulingApiShiftExchangeCommunicationAction>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchangeCommunication<ValidationMode>,
+			name: 'performAction',
+			id: 'SHIFT_EXCHANGE_COMMUNICATION_PERFORM_ACTION',
+			primitiveType: PApiPrimitiveTypes.Enum,
+		});
+	attributeInfoPerformActionComment =  new ApiAttributeInfo<SchedulingApiShiftExchangeCommunication<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchangeCommunication<ValidationMode>,
+			name: 'performActionComment',
+			id: 'SHIFT_EXCHANGE_COMMUNICATION_PERFORM_ACTION_COMMENT',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoCommunicationState =  new ApiAttributeInfo<SchedulingApiShiftExchangeCommunication<ValidationMode>, SchedulingApiShiftExchangeCommunicationState>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchangeCommunication<ValidationMode>,
+			name: 'communicationState',
+			id: 'SHIFT_EXCHANGE_COMMUNICATION_COMMUNICATION_STATE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+		});
+	attributeInfoCommunicationPartnerId =  new ApiAttributeInfo<SchedulingApiShiftExchangeCommunication<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchangeCommunication<ValidationMode>,
+			name: 'communicationPartnerId',
+			id: 'SHIFT_EXCHANGE_COMMUNICATION_COMMUNICATION_PARTNER_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+	attributeInfoLastAction =  new ApiAttributeInfo<SchedulingApiShiftExchangeCommunication<ValidationMode>, SchedulingApiShiftExchangeCommunicationAction>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchangeCommunication<ValidationMode>,
+			name: 'lastAction',
+			id: 'SHIFT_EXCHANGE_COMMUNICATION_LAST_ACTION',
+			primitiveType: PApiPrimitiveTypes.Enum,
+		});
+	attributeInfoLastActionTime =  new ApiAttributeInfo<SchedulingApiShiftExchangeCommunication<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchangeCommunication<ValidationMode>,
+			name: 'lastActionTime',
+			id: 'SHIFT_EXCHANGE_COMMUNICATION_LAST_ACTION_TIME',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+		});
+	attributeInfoLastActionComment =  new ApiAttributeInfo<SchedulingApiShiftExchangeCommunication<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchangeCommunication<ValidationMode>,
+			name: 'lastActionComment',
+			id: 'SHIFT_EXCHANGE_COMMUNICATION_LAST_ACTION_COMMENT',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiShiftExchangeCommunication<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_COMMUNICATION_LAST_ACTION_COMMENT is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_COMMUNICATION_LAST_ACTION_COMMENT is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+			canEdit: function(this : SchedulingApiShiftExchangeCommunication<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_COMMUNICATION_LAST_ACTION_COMMENT is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> SHIFT_EXCHANGE_COMMUNICATION_LAST_ACTION_COMMENT is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftExchangeCommunication<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoIsIllnessReviewCommunication =  new ApiAttributeInfo<SchedulingApiShiftExchangeCommunication<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchangeCommunication<ValidationMode>,
+			name: 'isIllnessReviewCommunication',
+			id: 'SHIFT_EXCHANGE_COMMUNICATION_IS_ILLNESS_REVIEW_COMMUNICATION',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoRequesterRole =  new ApiAttributeInfo<SchedulingApiShiftExchangeCommunication<ValidationMode>, SchedulingApiShiftExchangeCommunicationRequesterRole>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchangeCommunication<ValidationMode>,
+			name: 'requesterRole',
+			id: 'SHIFT_EXCHANGE_COMMUNICATION_REQUESTER_ROLE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+		});
+	attributeInfoHasTodo =  new ApiAttributeInfo<SchedulingApiShiftExchangeCommunication<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchangeCommunication<ValidationMode>,
+			name: 'hasTodo',
+			id: 'SHIFT_EXCHANGE_COMMUNICATION_HAS_TODO',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+
+	private swapOffersWrapper : SchedulingApiShiftExchangeCommunicationSwapOffers<ValidationMode> = new SchedulingApiShiftExchangeCommunicationSwapOffers<ValidationMode>(this.api, false);
+
+	/**
+     *  List of swap offers. Each offer consist of a list of shifts which CP has offered for swap.
+     */
+	get swapOffers() : SchedulingApiShiftExchangeCommunicationSwapOffers<ValidationMode> {
+		return this.swapOffersWrapper;
+	}
+
+	set swapOffersTestSetter(v : SchedulingApiShiftExchangeCommunicationSwapOffers<ValidationMode>) {
+        this.setterImpl(1, v.rawData, 'swapOffers', () => {this.swapOffersWrapper = v;});
+	}
+
+	private indisposedMembersSelectedSOIdWrapper : Id | null = null!;
+
+	/**
+     *  Id of the swap offer which was selected by the indisposed member.
+	 *
+	 * @type {Id}
+     */
+	get indisposedMembersSelectedSOId() : Id | null {
+		return this.indisposedMembersSelectedSOIdWrapper;
+	}
+
+	set indisposedMembersSelectedSOId(v : Id | null) {
+        this.setterImpl(2, v, 'indisposedMembersSelectedSOId', () => {this.indisposedMembersSelectedSOIdWrapper = v;});
+	}
+
+	/**
+     *  Set here the action which to perform next. Backend always send "null" back.
+	 *
+	 * @type {SchedulingApiShiftExchangeCommunicationAction}
+     */
+	get performAction() : SchedulingApiShiftExchangeCommunicationAction | null {
+		return this.data[3];
+	}
+
+	set performAction(v : SchedulingApiShiftExchangeCommunicationAction | null) {
+        this.setterImpl(3, v, 'performAction');
+	}
+
+	/**
+     *  Optionally set here a comment for the action to be performed. Backend always send empty string back.
+	 *
+	 * @type {string}
+     */
+	get performActionComment() : string | null {
+		return this.data[4];
+	}
+
+	set performActionComment(v : string | null) {
+        this.setterImpl(4, v, 'performActionComment');
+	}
+
+	/**
+     *  Current state of this communication. Read-only.
+	 *
+	 * @type {SchedulingApiShiftExchangeCommunicationState}
+     */
+	get communicationState() : NullableInDraftMode<SchedulingApiShiftExchangeCommunicationState, ValidationMode> {
+		return this.data[5];
+	}
+
+	set communicationState(v : NullableInDraftMode<SchedulingApiShiftExchangeCommunicationState, ValidationMode>) {
+        this.setterImpl(5, v, 'communicationState');
+	}
+
+	private communicationPartnerIdWrapper : NullableInDraftMode<Id, ValidationMode> = null!;
+
+	/**
+     *  Member id with whom the indisposed member is communicating.
+	 *
+	 * @type {Id}
+     */
+	get communicationPartnerId() : NullableInDraftMode<Id, ValidationMode> {
+		return this.communicationPartnerIdWrapper;
+	}
+
+	set communicationPartnerId(v : NullableInDraftMode<Id, ValidationMode>) {
+        this.setterImpl(6, v, 'communicationPartnerId', () => {this.communicationPartnerIdWrapper = v;});
+	}
+
+	/**
+     *  What was the last action? Read-only.
+	 *
+	 * @type {SchedulingApiShiftExchangeCommunicationAction}
+     */
+	get lastAction() : NullableInDraftMode<SchedulingApiShiftExchangeCommunicationAction, ValidationMode> {
+		return this.data[7];
+	}
+
+	set lastAction(v : NullableInDraftMode<SchedulingApiShiftExchangeCommunicationAction, ValidationMode>) {
+        this.setterImpl(7, v, 'lastAction');
+	}
+
+	/**
+     *  Time of the last action. Read-only.
+	 *
+	 * @type {DateTime}
+     */
+	get lastActionTime() : NullableInDraftMode<DateTime, ValidationMode> {
+		return this.data[8];
+	}
+
+	set lastActionTime(v : NullableInDraftMode<DateTime, ValidationMode>) {
+        this.setterImpl(8, v, 'lastActionTime');
+	}
+
+	/**
+     *  Comment for the last action. Read-only.
+	 *
+	 * @type {string}
+     */
+	get lastActionComment() : string | null {
+		return this.data[9];
+	}
+
+	set lastActionComment(v : string | null) {
+        this.setterImpl(9, v, 'lastActionComment');
+	}
+
+	/**
+     *  Is this a communication of an admin concerned about reviewing (accepting/declining) this illness? Read-only.
+	 *
+	 * @type {boolean}
+     */
+	get isIllnessReviewCommunication() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[10];
+	}
+
+	set isIllnessReviewCommunication(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(10, v, 'isIllnessReviewCommunication');
+	}
+
+	/**
+     *  Role of requester related to this communication. Read-only. Can be "null". This role is specific to this communication as an admin can have several communications with different roles (once as admin and once as CP). In contrast shiftExchange.requesterRelationship defines a general role relative to whole shiftExchange.
+	 *
+	 * @type {SchedulingApiShiftExchangeCommunicationRequesterRole}
+     */
+	get requesterRole() : SchedulingApiShiftExchangeCommunicationRequesterRole | null {
+		return this.data[11];
+	}
+
+	set requesterRole(v : SchedulingApiShiftExchangeCommunicationRequesterRole | null) {
+        this.setterImpl(11, v, 'requesterRole');
+	}
+
+	/**
+     *  Has the requester a todo for this communication?
+	 *
+	 * @type {boolean}
+     */
+	get hasTodo() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[12];
+	}
+
+	set hasTodo(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(12, v, 'hasTodo');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.swapOffersWrapper._fixIds(_idReplacements);
+		this.data[2] = Meta.getReplacedId(this.data[2], _idReplacements);
+		this.indisposedMembersSelectedSOIdWrapper = Id.create(this.data[2]);
+		this.data[6] = Meta.getReplacedId(this.data[6], _idReplacements);
+		this.communicationPartnerIdWrapper = Id.create(this.data[6]);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 13);
+
+			if(data[1] === null)
+				data[1] = Meta.createNewList();
+			data[10] = false;
+			data[12] = false;
+		}
+
+		// propagate new raw data to children
+		this.swapOffersWrapper._updateRawData(data ? data[1] : null, generateMissingData);
+		if(!Meta.isSameId(data ? data[2] : null, this.indisposedMembersSelectedSOIdWrapper))
+			this.indisposedMembersSelectedSOIdWrapper = data && data[2] ? Id.create(data[2]) : null!;
+		if(!Meta.isSameId(data ? data[6] : null, this.communicationPartnerIdWrapper))
+			this.communicationPartnerIdWrapper = data && data[6] ? Id.create(data[6]) : null!;
+	}
+
+	protected get dni() : string {
+		return '217';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '217', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftExchangeCommunication<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiShiftExchangeCommunicationSwapOffersBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'swapOffers');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiShiftExchangeCommunicationSwapOffer<ValidationMode> {
+		const newWrapper = new SchedulingApiShiftExchangeCommunicationSwapOffer<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiShiftExchangeCommunicationSwapOffers<ValidationMode> {
+		return new SchedulingApiShiftExchangeCommunicationSwapOffers<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '218';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiShiftExchangeCommunicationSwapOffer<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('swapOffers');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftExchangeCommunicationSwapOffers<ValidationMode>, SchedulingApiShiftExchangeCommunicationSwapOffers<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftExchangeCommunicationSwapOffers<ValidationMode>, SchedulingApiShiftExchangeCommunicationSwapOffers<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchangeCommunicationSwapOffers<ValidationMode>,
+			name: 'swapOffers',
+			id: 'SHIFT_EXCHANGE_COMMUNICATION_SWAP_OFFERS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+		});
+}
+
+				 
+export class SchedulingApiShiftExchangeCommunicationSwapOffer<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftExchangeCommunicationSwapOffer as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+		this.shiftRefsWrapper.parent = this as any as SchedulingApiShiftExchangeCommunicationSwapOffer<ValidationMode>;
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftExchangeCommunicationSwapOffer<ValidationMode>, SchedulingApiShiftExchangeCommunicationSwapOffer<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftExchangeCommunicationSwapOffer<ValidationMode>, SchedulingApiShiftExchangeCommunicationSwapOffer<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchangeCommunicationSwapOffer<ValidationMode>,
+			name: 'shiftExchangeCommunicationSwapOffer',
+			id: 'SHIFT_EXCHANGE_COMMUNICATION_SWAP_OFFER',
+		});
+
+	private shiftRefsWrapper : SchedulingApiShiftExchangeCommunicationSwapOfferShiftRefs<ValidationMode> = new SchedulingApiShiftExchangeCommunicationSwapOfferShiftRefs<ValidationMode>(this.api, false);
+
+	/**
+     *  References to shift(s) which belong to this offer.
+     */
+	get shiftRefs() : SchedulingApiShiftExchangeCommunicationSwapOfferShiftRefs<ValidationMode> {
+		return this.shiftRefsWrapper;
+	}
+
+	set shiftRefsTestSetter(v : SchedulingApiShiftExchangeCommunicationSwapOfferShiftRefs<ValidationMode>) {
+        this.setterImpl(1, v.rawData, 'shiftRefs', () => {this.shiftRefsWrapper = v;});
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.shiftRefsWrapper._fixIds(_idReplacements);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 2);
+
+			if(data[1] === null)
+				data[1] = Meta.createNewList();
+		}
+
+		// propagate new raw data to children
+		this.shiftRefsWrapper._updateRawData(data ? data[1] : null, generateMissingData);
+	}
+
+	protected get dni() : string {
+		return '234';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '234', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftExchangeCommunicationSwapOffer<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiShiftExchangeCommunicationSwapOfferShiftRefsBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'shiftRefs');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiShiftExchangeCommunicationSwapOfferShiftRef<ValidationMode> {
+		const newWrapper = new SchedulingApiShiftExchangeCommunicationSwapOfferShiftRef<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiShiftExchangeCommunicationSwapOfferShiftRefs<ValidationMode> {
+		return new SchedulingApiShiftExchangeCommunicationSwapOfferShiftRefs<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '235';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiShiftExchangeCommunicationSwapOfferShiftRef<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('shiftRefs');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftExchangeCommunicationSwapOfferShiftRefs<ValidationMode>, SchedulingApiShiftExchangeCommunicationSwapOfferShiftRefs<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftExchangeCommunicationSwapOfferShiftRefs<ValidationMode>, SchedulingApiShiftExchangeCommunicationSwapOfferShiftRefs<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchangeCommunicationSwapOfferShiftRefs<ValidationMode>,
+			name: 'shiftRefs',
+			id: 'SHIFT_EXCHANGE_COMMUNICATION_SWAP_OFFER_SHIFT_REFS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+		});
+	attributeInfoShiftExchangeCommunicationSwapOfferShiftRef =  new ApiAttributeInfo<SchedulingApiShiftExchangeCommunicationSwapOfferShiftRefs<ValidationMode>, SchedulingApiShiftExchangeCommunicationSwapOfferShiftRef<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchangeCommunicationSwapOfferShiftRefs<ValidationMode>,
+			name: 'shiftExchangeCommunicationSwapOfferShiftRef',
+			id: 'SHIFT_EXCHANGE_COMMUNICATION_SWAP_OFFER_SHIFT_REF',
+		});
+}
+
+				 
+export class SchedulingApiShiftExchangeCommunicationSwapOfferShiftRef<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftExchangeCommunicationSwapOfferShiftRef as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : ShiftId | null = null;
+	get id() : ShiftId {
+		return this._id !== null ? this._id : ShiftId.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftExchangeCommunicationSwapOfferShiftRef<ValidationMode>, SchedulingApiShiftExchangeCommunicationSwapOfferShiftRef<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftExchangeCommunicationSwapOfferShiftRef<ValidationMode>, SchedulingApiShiftExchangeCommunicationSwapOfferShiftRef<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftExchangeCommunicationSwapOfferShiftRef<ValidationMode>,
+			name: 'shiftExchangeCommunicationSwapOfferShiftRef',
+			id: 'SHIFT_EXCHANGE_COMMUNICATION_SWAP_OFFER_SHIFT_REF',
+		});
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : ShiftId.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 1);
+
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '236';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : ShiftId
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '236', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftExchangeCommunicationSwapOfferShiftRef<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+export enum SchedulingApiShiftExchangeCommunicationAction {
+	IM_REPORTED_ILLNESS = 1,
+	A_REPORTED_ILLNESS = 2,
+	ILLNESS_NEEDS_CONFIRMATION_A_DECLINED = 3,
+	ILLNESS_NEEDS_CONFIRMATION_A_ACCEPT_WITH_SHIFT_EXCHANGE = 4,
+	ILLNESS_NEEDS_CONFIRMATION_A_ACCEPT_WITHOUT_SHIFT_EXCHANGE = 5,
+	ILLNESS_DECLINED_A_ACCEPT_WITHOUT_SHIFT_EXCHANGE = 6,
+	ILLNESS_DECLINED_A_ACCEPT_WITH_SHIFT_EXCHANGE = 7,
+	ILLNESS_CONFIRMED_WITHOUT_SHIFT_EXCHANGE_A_START_SHIFT_EXCHANGE = 8,
+	IM_NEEDS_RESPONSE = 9,
+	CP_ASSIGNED_SAME_TIME = 10,
+	CP_ASSIGNED_SAME_SHIFT = 11,
+	CP_IS_ABSENT = 12,
+	CP_IS_ILL = 13,
+	CP_NOT_RESPONDED_CP_SWAP_SHIFT = 14,
+	CP_NOT_RESPONDED_CP_TAKE_SHIFT_PREF_MISMATCH = 15,
+	CP_NOT_RESPONDED_CP_TAKE_SHIFT_PREF_MATCH = 16,
+	CP_NOT_RESPONDED_CP_CANNOT = 17,
+	CP_RESPONDED_NO_CP_SWAP_SHIFT = 18,
+	CP_RESPONDED_NO_CP_TAKE_SHIFT_PREF_MISMATCH = 19,
+	CP_RESPONDED_NO_CP_TAKE_SHIFT_PREF_MATCH = 20,
+	CP_WANTS_SWAP_CP_CHANGE_OFFERED_SHIFTS = 21,
+	CP_WANTS_SWAP_CP_CANNOT = 22,
+	CP_WANTS_SWAP_IM_DECLINE_SWAP = 23,
+	CP_WANTS_SWAP_CP_TAKE_SHIFT_PREF_MISMATCH = 24,
+	CP_WANTS_SWAP_CP_TAKE_SHIFT_PREF_MATCH = 25,
+	CP_WANTS_SWAP_IM_ACCEPT = 26,
+	IM_DECLINED_SWAP_CP_CHANGE_OFFERED_SHIFTS = 27,
+	IM_DECLINED_SWAP_IM_SWAP_SHIFT = 28,
+	IM_DECLINED_SWAP_CP_TAKE_SHIFT_PREF_MISMATCH = 29,
+	IM_DECLINED_SWAP_CP_TAKE_SHIFT_PREF_MATCH = 30,
+	CP_WANTS_TAKE_CP_SWAP_SHIFT = 31,
+	CP_WANTS_TAKE_CP_CANNOT = 32,
+	CP_WANTS_TAKE_IM_DECLINE = 33,
+	CP_WANTS_TAKE_IM_ACCEPT = 34,
+	IM_DECLINED_TAKE_CP_SWAP_SHIFT = 35,
+	IM_DECLINED_TAKE_IM_TAKE_SHIFT = 36,
+	IM_CHANGED_MIND_WANTS_SWAP_IM_CHANGE_SWAPPED_SHIFT = 37,
+	IM_CHANGED_MIND_WANTS_SWAP_IM_DECLINE_SWAP = 38,
+	IM_CHANGED_MIND_WANTS_SWAP_CP_CANNOT = 39,
+	IM_CHANGED_MIND_WANTS_SWAP_CP_ACCEPT = 40,
+	IM_CHANGED_MIND_WANTS_SWAP_CP_TAKE_SHIFT_PREF_MISMATCH = 41,
+	IM_CHANGED_MIND_WANTS_SWAP_CP_TAKE_SHIFT_PREF_MATCH = 42,
+	IM_CHANGED_MIND_WANTS_TAKE_CP_SWAP_SHIFT = 43,
+	IM_CHANGED_MIND_WANTS_TAKE_IM_DECLINE_TAKE = 44,
+	IM_CHANGED_MIND_WANTS_TAKE_CP_CANNOT = 45,
+	IM_CHANGED_MIND_WANTS_TAKE_CP_ACCEPT = 46,
+}
+export enum SchedulingApiShiftExchangeCommunicationState {
+	SWAP_SUCCESSFUL = 1,
+	TAKE_SUCCESSFUL = 2,
+	ILLNESS_NEEDS_CONFIRMATION = 3,
+	ILLNESS_DECLINED = 4,
+	ILLNESS_CONFIRMED = 5,
+	ILLNESS_CONFIRMED_WITHOUT_SHIFT_EXCHANGE = 6,
+	CP_NOT_RESPONDED = 7,
+	CP_RESPONDED_NO = 8,
+	CP_CANNOT_SHIFT_EXCHANGE = 9,
+	CP_WANTS_SWAP = 10,
+	IM_DECLINED_SWAP = 11,
+	CP_WANTS_TAKE = 12,
+	IM_DECLINED_TAKE = 13,
+	IM_CHANGED_MIND_WANTS_SWAP = 14,
+	IM_CHANGED_MIND_WANTS_TAKE = 15,
+}
+export enum SchedulingApiShiftExchangeCommunicationRequesterRole {
+	A = 1,
+	IM = 2,
+	CP = 3,
+}
+		 export class SchedulingApiAbsencesBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'absences');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiAbsence<ValidationMode> {
+		const newWrapper = new SchedulingApiAbsence<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiAbsences<ValidationMode> {
+		return new SchedulingApiAbsences<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '5';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiAbsence<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('absences');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiAbsences<ValidationMode>, SchedulingApiAbsences<ValidationMode>> = new ApiAttributeInfo<SchedulingApiAbsences<ValidationMode>, SchedulingApiAbsences<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiAbsences<ValidationMode>,
+			name: 'absences',
+			id: 'ABSENCES',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			canEdit: function(this : SchedulingApiAbsences<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiAbsences<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+}
+
+				 
+export class SchedulingApiAbsenceBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiAbsence as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+		this.timeWrapper.parent = this as any as SchedulingApiAbsence<ValidationMode>;
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiAbsence<ValidationMode>, SchedulingApiAbsence<ValidationMode>> = new ApiAttributeInfo<SchedulingApiAbsence<ValidationMode>, SchedulingApiAbsence<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiAbsence<ValidationMode>,
+			name: 'absence',
+			id: 'ABSENCE',
+			show: function(this : SchedulingApiAbsence<ValidationMode>) {
+ 
+		
+				return true;
+			},
+		});
+	attributeInfoOwnerComment =  new ApiAttributeInfo<SchedulingApiAbsence<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiAbsence<ValidationMode>,
+			name: 'ownerComment',
+			id: 'ABSENCE_OWNER_COMMENT',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoWorkingTimePerDay =  new ApiAttributeInfo<SchedulingApiAbsence<ValidationMode>, Duration>({
+			apiObjWrapper: this as any as SchedulingApiAbsence<ValidationMode>,
+			name: 'workingTimePerDay',
+			id: 'ABSENCE_WORKING_TIME_PER_DAY',
+			primitiveType: PApiPrimitiveTypes.Duration,
+		});
+	attributeInfoHourlyEarnings =  new ApiAttributeInfo<SchedulingApiAbsence<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiAbsence<ValidationMode>,
+			name: 'hourlyEarnings',
+			id: 'ABSENCE_HOURLY_EARNINGS',
+			primitiveType: PApiPrimitiveTypes.Currency,
+		});
+	attributeInfoType =  new ApiAttributeInfo<SchedulingApiAbsence<ValidationMode>, SchedulingApiAbsenceType>({
+			apiObjWrapper: this as any as SchedulingApiAbsence<ValidationMode>,
+			name: 'type',
+			id: 'ABSENCE_TYPE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+		});
+	attributeInfoMemberId =  new ApiAttributeInfo<SchedulingApiAbsence<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiAbsence<ValidationMode>,
+			name: 'memberId',
+			id: 'ABSENCE_MEMBER_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+	attributeInfoShiftExchangeId =  new ApiAttributeInfo<SchedulingApiAbsence<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiAbsence<ValidationMode>,
+			name: 'shiftExchangeId',
+			id: 'ABSENCE_SHIFT_EXCHANGE_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+	attributeInfoVisibleToTeamMembers =  new ApiAttributeInfo<SchedulingApiAbsence<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiAbsence<ValidationMode>,
+			name: 'visibleToTeamMembers',
+			id: 'ABSENCE_VISIBLE_TO_TEAM_MEMBERS',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+
+	/**
+     *  Comment of Owner.
+	 *
+	 * @type {string}
+     */
+	get ownerComment() : string | null {
+		return this.data[1];
+	}
+
+	set ownerComment(v : string | null) {
+        this.setterImpl(1, v, 'ownerComment');
+	}
+
+	/**
+     *  How many milliseconds of each day in start/end interval are considered as working-time. Set "null" if the whole start/end interval is considered as working-time.
+	 *
+	 * @type {Duration}
+     */
+	get workingTimePerDay() : Duration | null {
+		return this.data[2];
+	}
+
+	set workingTimePerDay(v : Duration | null) {
+        this.setterImpl(2, v, 'workingTimePerDay');
+	}
+
+	private timeWrapper : SchedulingApiAbsenceTime<ValidationMode> = new SchedulingApiAbsenceTime<ValidationMode>(this.api);
+
+	/**
+     *  Time of absence.
+     */
+	get time() : SchedulingApiAbsenceTime<ValidationMode> {
+		return this.timeWrapper;
+	}
+
+	set timeTestSetter(v : SchedulingApiAbsenceTime<ValidationMode>) {
+        this.setterImpl(3, v.rawData, 'time', () => {this.timeWrapper = v;});
+	}
+
+	/**
+     *  Hourly earnings.
+	 *
+	 * @type {Currency}
+     */
+	get hourlyEarnings() : Currency | null {
+		return this.data[4];
+	}
+
+	set hourlyEarnings(v : Currency | null) {
+        this.setterImpl(4, v, 'hourlyEarnings');
+	}
+
+	/**
+     *  Type of absence
+	 *
+	 * @type {SchedulingApiAbsenceType}
+     */
+	get type() : NullableInDraftMode<SchedulingApiAbsenceType, ValidationMode> {
+		return this.data[5];
+	}
+
+	set type(v : NullableInDraftMode<SchedulingApiAbsenceType, ValidationMode>) {
+        this.setterImpl(5, v, 'type');
+	}
+
+	private memberIdWrapper : NullableInDraftMode<Id, ValidationMode> = null!;
+
+	/**
+     *  The member id to which this absence belongs.
+	 *
+	 * @type {Id}
+     */
+	get memberId() : NullableInDraftMode<Id, ValidationMode> {
+		return this.memberIdWrapper;
+	}
+
+	set memberId(v : NullableInDraftMode<Id, ValidationMode>) {
+        this.setterImpl(6, v, 'memberId', () => {this.memberIdWrapper = v;});
+	}
+
+	private shiftExchangeIdWrapper : Id | null = null!;
+
+	/**
+     *  The id of the shift-exchange for which this absence item was created. Can be null. Can only be set during item creation.
+	 *
+	 * @type {Id}
+     */
+	get shiftExchangeId() : Id | null {
+		return this.shiftExchangeIdWrapper;
+	}
+
+	set shiftExchangeId(v : Id | null) {
+        this.setterImpl(7, v, 'shiftExchangeId', () => {this.shiftExchangeIdWrapper = v;});
+	}
+
+	/**
+     *  true if the absence is visible for managers and team members, false if visible to managers only
+	 *
+	 * @type {boolean}
+     */
+	get visibleToTeamMembers() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[8];
+	}
+
+	set visibleToTeamMembers(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(8, v, 'visibleToTeamMembers');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.timeWrapper._fixIds(_idReplacements);
+		this.data[6] = Meta.getReplacedId(this.data[6], _idReplacements);
+		this.memberIdWrapper = Id.create(this.data[6]);
+		this.data[7] = Meta.getReplacedId(this.data[7], _idReplacements);
+		this.shiftExchangeIdWrapper = Id.create(this.data[7]);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 9);
+
+			if(data[3] === null)
+				data[3] = Meta.createNewObject(true);
+			data[5] = SchedulingApiAbsenceType.ILLNESS;
+			data[8] = false;
+		}
+
+		// propagate new raw data to children
+		this.timeWrapper._updateRawData(data ? data[3] : null, generateMissingData);
+		if(!Meta.isSameId(data ? data[6] : null, this.memberIdWrapper))
+			this.memberIdWrapper = data && data[6] ? Id.create(data[6]) : null!;
+		if(!Meta.isSameId(data ? data[7] : null, this.shiftExchangeIdWrapper))
+			this.shiftExchangeIdWrapper = data && data[7] ? Id.create(data[7]) : null!;
+	}
+
+	protected get dni() : string {
+		return '126';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '126', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiAbsence<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 
+export class SchedulingApiAbsenceTime<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiAbsenceTime as any);
+
+		this._updateRawData(Meta.createNewObject(true, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiAbsenceTime<ValidationMode>, SchedulingApiAbsenceTime<ValidationMode>> = new ApiAttributeInfo<SchedulingApiAbsenceTime<ValidationMode>, SchedulingApiAbsenceTime<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiAbsenceTime<ValidationMode>,
+			name: 'time',
+			id: 'ABSENCE_TIME',
+		});
+	attributeInfoStart =  new ApiAttributeInfo<SchedulingApiAbsenceTime<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiAbsenceTime<ValidationMode>,
+			name: 'start',
+			id: 'ABSENCE_TIME_START',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+			validations: function(this : SchedulingApiAbsenceTime<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.max(() => this.end, false, PApiPrimitiveTypes.DateTime, 'ABSENCE_TIME_END', undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoEnd =  new ApiAttributeInfo<SchedulingApiAbsenceTime<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiAbsenceTime<ValidationMode>,
+			name: 'end',
+			id: 'ABSENCE_TIME_END',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+			validations: function(this : SchedulingApiAbsenceTime<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.min(() => this.start, false, PApiPrimitiveTypes.DateTime, 'ABSENCE_TIME_START', undefined);
+							return null;
+					},
+				];
+			},
+		});
+
+	/**
+     *  Start time of absence (inclusive).
+	 *
+	 * @type {DateTime}
+     */
+	get start() : NullableInDraftMode<DateTime, ValidationMode> {
+		return this.data[1];
+	}
+
+	set start(v : NullableInDraftMode<DateTime, ValidationMode>) {
+        this.setterImpl(1, v, 'start');
+	}
+
+	/**
+     *  End time of absence (exclusive).
+	 *
+	 * @type {DateTime}
+     */
+	get end() : NullableInDraftMode<DateTime, ValidationMode> {
+		return this.data[2];
+	}
+
+	set end(v : NullableInDraftMode<DateTime, ValidationMode>) {
+        this.setterImpl(2, v, 'end');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 3);
+
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '129';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '129', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiAbsenceTime<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+export enum SchedulingApiAbsenceType {
+	ILLNESS = 1,
+	VACATION = 2,
+	OTHER = 3,
+}
+		 export class SchedulingApiAssignmentProcessesBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'assignmentProcesses');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiAssignmentProcess<ValidationMode> {
+		const newWrapper = new SchedulingApiAssignmentProcess<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiAssignmentProcesses<ValidationMode> {
+		return new SchedulingApiAssignmentProcesses<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '6';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiAssignmentProcess<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('assignmentProcesses');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiAssignmentProcesses<ValidationMode>, SchedulingApiAssignmentProcesses<ValidationMode>> = new ApiAttributeInfo<SchedulingApiAssignmentProcesses<ValidationMode>, SchedulingApiAssignmentProcesses<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiAssignmentProcesses<ValidationMode>,
+			name: 'assignmentProcesses',
+			id: 'ASSIGNMENT_PROCESSES',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			show: function(this : SchedulingApiAssignmentProcesses<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> ASSIGNMENT_PROCESSES is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> ASSIGNMENT_PROCESSES is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+		});
+}
+
+				 
+export class SchedulingApiAssignmentProcessBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiAssignmentProcess as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+		this.shiftRefsWrapper.parent = this as any as SchedulingApiAssignmentProcess<ValidationMode>;
+		this.missingPrefsMemberIdsWrapper.parent = this as any as SchedulingApiAssignmentProcess<ValidationMode>;
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiAssignmentProcess<ValidationMode>, SchedulingApiAssignmentProcess<ValidationMode>> = new ApiAttributeInfo<SchedulingApiAssignmentProcess<ValidationMode>, SchedulingApiAssignmentProcess<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiAssignmentProcess<ValidationMode>,
+			name: 'assignmentProcess',
+			id: 'ASSIGNMENT_PROCESS',
+		});
+	attributeInfoState =  new ApiAttributeInfo<SchedulingApiAssignmentProcess<ValidationMode>, SchedulingApiAssignmentProcessState>({
+			apiObjWrapper: this as any as SchedulingApiAssignmentProcess<ValidationMode>,
+			name: 'state',
+			id: 'ASSIGNMENT_PROCESS_STATE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+		});
+	attributeInfoDeadline =  new ApiAttributeInfo<SchedulingApiAssignmentProcess<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiAssignmentProcess<ValidationMode>,
+			name: 'deadline',
+			id: 'ASSIGNMENT_PROCESS_DEADLINE',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+		});
+	attributeInfoName =  new ApiAttributeInfo<SchedulingApiAssignmentProcess<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiAssignmentProcess<ValidationMode>,
+			name: 'name',
+			id: 'ASSIGNMENT_PROCESS_NAME',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoOnlyAskPrefsForUnassignedShifts =  new ApiAttributeInfo<SchedulingApiAssignmentProcess<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiAssignmentProcess<ValidationMode>,
+			name: 'onlyAskPrefsForUnassignedShifts',
+			id: 'ASSIGNMENT_PROCESS_ONLY_ASK_PREFS_FOR_UNASSIGNED_SHIFTS',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoAssignMembersWhenNoPrefAvailable =  new ApiAttributeInfo<SchedulingApiAssignmentProcess<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiAssignmentProcess<ValidationMode>,
+			name: 'assignMembersWhenNoPrefAvailable',
+			id: 'ASSIGNMENT_PROCESS_ASSIGN_MEMBERS_WHEN_NO_PREF_AVAILABLE',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoRemoveProcessWhenEarlyBirdAssignedAllShifts =  new ApiAttributeInfo<SchedulingApiAssignmentProcess<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiAssignmentProcess<ValidationMode>,
+			name: 'removeProcessWhenEarlyBirdAssignedAllShifts',
+			id: 'ASSIGNMENT_PROCESS_REMOVE_PROCESS_WHEN_EARLY_BIRD_ASSIGNED_ALL_SHIFTS',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoAssignmentState =  new ApiAttributeInfo<SchedulingApiAssignmentProcess<ValidationMode>, SchedulingApiAssignmentProcessAssignmentState>({
+			apiObjWrapper: this as any as SchedulingApiAssignmentProcess<ValidationMode>,
+			name: 'assignmentState',
+			id: 'ASSIGNMENT_PROCESS_ASSIGNMENT_STATE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+		});
+	attributeInfoMissingAssignmentsCount =  new ApiAttributeInfo<SchedulingApiAssignmentProcess<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiAssignmentProcess<ValidationMode>,
+			name: 'missingAssignmentsCount',
+			id: 'ASSIGNMENT_PROCESS_MISSING_ASSIGNMENTS_COUNT',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+	attributeInfoTodoShiftsCountCurrentView =  new ApiAttributeInfo<SchedulingApiAssignmentProcess<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiAssignmentProcess<ValidationMode>,
+			name: 'todoShiftsCountCurrentView',
+			id: 'ASSIGNMENT_PROCESS_TODO_SHIFTS_COUNT_CURRENT_VIEW',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+	attributeInfoTodoShiftsCountRightView =  new ApiAttributeInfo<SchedulingApiAssignmentProcess<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiAssignmentProcess<ValidationMode>,
+			name: 'todoShiftsCountRightView',
+			id: 'ASSIGNMENT_PROCESS_TODO_SHIFTS_COUNT_RIGHT_VIEW',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+	attributeInfoTodoShiftsCountLeftView =  new ApiAttributeInfo<SchedulingApiAssignmentProcess<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiAssignmentProcess<ValidationMode>,
+			name: 'todoShiftsCountLeftView',
+			id: 'ASSIGNMENT_PROCESS_TODO_SHIFTS_COUNT_LEFT_VIEW',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+	attributeInfoType =  new ApiAttributeInfo<SchedulingApiAssignmentProcess<ValidationMode>, SchedulingApiAssignmentProcessType>({
+			apiObjWrapper: this as any as SchedulingApiAssignmentProcess<ValidationMode>,
+			name: 'type',
+			id: 'ASSIGNMENT_PROCESS_TYPE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+		});
+	attributeInfoCanEdit =  new ApiAttributeInfo<SchedulingApiAssignmentProcess<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiAssignmentProcess<ValidationMode>,
+			name: 'canEdit',
+			id: 'ASSIGNMENT_PROCESS_CAN_EDIT',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+
+	/**
+     *  Current state of the process.
+	 *
+	 * @type {SchedulingApiAssignmentProcessState}
+     */
+	get state() : NullableInDraftMode<SchedulingApiAssignmentProcessState, ValidationMode> {
+		return this.data[1];
+	}
+
+	set state(v : NullableInDraftMode<SchedulingApiAssignmentProcessState, ValidationMode>) {
+        this.setterImpl(1, v, 'state');
+	}
+
+	/**
+     *  Deadline of the current state.
+	 *
+	 * @type {DateTime}
+     */
+	get deadline() : NullableInDraftMode<DateTime, ValidationMode> {
+		return this.data[2];
+	}
+
+	set deadline(v : NullableInDraftMode<DateTime, ValidationMode>) {
+        this.setterImpl(2, v, 'deadline');
+	}
+
+	/**
+     *  Name of the process.
+	 *
+	 * @type {string}
+     */
+	get name() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[3];
+	}
+
+	set name(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(3, v, 'name');
+	}
+
+	private shiftRefsWrapper : SchedulingApiAssignmentProcessShiftRefs<ValidationMode> = new SchedulingApiAssignmentProcessShiftRefs<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of shift ids being assigned by this process.
+     */
+	get shiftRefs() : SchedulingApiAssignmentProcessShiftRefs<ValidationMode> {
+		return this.shiftRefsWrapper;
+	}
+
+	set shiftRefsTestSetter(v : SchedulingApiAssignmentProcessShiftRefs<ValidationMode>) {
+        this.setterImpl(4, v.rawData, 'shiftRefs', () => {this.shiftRefsWrapper = v;});
+	}
+
+	/**
+     *  Should member preferences only be asked for unassigned shifts? (i.e. shifts whose assignment count is less then the needed members count).
+	 *
+	 * @type {boolean}
+     */
+	get onlyAskPrefsForUnassignedShifts() : boolean | null {
+		return this.data[5];
+	}
+
+	set onlyAskPrefsForUnassignedShifts(v : boolean | null) {
+        this.setterImpl(5, v, 'onlyAskPrefsForUnassignedShifts');
+	}
+
+	/**
+     *  Can a member be assigned by the algorithm to a shift when that member has not chosen pref for that shift? Only relevant for type == DR_PLANO.
+	 *
+	 * @type {boolean}
+     */
+	get assignMembersWhenNoPrefAvailable() : boolean | null {
+		return this.data[6];
+	}
+
+	set assignMembersWhenNoPrefAvailable(v : boolean | null) {
+        this.setterImpl(6, v, 'assignMembersWhenNoPrefAvailable');
+	}
+
+	/**
+     *  If set true then the whole process is removed automatically when in EARLY_BIRD_SCHEDULING state all shifts were assigned the required needed-members-count.
+	 *
+	 * @type {boolean}
+     */
+	get removeProcessWhenEarlyBirdAssignedAllShifts() : boolean | null {
+		return this.data[7];
+	}
+
+	set removeProcessWhenEarlyBirdAssignedAllShifts(v : boolean | null) {
+        this.setterImpl(7, v, 'removeProcessWhenEarlyBirdAssignedAllShifts');
+	}
+
+	/**
+     *  What is the assignment state of the shifts of this process? Read-only.
+	 *
+	 * @type {SchedulingApiAssignmentProcessAssignmentState}
+     */
+	get assignmentState() : NullableInDraftMode<SchedulingApiAssignmentProcessAssignmentState, ValidationMode> {
+		return this.data[8];
+	}
+
+	set assignmentState(v : NullableInDraftMode<SchedulingApiAssignmentProcessAssignmentState, ValidationMode>) {
+        this.setterImpl(8, v, 'assignmentState');
+	}
+
+	/**
+     *  The overall number of missing assignments for this process. I.e. for a given shift Math.max(0, shift.neededMembersCount - shift.assignmentCount).
+	 *
+	 * @type {Integer}
+     */
+	get missingAssignmentsCount() : NullableInDraftMode<Integer, ValidationMode> {
+		return this.data[9];
+	}
+
+	set missingAssignmentsCount(v : NullableInDraftMode<Integer, ValidationMode>) {
+        this.setterImpl(9, v, 'missingAssignmentsCount');
+	}
+
+	/**
+     *  The number of shifts for which the user has to do something in current view. Read-only.
+	 *
+	 * @type {Integer}
+     */
+	get todoShiftsCountCurrentView() : NullableInDraftMode<Integer, ValidationMode> {
+		return this.data[10];
+	}
+
+	set todoShiftsCountCurrentView(v : NullableInDraftMode<Integer, ValidationMode>) {
+        this.setterImpl(10, v, 'todoShiftsCountCurrentView');
+	}
+
+	/**
+     *  The number of shifts for which the user has to do something on the right side of current view. Read-only.
+	 *
+	 * @type {Integer}
+     */
+	get todoShiftsCountRightView() : NullableInDraftMode<Integer, ValidationMode> {
+		return this.data[11];
+	}
+
+	set todoShiftsCountRightView(v : NullableInDraftMode<Integer, ValidationMode>) {
+        this.setterImpl(11, v, 'todoShiftsCountRightView');
+	}
+
+	/**
+     *  The number of shifts for which the user has to do something on the left side of current view. Read-only.
+	 *
+	 * @type {Integer}
+     */
+	get todoShiftsCountLeftView() : NullableInDraftMode<Integer, ValidationMode> {
+		return this.data[12];
+	}
+
+	set todoShiftsCountLeftView(v : NullableInDraftMode<Integer, ValidationMode>) {
+        this.setterImpl(12, v, 'todoShiftsCountLeftView');
+	}
+
+	/**
+     *  Type of the process. Can only be set on process creation. The states of each process type is DR_PLANO (NOT_STARTED -> ASKING_MEMBER_PREFERENCES -> NEEDING_APPROVAL -> APPROVE); MANUAL (NOT_STARTED -> ASKING_MEMBER_PREFERENCES -> MANUAL_SCHEDULING -> APPROVE); EARLY_BIRD (NOT_STARTED -> EARLY_BIRD_SCHEDULING -> EARLY_BIRD_FINISHED).
+	 *
+	 * @type {SchedulingApiAssignmentProcessType}
+     */
+	get type() : NullableInDraftMode<SchedulingApiAssignmentProcessType, ValidationMode> {
+		return this.data[13];
+	}
+
+	set type(v : NullableInDraftMode<SchedulingApiAssignmentProcessType, ValidationMode>) {
+        this.setterImpl(13, v, 'type');
+	}
+
+	private missingPrefsMemberIdsWrapper : SchedulingApiAssignmentProcessMissingPrefsMemberIds<ValidationMode> = new SchedulingApiAssignmentProcessMissingPrefsMemberIds<ValidationMode>(this.api, false);
+
+	/**
+     *  Ids of members with missing prefs. Send to owner. Send during ASKING_MEMBER_PREFERENCES and all following states. Read-only.
+     */
+	get missingPrefsMemberIds() : SchedulingApiAssignmentProcessMissingPrefsMemberIds<ValidationMode> {
+		return this.missingPrefsMemberIdsWrapper;
+	}
+
+	set missingPrefsMemberIdsTestSetter(v : SchedulingApiAssignmentProcessMissingPrefsMemberIds<ValidationMode>) {
+        this.setterImpl(14, v.rawData, 'missingPrefsMemberIds', () => {this.missingPrefsMemberIdsWrapper = v;});
+	}
+
+	/**
+     *  Can the requester edit this assignment-process? Read-only.
+	 *
+	 * @type {boolean}
+     */
+	get canEdit() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[15];
+	}
+
+	set canEdit(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(15, v, 'canEdit');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.shiftRefsWrapper._fixIds(_idReplacements);
+		this.missingPrefsMemberIdsWrapper._fixIds(_idReplacements);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 16);
+
+			data[1] = INITIALIZED_IN_BACKEND;
+			if(data[4] === null)
+				data[4] = Meta.createNewList();
+			if(data[14] === null)
+				data[14] = Meta.createNewList();
+			data[15] = false;
+		}
+
+		// propagate new raw data to children
+		this.shiftRefsWrapper._updateRawData(data ? data[4] : null, generateMissingData);
+		this.missingPrefsMemberIdsWrapper._updateRawData(data ? data[14] : null, generateMissingData);
+	}
+
+	protected get dni() : string {
+		return '137';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '137', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiAssignmentProcess<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+export enum SchedulingApiAssignmentProcessState {
+	NOT_STARTED = 1,
+	ASKING_MEMBER_PREFERENCES = 2,
+	NEEDING_APPROVAL = 3,
+	MANUAL_SCHEDULING = 4,
+	APPROVE = 5,
+	EARLY_BIRD_SCHEDULING = 6,
+	EARLY_BIRD_FINISHED = 7,
+}
+		 export class SchedulingApiAssignmentProcessShiftRefsBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'shiftRefs');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiAssignmentProcessShiftRef<ValidationMode> {
+		const newWrapper = new SchedulingApiAssignmentProcessShiftRef<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiAssignmentProcessShiftRefs<ValidationMode> {
+		return new SchedulingApiAssignmentProcessShiftRefs<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '141';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiAssignmentProcessShiftRef<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('shiftRefs');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiAssignmentProcessShiftRefs<ValidationMode>, SchedulingApiAssignmentProcessShiftRefs<ValidationMode>> = new ApiAttributeInfo<SchedulingApiAssignmentProcessShiftRefs<ValidationMode>, SchedulingApiAssignmentProcessShiftRefs<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiAssignmentProcessShiftRefs<ValidationMode>,
+			name: 'shiftRefs',
+			id: 'ASSIGNMENT_PROCESS_SHIFT_REFS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+		});
+}
+
+				 
+export class SchedulingApiAssignmentProcessShiftRef<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiAssignmentProcessShiftRef as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : ShiftId | null = null;
+	get id() : ShiftId {
+		return this._id !== null ? this._id : ShiftId.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiAssignmentProcessShiftRef<ValidationMode>, SchedulingApiAssignmentProcessShiftRef<ValidationMode>> = new ApiAttributeInfo<SchedulingApiAssignmentProcessShiftRef<ValidationMode>, SchedulingApiAssignmentProcessShiftRef<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiAssignmentProcessShiftRef<ValidationMode>,
+			name: 'assignmentProcessShiftRef',
+			id: 'ASSIGNMENT_PROCESS_SHIFT_REF',
+		});
+	attributeInfoRequesterCanSetPref =  new ApiAttributeInfo<SchedulingApiAssignmentProcessShiftRef<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiAssignmentProcessShiftRef<ValidationMode>,
+			name: 'requesterCanSetPref',
+			id: 'ASSIGNMENT_PROCESS_SHIFT_REF_REQUESTER_CAN_SET_PREF',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoRequesterCanDoEarlyBird =  new ApiAttributeInfo<SchedulingApiAssignmentProcessShiftRef<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiAssignmentProcessShiftRef<ValidationMode>,
+			name: 'requesterCanDoEarlyBird',
+			id: 'ASSIGNMENT_PROCESS_SHIFT_REF_REQUESTER_CAN_DO_EARLY_BIRD',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+
+	/**
+     *  Can requester currently set shift.myPref?
+	 *
+	 * @type {boolean}
+     */
+	get requesterCanSetPref() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[1];
+	}
+
+	set requesterCanSetPref(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(1, v, 'requesterCanSetPref');
+	}
+
+	/**
+     *  Can requester currently set shift.earlyBirdAssignToMe?
+	 *
+	 * @type {boolean}
+     */
+	get requesterCanDoEarlyBird() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[2];
+	}
+
+	set requesterCanDoEarlyBird(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(2, v, 'requesterCanDoEarlyBird');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : ShiftId.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 3);
+
+			data[1] = false;
+			data[2] = false;
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '153';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : ShiftId
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '153', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiAssignmentProcessShiftRef<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+export enum SchedulingApiAssignmentProcessAssignmentState {
+	NONE_ASSIGNED = 1,
+	PARTIALLY_ASSIGNED = 2,
+	ALL_ASSIGNED = 3,
+}
+export enum SchedulingApiAssignmentProcessType {
+	DR_PLANO = 1,
+	MANUAL = 2,
+	EARLY_BIRD = 3,
+}
+		 export class SchedulingApiAssignmentProcessMissingPrefsMemberIds<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'missingPrefsMemberIds');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : Id {
+		return Id.create(item);
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return true;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiAssignmentProcessMissingPrefsMemberIds<ValidationMode> {
+		return new SchedulingApiAssignmentProcessMissingPrefsMemberIds<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '151';
+	}
+
+	override createNewItem() : Id {
+		const newItemRaw = null;
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('missingPrefsMemberIds');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiAssignmentProcessMissingPrefsMemberIds<ValidationMode>, SchedulingApiAssignmentProcessMissingPrefsMemberIds<ValidationMode>> = new ApiAttributeInfo<SchedulingApiAssignmentProcessMissingPrefsMemberIds<ValidationMode>, SchedulingApiAssignmentProcessMissingPrefsMemberIds<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiAssignmentProcessMissingPrefsMemberIds<ValidationMode>,
+			name: 'missingPrefsMemberIds',
+			id: 'ASSIGNMENT_PROCESS_MISSING_PREFS_MEMBER_IDS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+		});
+	attributeInfoAssignmentProcessMissingPrefsMemberId =  new ApiAttributeInfo<SchedulingApiAssignmentProcessMissingPrefsMemberIds<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiAssignmentProcessMissingPrefsMemberIds<ValidationMode>,
+			name: 'assignmentProcessMissingPrefsMemberId',
+			id: 'ASSIGNMENT_PROCESS_MISSING_PREFS_MEMBER_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+}
+
+				 export class SchedulingApiMembersBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'members');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiMember<ValidationMode> {
+		const newWrapper = new SchedulingApiMember<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiMembers<ValidationMode> {
+		return new SchedulingApiMembers<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '7';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiMember<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('members');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiMembers<ValidationMode>, SchedulingApiMembers<ValidationMode>> = new ApiAttributeInfo<SchedulingApiMembers<ValidationMode>, SchedulingApiMembers<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiMembers<ValidationMode>,
+			name: 'members',
+			id: 'MEMBERS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+		});
+}
+
+				 
+export class SchedulingApiMemberBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiMember as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+		this.rightGroupIdsWrapper.parent = this as any as SchedulingApiMember<ValidationMode>;
+		this.assignableShiftModelsWrapper.parent = this as any as SchedulingApiMember<ValidationMode>;
+		this.changeSelectorWrapper.parent = this as any as SchedulingApiMember<ValidationMode>;
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiMember<ValidationMode>, SchedulingApiMember<ValidationMode>> = new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, SchedulingApiMember<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'member',
+			id: 'MEMBER',
+			canEdit: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER))  || (this.api!.rightsService.isMe(this)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiMember<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+	attributeInfoFirstName =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'firstName',
+			id: 'MEMBER_FIRST_NAME',
+			primitiveType: PApiPrimitiveTypes.string,
+			validations: function(this : SchedulingApiMember<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.string, undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoLastName =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'lastName',
+			id: 'MEMBER_LAST_NAME',
+			primitiveType: PApiPrimitiveTypes.string,
+			validations: function(this : SchedulingApiMember<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.string, undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoEmail =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, Email>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'email',
+			id: 'MEMBER_EMAIL',
+			primitiveType: PApiPrimitiveTypes.Email,
+			validations: function(this : SchedulingApiMember<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.Email, undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoTrashed =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'trashed',
+			id: 'MEMBER_TRASHED',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiMember<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+	attributeInfoMinMonthlyEarnings =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'minMonthlyEarnings',
+			id: 'MEMBER_MIN_MONTHLY_EARNINGS',
+			primitiveType: PApiPrimitiveTypes.Currency,
+			show: function(this : SchedulingApiMember<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> MEMBER_MIN_MONTHLY_EARNINGS is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> MEMBER_MIN_MONTHLY_EARNINGS is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+			canEdit: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiMember<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+			validations: function(this : SchedulingApiMember<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.Currency, undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoMaxMonthlyEarnings =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'maxMonthlyEarnings',
+			id: 'MEMBER_MAX_MONTHLY_EARNINGS',
+			primitiveType: PApiPrimitiveTypes.Currency,
+			show: function(this : SchedulingApiMember<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> MEMBER_MAX_MONTHLY_EARNINGS is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> MEMBER_MAX_MONTHLY_EARNINGS is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+			canEdit: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiMember<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+			validations: function(this : SchedulingApiMember<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.Currency, undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoDesiredMonthlyEarnings =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'desiredMonthlyEarnings',
+			id: 'MEMBER_DESIRED_MONTHLY_EARNINGS',
+			primitiveType: PApiPrimitiveTypes.Currency,
+			show: function(this : SchedulingApiMember<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> MEMBER_DESIRED_MONTHLY_EARNINGS is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> MEMBER_DESIRED_MONTHLY_EARNINGS is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+			validations: function(this : SchedulingApiMember<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.Currency, undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoAvgDaysPerWeek =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, Days>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'avgDaysPerWeek',
+			id: 'MEMBER_AVG_DAYS_PER_WEEK',
+			primitiveType: PApiPrimitiveTypes.Days,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoAvgHoursPerDay =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, Hours>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'avgHoursPerDay',
+			id: 'MEMBER_AVG_HOURS_PER_DAY',
+			primitiveType: PApiPrimitiveTypes.Hours,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoBirthday =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, Date>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'birthday',
+			id: 'MEMBER_BIRTHDAY',
+			primitiveType: PApiPrimitiveTypes.Date,
+			show: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!((this.birthday || this.api!.rightsService.hasManagerRightsForMember(this) || this.api!.rightsService.isMe(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.hasManagerRightsForMember(this))  || (this.api!.rightsService.isMe(this)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiMember<ValidationMode>) {
+				 
+		
+				return false;
+			},
+			validations: function(this : SchedulingApiMember<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.min(-1577926800000, true, PApiPrimitiveTypes.Date, undefined, undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.max(+this.api!.pMoment.monthsFromNow(-1), true, PApiPrimitiveTypes.Date, undefined, undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoPhone =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, Tel>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'phone',
+			id: 'MEMBER_PHONE',
+			primitiveType: PApiPrimitiveTypes.Tel,
+		});
+	attributeInfoGender =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, SchedulingApiGender>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'gender',
+			id: 'MEMBER_GENDER',
+			primitiveType: PApiPrimitiveTypes.Enum,
+			validations: function(this : SchedulingApiMember<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.Enum, undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoPassword =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, Password>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'password',
+			id: 'MEMBER_PASSWORD',
+			primitiveType: PApiPrimitiveTypes.Password,
+		});
+	attributeInfoAddressStreet =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'addressStreet',
+			id: 'MEMBER_ADDRESS_STREET',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER))  || (this.api!.rightsService.isMe(this)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+		});
+	attributeInfoAddressPostalCode =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, PostalCode>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'addressPostalCode',
+			id: 'MEMBER_ADDRESS_POSTAL_CODE',
+			primitiveType: PApiPrimitiveTypes.PostalCode,
+			show: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER))  || (this.api!.rightsService.isMe(this)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+		});
+	attributeInfoAddressCity =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'addressCity',
+			id: 'MEMBER_ADDRESS_CITY',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER))  || (this.api!.rightsService.isMe(this)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+		});
+	attributeInfoEmploymentBegin =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'employmentBegin',
+			id: 'MEMBER_EMPLOYMENT_BEGIN',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+			show: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiMember<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+			validations: function(this : SchedulingApiMember<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.max(() => this.employmentEnd, true, PApiPrimitiveTypes.DateTime, 'MEMBER_EMPLOYMENT_END', undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.DateTime, undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoEmploymentEnd =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'employmentEnd',
+			id: 'MEMBER_EMPLOYMENT_END',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+			show: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiMember<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+			validations: function(this : SchedulingApiMember<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.min(() => this.employmentBegin, true, PApiPrimitiveTypes.DateTime, 'MEMBER_EMPLOYMENT_BEGIN', undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoComments =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'comments',
+			id: 'MEMBER_COMMENTS',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiMember<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+	attributeInfoPersonnelNumbers =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'personnelNumbers',
+			id: 'MEMBER_PERSONNEL_NUMBERS',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiMember<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+	attributeInfoPlaceOfBirth =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'placeOfBirth',
+			id: 'MEMBER_PLACE_OF_BIRTH',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiMember<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+	attributeInfoSocialSecurityNumber =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'socialSecurityNumber',
+			id: 'MEMBER_SOCIAL_SECURITY_NUMBER',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiMember<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+	attributeInfoTaxId =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'taxId',
+			id: 'MEMBER_TAX_ID',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiMember<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+	attributeInfoHealthInsurance =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'healthInsurance',
+			id: 'MEMBER_HEALTH_INSURANCE',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiMember<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+	attributeInfoNationality =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'nationality',
+			id: 'MEMBER_NATIONALITY',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiMember<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+	attributeInfoDenomination =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'denomination',
+			id: 'MEMBER_DENOMINATION',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiMember<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+	attributeInfoAccountIBAN =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, Iban>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'accountIBAN',
+			id: 'MEMBER_ACCOUNT_IBAN',
+			primitiveType: PApiPrimitiveTypes.Iban,
+			show: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER))  || (this.api!.rightsService.isMe(this)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+		});
+	attributeInfoAccountOwner =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'accountOwner',
+			id: 'MEMBER_ACCOUNT_OWNER',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER))  || (this.api!.rightsService.isMe(this)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+		});
+	attributeInfoEmploymentContractsComment =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'employmentContractsComment',
+			id: 'MEMBER_EMPLOYMENT_CONTRACTS_COMMENT',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!((this.api!.rightsService.hasManagerRightsForMember(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!((this.api!.rightsService.hasManagerRightsForMember(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiMember<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoMainJob =  new ApiAttributeInfo<SchedulingApiMember<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiMember<ValidationMode>,
+			name: 'mainJob',
+			id: 'MEMBER_MAIN_JOB',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: function(this : SchedulingApiMember<ValidationMode>) {
+		if(!((this.api!.rightsService.hasManagerRightsForMember(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiMember<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+
+	/**
+     *  First name of the member
+	 *
+	 * @type {string}
+     */
+	get firstName() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[1];
+	}
+
+	set firstName(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(1, v, 'firstName');
+	}
+
+	/**
+     *  Last name of the member.
+	 *
+	 * @type {string}
+     */
+	get lastName() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[2];
+	}
+
+	set lastName(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(2, v, 'lastName');
+	}
+
+	/**
+     *  Email address of this member. (Note for Milad: This needs to be deserialized before "trashed" because trashed=false checks if current email is unused)
+	 *
+	 * @type {Email}
+     */
+	get email() : NullableInDraftMode<Email, ValidationMode> {
+		return this.data[3];
+	}
+
+	set email(v : NullableInDraftMode<Email, ValidationMode>) {
+        this.setterImpl(3, v, 'email');
+	}
+
+	/**
+     *  Is this member trashed?
+	 *
+	 * @type {boolean}
+     */
+	get trashed() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[4];
+	}
+
+	set trashed(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(4, v, 'trashed');
+	}
+
+	/**
+     *  What is the minimum this member should earn?
+	 *
+	 * @type {Currency}
+     */
+	get minMonthlyEarnings() : NullableInDraftMode<Currency, ValidationMode> {
+		return this.data[5];
+	}
+
+	set minMonthlyEarnings(v : NullableInDraftMode<Currency, ValidationMode>) {
+        this.setterImpl(5, v, 'minMonthlyEarnings');
+	}
+
+	/**
+     *  What is the maximum this member should earn?
+	 *
+	 * @type {Currency}
+     */
+	get maxMonthlyEarnings() : NullableInDraftMode<Currency, ValidationMode> {
+		return this.data[6];
+	}
+
+	set maxMonthlyEarnings(v : NullableInDraftMode<Currency, ValidationMode>) {
+        this.setterImpl(6, v, 'maxMonthlyEarnings');
+	}
+
+	/**
+     *  What is the desired earnings of this member?
+	 *
+	 * @type {Currency}
+     */
+	get desiredMonthlyEarnings() : NullableInDraftMode<Currency, ValidationMode> {
+		return this.data[7];
+	}
+
+	set desiredMonthlyEarnings(v : NullableInDraftMode<Currency, ValidationMode>) {
+        this.setterImpl(7, v, 'desiredMonthlyEarnings');
+	}
+
+	private rightGroupIdsWrapper : SchedulingApiMemberRightGroupIds<ValidationMode> = new SchedulingApiMemberRightGroupIds<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of ids of the right groups assigned to this member. This list must contain at least one item.
+     */
+	get rightGroupIds() : SchedulingApiMemberRightGroupIds<ValidationMode> {
+		return this.rightGroupIdsWrapper;
+	}
+
+	set rightGroupIdsTestSetter(v : SchedulingApiMemberRightGroupIds<ValidationMode>) {
+        this.setterImpl(8, v.rawData, 'rightGroupIds', () => {this.rightGroupIdsWrapper = v;});
+	}
+
+	/**
+     *  Only send for data == "reporting" and to client-owners. How many days per week does this member work on average.
+	 *
+	 * @type {Days}
+     */
+	get avgDaysPerWeek() : Days | null {
+		return this.data[9];
+	}
+
+	set avgDaysPerWeekTestSetter(v : Days | null) {
+        this.setterImpl(9, v, 'avgDaysPerWeek');
+	}
+
+	/**
+     *  Only send for data == "reporting" and to client-owners. How many hours per day does this member work on average.
+	 *
+	 * @type {Hours}
+     */
+	get avgHoursPerDay() : Hours | null {
+		return this.data[10];
+	}
+
+	set avgHoursPerDayTestSetter(v : Hours | null) {
+        this.setterImpl(10, v, 'avgHoursPerDay');
+	}
+
+	private assignableShiftModelsWrapper : SchedulingApiAssignableShiftModels<ValidationMode> = new SchedulingApiAssignableShiftModels<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of all assignable shift models. Can be used with "changeSelector".
+     */
+	get assignableShiftModels() : SchedulingApiAssignableShiftModels<ValidationMode> {
+		return this.assignableShiftModelsWrapper;
+	}
+
+	set assignableShiftModelsTestSetter(v : SchedulingApiAssignableShiftModels<ValidationMode>) {
+        this.setterImpl(11, v.rawData, 'assignableShiftModels', () => {this.assignableShiftModelsWrapper = v;});
+	}
+
+	/**
+     *  Members birthday.
+	 *
+	 * @type {Date}
+     */
+	get birthday() : Date | null {
+		return this.data[12];
+	}
+
+	set birthday(v : Date | null) {
+        this.setterImpl(12, v, 'birthday');
+	}
+
+	/**
+     * (Detail)  Phone number of the member.
+	 *
+	 * @type {Tel}
+     */
+	get phone() : Tel | null {
+		return this.data[13];
+	}
+
+	set phone(v : Tel | null) {
+        this.setterImpl(13, v, 'phone');
+	}
+
+	/**
+     * (Detail)  The gender of the user.
+	 *
+	 * @type {SchedulingApiGender}
+     */
+	get gender() : NullableInDraftMode<SchedulingApiGender, ValidationMode> {
+		return this.data[14];
+	}
+
+	set gender(v : NullableInDraftMode<SchedulingApiGender, ValidationMode>) {
+        this.setterImpl(14, v, 'gender');
+	}
+
+	/**
+     * (Detail)  Password of this member. Api always returns "xxxxxx". It is used for setting a new password.
+	 *
+	 * @type {Password}
+     */
+	get password() : NullableInDraftMode<Password, ValidationMode> {
+		return this.data[15];
+	}
+
+	set password(v : NullableInDraftMode<Password, ValidationMode>) {
+        this.setterImpl(15, v, 'password');
+	}
+
+	/**
+     * (Detail)  Street and house number of member.
+	 *
+	 * @type {string}
+     */
+	get addressStreet() : string | null {
+		return this.data[16];
+	}
+
+	set addressStreet(v : string | null) {
+        this.setterImpl(16, v, 'addressStreet');
+	}
+
+	/**
+     * (Detail)  Postal code of member.
+	 *
+	 * @type {PostalCode}
+     */
+	get addressPostalCode() : PostalCode | null {
+		return this.data[17];
+	}
+
+	set addressPostalCode(v : PostalCode | null) {
+        this.setterImpl(17, v, 'addressPostalCode');
+	}
+
+	/**
+     * (Detail)  City of member.
+	 *
+	 * @type {string}
+     */
+	get addressCity() : string | null {
+		return this.data[18];
+	}
+
+	set addressCity(v : string | null) {
+        this.setterImpl(18, v, 'addressCity');
+	}
+
+	/**
+     * (Detail)  When did the employment of this member begin?
+	 *
+	 * @type {DateTime}
+     */
+	get employmentBegin() : NullableInDraftMode<DateTime, ValidationMode> {
+		return this.data[19];
+	}
+
+	set employmentBegin(v : NullableInDraftMode<DateTime, ValidationMode>) {
+        this.setterImpl(19, v, 'employmentBegin');
+	}
+
+	/**
+     * (Detail)  When did the employment of this member end?
+	 *
+	 * @type {DateTime}
+     */
+	get employmentEnd() : DateTime | null {
+		return this.data[20];
+	}
+
+	set employmentEnd(v : DateTime | null) {
+        this.setterImpl(20, v, 'employmentEnd');
+	}
+
+	/**
+     * (Detail)  Comments related to the member.
+	 *
+	 * @type {string}
+     */
+	get comments() : string | null {
+		return this.data[21];
+	}
+
+	set comments(v : string | null) {
+        this.setterImpl(21, v, 'comments');
+	}
+
+	/**
+     * (Detail)  Personnel numbers of this member.
+	 *
+	 * @type {string}
+     */
+	get personnelNumbers() : string | null {
+		return this.data[22];
+	}
+
+	set personnelNumbers(v : string | null) {
+        this.setterImpl(22, v, 'personnelNumbers');
+	}
+
+	/**
+     * (Detail)  Place of birth of this member.
+	 *
+	 * @type {string}
+     */
+	get placeOfBirth() : string | null {
+		return this.data[23];
+	}
+
+	set placeOfBirth(v : string | null) {
+        this.setterImpl(23, v, 'placeOfBirth');
+	}
+
+	/**
+     * (Detail)  Social security number of this member.
+	 *
+	 * @type {string}
+     */
+	get socialSecurityNumber() : string | null {
+		return this.data[24];
+	}
+
+	set socialSecurityNumber(v : string | null) {
+        this.setterImpl(24, v, 'socialSecurityNumber');
+	}
+
+	/**
+     * (Detail)  Tax ID of this member.
+	 *
+	 * @type {string}
+     */
+	get taxId() : string | null {
+		return this.data[25];
+	}
+
+	set taxId(v : string | null) {
+        this.setterImpl(25, v, 'taxId');
+	}
+
+	/**
+     * (Detail)  Health insurance of this member.
+	 *
+	 * @type {string}
+     */
+	get healthInsurance() : string | null {
+		return this.data[26];
+	}
+
+	set healthInsurance(v : string | null) {
+        this.setterImpl(26, v, 'healthInsurance');
+	}
+
+	/**
+     * (Detail)  The nationality of the member.
+	 *
+	 * @type {string}
+     */
+	get nationality() : string | null {
+		return this.data[27];
+	}
+
+	set nationality(v : string | null) {
+        this.setterImpl(27, v, 'nationality');
+	}
+
+	/**
+     * (Detail)  Denomination of this member.
+	 *
+	 * @type {string}
+     */
+	get denomination() : string | null {
+		return this.data[28];
+	}
+
+	set denomination(v : string | null) {
+        this.setterImpl(28, v, 'denomination');
+	}
+
+	/**
+     * (Detail)  Bank account IBAN of this member.
+	 *
+	 * @type {Iban}
+     */
+	get accountIBAN() : Iban | null {
+		return this.data[29];
+	}
+
+	set accountIBAN(v : Iban | null) {
+        this.setterImpl(29, v, 'accountIBAN');
+	}
+
+	/**
+     * (Detail)  Bank account owner of this member.
+	 *
+	 * @type {string}
+     */
+	get accountOwner() : string | null {
+		return this.data[30];
+	}
+
+	set accountOwner(v : string | null) {
+        this.setterImpl(30, v, 'accountOwner');
+	}
+
+	/**
+     * (Detail)  Comment for the employment contracts. Only visible to members with manager rights.
+	 *
+	 * @type {string}
+     */
+	get employmentContractsComment() : string | null {
+		return this.data[31];
+	}
+
+	set employmentContractsComment(v : string | null) {
+        this.setterImpl(31, v, 'employmentContractsComment');
+	}
+
+	/**
+     * (Detail)  Is this the main job of the member?
+	 *
+	 * @type {boolean}
+     */
+	get mainJob() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[32];
+	}
+
+	set mainJob(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(32, v, 'mainJob');
+	}
+
+	private changeSelectorWrapper : SchedulingApiMemberChangeSelector<ValidationMode> = new SchedulingApiMemberChangeSelector<ValidationMode>(this.api);
+
+	/**
+     * (Detail)  Set by user to define what should - additionally to this member - be modified.
+     */
+	get changeSelector() : SchedulingApiMemberChangeSelector<ValidationMode> {
+		return this.changeSelectorWrapper;
+	}
+
+	set changeSelectorTestSetter(v : SchedulingApiMemberChangeSelector<ValidationMode>) {
+        this.setterImpl(33, v.rawData, 'changeSelector', () => {this.changeSelectorWrapper = v;});
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.rightGroupIdsWrapper._fixIds(_idReplacements);
+		this.assignableShiftModelsWrapper._fixIds(_idReplacements);
+		this.changeSelectorWrapper._fixIds(_idReplacements);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 34);
+
+			data[4] = false;
+			if(data[8] === null)
+				data[8] = Meta.createNewList();
+			if(data[11] === null)
+				data[11] = Meta.createNewList();
+			data[15] = INITIALIZED_IN_BACKEND;
+			data[32] = false;
+			if(data[33] === null)
+				data[33] = Meta.createNewObject(false);
+		}
+
+		// propagate new raw data to children
+		this.rightGroupIdsWrapper._updateRawData(data ? data[8] : null, generateMissingData);
+		this.assignableShiftModelsWrapper._updateRawData(data ? data[11] : null, generateMissingData);
+		this.changeSelectorWrapper._updateRawData(data ? data[33] : null, generateMissingData);
+	}
+
+	protected get dni() : string {
+		return '157';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '157', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiMember<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiMemberRightGroupIds<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'rightGroupIds');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : Id {
+		return Id.create(item);
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return true;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiMemberRightGroupIds<ValidationMode> {
+		return new SchedulingApiMemberRightGroupIds<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '165';
+	}
+
+	override createNewItem() : Id {
+		const newItemRaw = null;
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('rightGroupIds');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiMemberRightGroupIds<ValidationMode>, SchedulingApiMemberRightGroupIds<ValidationMode>> = new ApiAttributeInfo<SchedulingApiMemberRightGroupIds<ValidationMode>, SchedulingApiMemberRightGroupIds<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiMemberRightGroupIds<ValidationMode>,
+			name: 'rightGroupIds',
+			id: 'MEMBER_RIGHT_GROUP_IDS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			canEdit: function(this : SchedulingApiMemberRightGroupIds<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiMemberRightGroupIds<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+			validations: function(this : SchedulingApiMemberRightGroupIds<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.ApiList, undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoMemberRightGroupId =  new ApiAttributeInfo<SchedulingApiMemberRightGroupIds<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiMemberRightGroupIds<ValidationMode>,
+			name: 'memberRightGroupId',
+			id: 'MEMBER_RIGHT_GROUP_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+}
+
+				 export class SchedulingApiMemberAssignableShiftModelsBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'assignableShiftModels');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiAssignableShiftModel<ValidationMode> {
+		const newWrapper = new SchedulingApiAssignableShiftModel<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiAssignableShiftModels<ValidationMode> {
+		return new SchedulingApiAssignableShiftModels<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '168';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiAssignableShiftModel<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('assignableShiftModels');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiAssignableShiftModels<ValidationMode>, SchedulingApiAssignableShiftModels<ValidationMode>> = new ApiAttributeInfo<SchedulingApiAssignableShiftModels<ValidationMode>, SchedulingApiAssignableShiftModels<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiAssignableShiftModels<ValidationMode>,
+			name: 'assignableShiftModels',
+			id: 'MEMBER_ASSIGNABLE_SHIFT_MODELS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			canEdit: function(this : SchedulingApiAssignableShiftModels<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiAssignableShiftModels<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+}
+
+				 
+export class SchedulingApiMemberAssignableShiftModelBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiAssignableShiftModel as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiAssignableShiftModel<ValidationMode>, SchedulingApiAssignableShiftModel<ValidationMode>> = new ApiAttributeInfo<SchedulingApiAssignableShiftModel<ValidationMode>, SchedulingApiAssignableShiftModel<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiAssignableShiftModel<ValidationMode>,
+			name: 'memberAssignableShiftModel',
+			id: 'MEMBER_ASSIGNABLE_SHIFT_MODEL',
+		});
+	attributeInfoHourlyEarnings =  new ApiAttributeInfo<SchedulingApiAssignableShiftModel<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiAssignableShiftModel<ValidationMode>,
+			name: 'hourlyEarnings',
+			id: 'MEMBER_ASSIGNABLE_SHIFT_MODEL_EARNINGS',
+			primitiveType: PApiPrimitiveTypes.Currency,
+		});
+	attributeInfoShiftModelId =  new ApiAttributeInfo<SchedulingApiAssignableShiftModel<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiAssignableShiftModel<ValidationMode>,
+			name: 'shiftModelId',
+			id: 'MEMBER_ASSIGNABLE_SHIFT_MODEL_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+
+	/**
+     *  Members hourly earnings for this shift model
+	 *
+	 * @type {Currency}
+     */
+	get hourlyEarnings() : NullableInDraftMode<Currency, ValidationMode> {
+		return this.data[1];
+	}
+
+	set hourlyEarnings(v : NullableInDraftMode<Currency, ValidationMode>) {
+        this.setterImpl(1, v, 'hourlyEarnings');
+	}
+
+	private shiftModelIdWrapper : NullableInDraftMode<Id, ValidationMode> = null!;
+
+	/**
+     *  Id of assignable shift model
+	 *
+	 * @type {Id}
+     */
+	get shiftModelId() : NullableInDraftMode<Id, ValidationMode> {
+		return this.shiftModelIdWrapper;
+	}
+
+	set shiftModelId(v : NullableInDraftMode<Id, ValidationMode>) {
+        this.setterImpl(2, v, 'shiftModelId', () => {this.shiftModelIdWrapper = v;});
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.data[2] = Meta.getReplacedId(this.data[2], _idReplacements);
+		this.shiftModelIdWrapper = Id.create(this.data[2]);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 3);
+
+		}
+
+		// propagate new raw data to children
+		if(!Meta.isSameId(data ? data[2] : null, this.shiftModelIdWrapper))
+			this.shiftModelIdWrapper = data && data[2] ? Id.create(data[2]) : null!;
+	}
+
+	protected get dni() : string {
+		return '192';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '192', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiAssignableShiftModel<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+export enum SchedulingApiGender {
+	MALE = 1,
+	FEMALE = 2,
+	DIVERSE = 3,
+}
+		 
+export class SchedulingApiMemberChangeSelector<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiMemberChangeSelector as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiMemberChangeSelector<ValidationMode>, SchedulingApiMemberChangeSelector<ValidationMode>> = new ApiAttributeInfo<SchedulingApiMemberChangeSelector<ValidationMode>, SchedulingApiMemberChangeSelector<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiMemberChangeSelector<ValidationMode>,
+			name: 'changeSelector',
+			id: 'MEMBER_CHANGE_SELECTOR',
+		});
+	attributeInfoStart =  new ApiAttributeInfo<SchedulingApiMemberChangeSelector<ValidationMode>, Date>({
+			apiObjWrapper: this as any as SchedulingApiMemberChangeSelector<ValidationMode>,
+			name: 'start',
+			id: 'MEMBER_CHANGE_SELECTOR_START',
+			primitiveType: PApiPrimitiveTypes.Date,
+			validations: function(this : SchedulingApiMemberChangeSelector<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.min(+this.api!.pMoment.monthsFromNow(-5), true, PApiPrimitiveTypes.Date, undefined, undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.max(+this.api!.pMoment.monthsFromNow(12), true, PApiPrimitiveTypes.Date, undefined, undefined);
+							return null;
+					},
+				];
+			},
+		});
+
+	/**
+     *  The start time from which the existing shifts should be modified.
+	 *
+	 * @type {Date}
+     */
+	get start() : Date | null {
+		return this.data[1];
+	}
+
+	set start(v : Date | null) {
+        this.setterImpl(1, v, 'start');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 2);
+
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '190';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '190', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiMemberChangeSelector<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiBookingsBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'bookings');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiBooking<ValidationMode> {
+		const newWrapper = new SchedulingApiBooking<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiBookings<ValidationMode> {
+		return new SchedulingApiBookings<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '8';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiBooking<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('bookings');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiBookings<ValidationMode>, SchedulingApiBookings<ValidationMode>> = new ApiAttributeInfo<SchedulingApiBookings<ValidationMode>, SchedulingApiBookings<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiBookings<ValidationMode>,
+			name: 'bookings',
+			id: 'BOOKINGS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			canEdit: function(this : SchedulingApiBookings<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWriteBookings())))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiBookings<ValidationMode>) {
+				 
+		
+				return false;
+			},
+			vars: {
+				cannotEditHint: () => this.api!.data.shiftModels.length === 0 ? 'Du brauchst mindestens eine buchbare Tätigkeit, um Buchungen erstellen zu können.' : 'Dir fehlen die Rechte, um Buchungen erstellen zu können.',
+			}
+		});
+}
+
+				 
+export class SchedulingApiBookingBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiBooking as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+		this.participantsWrapper.parent = this as any as SchedulingApiBooking<ValidationMode>;
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, SchedulingApiBooking<ValidationMode>> = new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, SchedulingApiBooking<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'booking',
+			id: 'BOOKING',
+			canEdit: function(this : SchedulingApiBooking<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWriteBooking(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiBooking<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoState =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, SchedulingApiBookingState>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'state',
+			id: 'BOOKING_STATE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+		});
+	attributeInfoOwnerComment =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'ownerComment',
+			id: 'BOOKING_OWNER_COMMENT',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoBookingNumber =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'bookingNumber',
+			id: 'BOOKING_BOOKING_NUMBER',
+			primitiveType: PApiPrimitiveTypes.Integer,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoCourseSelector =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, ShiftSelector>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'courseSelector',
+			id: 'BOOKING_COURSE_SELECTOR',
+			primitiveType: PApiPrimitiveTypes.ShiftSelector,
+		});
+	attributeInfoShiftModelId =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'shiftModelId',
+			id: 'BOOKING_SHIFT_MODEL_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+	attributeInfoDateOfBooking =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'dateOfBooking',
+			id: 'BOOKING_DATE_OF_BOOKING',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoBookingComment =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'bookingComment',
+			id: 'BOOKING_BOOKING_COMMENT',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoAllShiftsRemoved =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'allShiftsRemoved',
+			id: 'BOOKING_ALL_SHIFTS_REMOVED',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoFirstName =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'firstName',
+			id: 'BOOKING_FIRST_NAME',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoLastName =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'lastName',
+			id: 'BOOKING_LAST_NAME',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoFirstShiftStart =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'firstShiftStart',
+			id: 'BOOKING_FIRST_SHIFT_START',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoParticipantCount =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'participantCount',
+			id: 'BOOKING_PARTICIPANT_COUNT',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+	attributeInfoCurrentlyPaid =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'currentlyPaid',
+			id: 'BOOKING_CURRENTLY_PAID',
+			primitiveType: PApiPrimitiveTypes.Currency,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoCancellationFee =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'cancellationFee',
+			id: 'BOOKING_CANCELLATION_FEE',
+			primitiveType: PApiPrimitiveTypes.Currency,
+			validations: function(this : SchedulingApiBooking<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.Currency, undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.min(0, true, PApiPrimitiveTypes.Currency, undefined, undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.max(10000, true, PApiPrimitiveTypes.Currency, undefined, undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoOverallTariffId =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'overallTariffId',
+			id: 'BOOKING_OVERALL_TARIFF_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+	attributeInfoFirstShiftEnd =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'firstShiftEnd',
+			id: 'BOOKING_FIRST_SHIFT_END',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoFirstShiftSelector =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, ShiftId>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'firstShiftSelector',
+			id: 'BOOKING_FIRST_SHIFT_SELECTOR',
+			primitiveType: PApiPrimitiveTypes.ShiftId,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoAttended =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'attended',
+			id: 'BOOKING_ATTENDED',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoCanWriteAttended =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'canWriteAttended',
+			id: 'BOOKING_CAN_WRITE_ATTENDED',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoAttendedSetByPos =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'attendedSetByPos',
+			id: 'BOOKING_ATTENDED_SET_BY_POS',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoDateOfBirth =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, Date>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'dateOfBirth',
+			id: 'BOOKING_DATE_OF_BIRTH',
+			primitiveType: PApiPrimitiveTypes.Date,
+			validations: function(this : SchedulingApiBooking<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.Date, undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.min(-1577926800000, true, PApiPrimitiveTypes.Date, undefined, undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.max(+this.api!.pMoment.m().add(0, 'minutes'), true, PApiPrimitiveTypes.Date, undefined, undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoStreetAndHouseNumber =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'streetAndHouseNumber',
+			id: 'BOOKING_STREET_AND_HOUSE_NUMBER',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoCity =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'city',
+			id: 'BOOKING_CITY',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoPostalCode =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, PostalCode>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'postalCode',
+			id: 'BOOKING_POSTAL_CODE',
+			primitiveType: PApiPrimitiveTypes.PostalCode,
+		});
+	attributeInfoEmail =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, Email>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'email',
+			id: 'BOOKING_EMAIL',
+			primitiveType: PApiPrimitiveTypes.Email,
+		});
+	attributeInfoPhoneMobile =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, Tel>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'phoneMobile',
+			id: 'BOOKING_PHONE_MOBILE',
+			primitiveType: PApiPrimitiveTypes.Tel,
+		});
+	attributeInfoPhoneLandline =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, Tel>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'phoneLandline',
+			id: 'BOOKING_PHONE_LANDLINE',
+			primitiveType: PApiPrimitiveTypes.Tel,
+		});
+	attributeInfoPaymentMethodId =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'paymentMethodId',
+			id: 'BOOKING_PAYMENT_METHOD_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+	attributeInfoDesiredDate =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'desiredDate',
+			id: 'BOOKING_DESIRED_DATE',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoWantsNewsletter =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'wantsNewsletter',
+			id: 'BOOKING_WANTS_NEWSLETTER',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoPaidBeforeTransactionListIntroduction =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'paidBeforeTransactionListIntroduction',
+			id: 'BOOKING_PAID_BEFORE_TRANSACTION_LIST_INTRODUCTION',
+			primitiveType: PApiPrimitiveTypes.Currency,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoCompany =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'company',
+			id: 'BOOKING_COMPANY',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoAdditionalFieldValue =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'additionalFieldValue',
+			id: 'BOOKING_ADDITIONAL_FIELD_VALUE',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoAgeMin =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'ageMin',
+			id: 'BOOKING_AGE_MIN',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+	attributeInfoAgeMax =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'ageMax',
+			id: 'BOOKING_AGE_MAX',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+	attributeInfoCancellationPolicyId =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'cancellationPolicyId',
+			id: 'BOOKING_CANCELLATION_POLICY_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoHasRightOfWithdrawal =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'hasRightOfWithdrawal',
+			id: 'BOOKING_HAS_RIGHT_OF_WITHDRAWAL',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoApplicableCancellationFeePeriodId =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'applicableCancellationFeePeriodId',
+			id: 'BOOKING_APPLICABLE_CANCELLATION_FEE_PERIOD_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoRefundLimitDueToOnlineBalance =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'refundLimitDueToOnlineBalance',
+			id: 'BOOKING_ACCOUNT_REFUND_LIMIT_DUE_TO_ONLINE_BALANCE',
+			primitiveType: PApiPrimitiveTypes.Currency,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoIsAnonymized =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'isAnonymized',
+			id: 'BOOKING_IS_ANONYMIZED',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoTestingDeferredPaymentToken =  new ApiAttributeInfo<SchedulingApiBooking<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiBooking<ValidationMode>,
+			name: 'testingDeferredPaymentToken',
+			id: 'BOOKING_TESTING_DEFERRED_PAYMENT_TOKEN',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiBooking<ValidationMode>) {
+ 
+		
+				return true;
+			},
+			canEdit: () => false,
+			readMode: () => true,
+		});
+
+	/**
+     *  Current state of this booking
+	 *
+	 * @type {SchedulingApiBookingState}
+     */
+	get state() : NullableInDraftMode<SchedulingApiBookingState, ValidationMode> {
+		return this.data[1];
+	}
+
+	set state(v : NullableInDraftMode<SchedulingApiBookingState, ValidationMode>) {
+        this.setterImpl(1, v, 'state');
+	}
+
+	/**
+     *  Internal comment
+	 *
+	 * @type {string}
+     */
+	get ownerComment() : string | null {
+		return this.data[2];
+	}
+
+	set ownerComment(v : string | null) {
+        this.setterImpl(2, v, 'ownerComment');
+	}
+
+	/**
+     *  Unique booking number.
+	 *
+	 * @type {Integer}
+     */
+	get bookingNumber() : NullableInDraftMode<Integer, ValidationMode> {
+		return this.data[3];
+	}
+
+	set bookingNumberTestSetter(v : NullableInDraftMode<Integer, ValidationMode>) {
+        this.setterImpl(3, v, 'bookingNumber');
+	}
+
+	private courseSelectorWrapper : ShiftSelector | null = null!;
+
+	/**
+     *  A shift-selector selecting a shift or a whole packet. When setting this value you can set it to the selector of a shift and in case this shift belongs to a packet, backend will automatically change it to the packet selector.
+	 *
+	 * @type {ShiftSelector}
+     */
+	get courseSelector() : ShiftSelector | null {
+		return this.courseSelectorWrapper;
+	}
+
+	set courseSelector(v : ShiftSelector | null) {
+        this.setterImpl(4, v, 'courseSelector', () => {this.courseSelectorWrapper = v;});
+	}
+
+	private shiftModelIdWrapper : NullableInDraftMode<Id, ValidationMode> = null!;
+
+	/**
+     *  The shift-model to which this booking belongs.
+	 *
+	 * @type {Id}
+     */
+	get shiftModelId() : NullableInDraftMode<Id, ValidationMode> {
+		return this.shiftModelIdWrapper;
+	}
+
+	set shiftModelId(v : NullableInDraftMode<Id, ValidationMode>) {
+        this.setterImpl(5, v, 'shiftModelId', () => {this.shiftModelIdWrapper = v;});
+	}
+
+	/**
+     *  Date when booking was created.
+	 *
+	 * @type {DateTime}
+     */
+	get dateOfBooking() : NullableInDraftMode<DateTime, ValidationMode> {
+		return this.data[6];
+	}
+
+	set dateOfBookingTestSetter(v : NullableInDraftMode<DateTime, ValidationMode>) {
+        this.setterImpl(6, v, 'dateOfBooking');
+	}
+
+	/**
+     *  A comment being given by the booking person during the booking process.
+	 *
+	 * @type {string}
+     */
+	get bookingComment() : string | null {
+		return this.data[7];
+	}
+
+	set bookingComment(v : string | null) {
+        this.setterImpl(7, v, 'bookingComment');
+	}
+
+	/**
+     *  Have all shifts associated which this booking been removed? Read only.
+	 *
+	 * @type {boolean}
+     */
+	get allShiftsRemoved() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[8];
+	}
+
+	set allShiftsRemovedTestSetter(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(8, v, 'allShiftsRemoved');
+	}
+
+	/**
+     *  First name of the booking person.
+	 *
+	 * @type {string}
+     */
+	get firstName() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[9];
+	}
+
+	set firstName(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(9, v, 'firstName');
+	}
+
+	/**
+     *  Last name of the booking person.
+	 *
+	 * @type {string}
+     */
+	get lastName() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[10];
+	}
+
+	set lastName(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(10, v, 'lastName');
+	}
+
+	/**
+     *  Start time of first not removed course shift. If all course shifts are removed then time of first original shift is taken. Is "null" when no shift is associated with this booking. Read only.
+	 *
+	 * @type {DateTime}
+     */
+	get firstShiftStart() : DateTime | null {
+		return this.data[11];
+	}
+
+	set firstShiftStartTestSetter(v : DateTime | null) {
+        this.setterImpl(11, v, 'firstShiftStart');
+	}
+
+	/**
+     *  The participant count of this booking. Should only be defined manually when shiftModel.onlyWholeCourseBookable == true. Otherwise this value will be automatically determined by backend according to participants list.
+	 *
+	 * @type {Integer}
+     */
+	get participantCount() : NullableInDraftMode<Integer, ValidationMode> {
+		return this.data[12];
+	}
+
+	set participantCount(v : NullableInDraftMode<Integer, ValidationMode>) {
+        this.setterImpl(12, v, 'participantCount');
+	}
+
+	/**
+     *  How much has currently been paid by the booking person.
+	 *
+	 * @type {Currency}
+     */
+	get currentlyPaid() : NullableInDraftMode<Currency, ValidationMode> {
+		return this.data[13];
+	}
+
+	set currentlyPaidTestSetter(v : NullableInDraftMode<Currency, ValidationMode>) {
+        this.setterImpl(13, v, 'currentlyPaid');
+	}
+
+	/**
+     *  The cancellation fee to be paid for this booking.
+	 *
+	 * @type {Currency}
+     */
+	get cancellationFee() : NullableInDraftMode<Currency, ValidationMode> {
+		return this.data[14];
+	}
+
+	set cancellationFee(v : NullableInDraftMode<Currency, ValidationMode>) {
+        this.setterImpl(14, v, 'cancellationFee');
+	}
+
+	private participantsWrapper : SchedulingApiBookingParticipants<ValidationMode> = new SchedulingApiBookingParticipants<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of participants belonging to this booking. Should only be defined when shiftModel.onlyWholeCourseBookable == false.
+     */
+	get participants() : SchedulingApiBookingParticipants<ValidationMode> {
+		return this.participantsWrapper;
+	}
+
+	set participantsTestSetter(v : SchedulingApiBookingParticipants<ValidationMode>) {
+        this.setterImpl(15, v.rawData, 'participants', () => {this.participantsWrapper = v;});
+	}
+
+	private overallTariffIdWrapper : Id | null = null!;
+
+	/**
+     *  The overall tariff of the booking. Should only be defined when shiftModel.onlyWholeCourseBookable == true. Otherwise the tariff will be defined for each participant.
+	 *
+	 * @type {Id}
+     */
+	get overallTariffId() : Id | null {
+		return this.overallTariffIdWrapper;
+	}
+
+	set overallTariffId(v : Id | null) {
+        this.setterImpl(16, v, 'overallTariffId', () => {this.overallTariffIdWrapper = v;});
+	}
+
+	/**
+     * (Detail)  End time of first not removed course shift. If all course shifts are removed then time of first original shift is taken. Is "null" when no shift is associated with this booking. Read only.
+	 *
+	 * @type {DateTime}
+     */
+	get firstShiftEnd() : DateTime | null {
+		return this.data[17];
+	}
+
+	set firstShiftEndTestSetter(v : DateTime | null) {
+        this.setterImpl(17, v, 'firstShiftEnd');
+	}
+
+	private firstShiftSelectorWrapper : ShiftId | null = null!;
+
+	/**
+     * (Detail)  The shift-selector of the first not removed course shift. If all course shifts are removed then shift-selector of the original first shift is returned.
+	 *
+	 * @type {ShiftId}
+     */
+	get firstShiftSelector() : ShiftId | null {
+		return this.firstShiftSelectorWrapper;
+	}
+
+	set firstShiftSelectorTestSetter(v : ShiftId | null) {
+        this.setterImpl(18, v, 'firstShiftSelector', () => {this.firstShiftSelectorWrapper = v;});
+	}
+
+	/**
+     * (Detail)  Has the booking been attended? Show this only when the booking has participants. If not, then "null" will be returned by the api in which case you should look at "participant.attended".
+	 *
+	 * @type {boolean}
+     */
+	get attended() : boolean | null {
+		return this.data[19];
+	}
+
+	set attended(v : boolean | null) {
+        this.setterImpl(19, v, 'attended');
+	}
+
+	/**
+     * (Detail)  Can requester write booking.attended or participant.attended?
+	 *
+	 * @type {boolean}
+     */
+	get canWriteAttended() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[20];
+	}
+
+	set canWriteAttendedTestSetter(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(20, v, 'canWriteAttended');
+	}
+
+	/**
+     * (Detail)  Was the attended attribute set the POS system?
+	 *
+	 * @type {boolean}
+     */
+	get attendedSetByPos() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[21];
+	}
+
+	set attendedSetByPosTestSetter(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(21, v, 'attendedSetByPos');
+	}
+
+	/**
+     * (Detail)  Date of birth of the booking person.
+	 *
+	 * @type {Date}
+     */
+	get dateOfBirth() : NullableInDraftMode<Date, ValidationMode> {
+		return this.data[22];
+	}
+
+	set dateOfBirth(v : NullableInDraftMode<Date, ValidationMode>) {
+        this.setterImpl(22, v, 'dateOfBirth');
+	}
+
+	/**
+     * (Detail)  Street and house number of the booking person.
+	 *
+	 * @type {string}
+     */
+	get streetAndHouseNumber() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[23];
+	}
+
+	set streetAndHouseNumber(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(23, v, 'streetAndHouseNumber');
+	}
+
+	/**
+     * (Detail)  City of the booking person.
+	 *
+	 * @type {string}
+     */
+	get city() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[24];
+	}
+
+	set city(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(24, v, 'city');
+	}
+
+	/**
+     * (Detail)  Postal code of the booking person.
+	 *
+	 * @type {PostalCode}
+     */
+	get postalCode() : NullableInDraftMode<PostalCode, ValidationMode> {
+		return this.data[25];
+	}
+
+	set postalCode(v : NullableInDraftMode<PostalCode, ValidationMode>) {
+        this.setterImpl(25, v, 'postalCode');
+	}
+
+	/**
+     * (Detail)  Email of the booking person.
+	 *
+	 * @type {Email}
+     */
+	get email() : NullableInDraftMode<Email, ValidationMode> {
+		return this.data[26];
+	}
+
+	set email(v : NullableInDraftMode<Email, ValidationMode>) {
+        this.setterImpl(26, v, 'email');
+	}
+
+	/**
+     * (Detail)  Mobile phone of the booking person.
+	 *
+	 * @type {Tel}
+     */
+	get phoneMobile() : NullableInDraftMode<Tel, ValidationMode> {
+		return this.data[27];
+	}
+
+	set phoneMobile(v : NullableInDraftMode<Tel, ValidationMode>) {
+        this.setterImpl(27, v, 'phoneMobile');
+	}
+
+	/**
+     * (Detail)  Landline phone of the booking person.
+	 *
+	 * @type {Tel}
+     */
+	get phoneLandline() : Tel | null {
+		return this.data[28];
+	}
+
+	set phoneLandline(v : Tel | null) {
+        this.setterImpl(28, v, 'phoneLandline');
+	}
+
+	private paymentMethodIdWrapper : Id | null = null!;
+
+	/**
+     * (Detail)  The payment-method being selected by the booking person.
+	 *
+	 * @type {Id}
+     */
+	get paymentMethodId() : Id | null {
+		return this.paymentMethodIdWrapper;
+	}
+
+	set paymentMethodId(v : Id | null) {
+        this.setterImpl(29, v, 'paymentMethodId', () => {this.paymentMethodIdWrapper = v;});
+	}
+
+	/**
+     * (Detail)  The desired date description being given by the booking person.
+	 *
+	 * @type {string}
+     */
+	get desiredDate() : string | null {
+		return this.data[30];
+	}
+
+	set desiredDate(v : string | null) {
+        this.setterImpl(30, v, 'desiredDate');
+	}
+
+	/**
+     * (Detail)  Does the booking person wants newsletter?
+	 *
+	 * @type {boolean}
+     */
+	get wantsNewsletter() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[31];
+	}
+
+	set wantsNewsletter(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(31, v, 'wantsNewsletter');
+	}
+
+	/**
+     * (Detail)  The amount which was paid before we introduced the detailed transaction list for each bookable. Ignore it when it is "null".
+	 *
+	 * @type {Currency}
+     */
+	get paidBeforeTransactionListIntroduction() : Currency | null {
+		return this.data[32];
+	}
+
+	set paidBeforeTransactionListIntroductionTestSetter(v : Currency | null) {
+        this.setterImpl(32, v, 'paidBeforeTransactionListIntroduction');
+	}
+
+	/**
+     * (Detail)  Company of the booking person.
+	 *
+	 * @type {string}
+     */
+	get company() : string | null {
+		return this.data[33];
+	}
+
+	set company(v : string | null) {
+        this.setterImpl(33, v, 'company');
+	}
+
+	/**
+     * (Detail)  Additional field value for the whole booking. Should only be shown when booking has an overallTariff with "overallTariff.additionalFieldLabel" defined.
+	 *
+	 * @type {string}
+     */
+	get additionalFieldValue() : string | null {
+		return this.data[34];
+	}
+
+	set additionalFieldValue(v : string | null) {
+        this.setterImpl(34, v, 'additionalFieldValue');
+	}
+
+	/**
+     * (Detail)  Description about min average age of the participants. Can only be defined when shiftModel.onlyWholeCourseBookable == true.
+	 *
+	 * @type {Integer}
+     */
+	get ageMin() : Integer | null {
+		return this.data[35];
+	}
+
+	set ageMin(v : Integer | null) {
+        this.setterImpl(35, v, 'ageMin');
+	}
+
+	/**
+     * (Detail)  Description about max average age of the participants. Can only be defined when shiftModel.onlyWholeCourseBookable == true.
+	 *
+	 * @type {Integer}
+     */
+	get ageMax() : Integer | null {
+		return this.data[36];
+	}
+
+	set ageMax(v : Integer | null) {
+        this.setterImpl(36, v, 'ageMax');
+	}
+
+	private cancellationPolicyIdWrapper : NullableInDraftMode<Id, ValidationMode> = null!;
+
+	/**
+     * (Detail)  The id of the cancellation-policy used by this booking.
+	 *
+	 * @type {Id}
+     */
+	get cancellationPolicyId() : NullableInDraftMode<Id, ValidationMode> {
+		return this.cancellationPolicyIdWrapper;
+	}
+
+	set cancellationPolicyIdTestSetter(v : NullableInDraftMode<Id, ValidationMode>) {
+        this.setterImpl(37, v, 'cancellationPolicyId', () => {this.cancellationPolicyIdWrapper = v;});
+	}
+
+	/**
+     * (Detail)  Has the booking person have write of withdrawal at this moment?
+	 *
+	 * @type {boolean}
+     */
+	get hasRightOfWithdrawal() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[38];
+	}
+
+	set hasRightOfWithdrawalTestSetter(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(38, v, 'hasRightOfWithdrawal');
+	}
+
+	private applicableCancellationFeePeriodIdWrapper : Id | null = null!;
+
+	/**
+     * (Detail)  The fee-period id of the cancellation-policy "cancellationPolicyId" which should be applied at this moment.
+	 *
+	 * @type {Id}
+     */
+	get applicableCancellationFeePeriodId() : Id | null {
+		return this.applicableCancellationFeePeriodIdWrapper;
+	}
+
+	set applicableCancellationFeePeriodIdTestSetter(v : Id | null) {
+        this.setterImpl(39, v, 'applicableCancellationFeePeriodId', () => {this.applicableCancellationFeePeriodIdWrapper = v;});
+	}
+
+	/**
+     * (Detail)  The max refund value when limited by online balance. This value is send to everyone who can trigger online refunds. Thus as a security measure it is only send when online balance limits the refund amount to not leak the online balance to unauthorized users. Otherwise "null" is returned.
+	 *
+	 * @type {Currency}
+     */
+	get refundLimitDueToOnlineBalance() : Currency | null {
+		return this.data[40];
+	}
+
+	set refundLimitDueToOnlineBalanceTestSetter(v : Currency | null) {
+        this.setterImpl(40, v, 'refundLimitDueToOnlineBalance');
+	}
+
+	/**
+     * (Detail)  Is this booking anonymized?
+	 *
+	 * @type {boolean}
+     */
+	get isAnonymized() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[41];
+	}
+
+	set isAnonymizedTestSetter(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(41, v, 'isAnonymized');
+	}
+
+	/**
+     * (Detail)  A token for deferred Payments. only for testing.
+	 *
+	 * @type {string}
+     */
+	get testingDeferredPaymentToken() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[42];
+	}
+
+	set testingDeferredPaymentTokenTestSetter(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(42, v, 'testingDeferredPaymentToken');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.data[4] = Meta.getReplacedId(this.data[4], _idReplacements);
+		this.courseSelectorWrapper = ShiftSelector.create(this.data[4]);
+		this.data[5] = Meta.getReplacedId(this.data[5], _idReplacements);
+		this.shiftModelIdWrapper = Id.create(this.data[5]);
+		this.participantsWrapper._fixIds(_idReplacements);
+		this.data[16] = Meta.getReplacedId(this.data[16], _idReplacements);
+		this.overallTariffIdWrapper = Id.create(this.data[16]);
+		this.data[18] = Meta.getReplacedId(this.data[18], _idReplacements);
+		this.firstShiftSelectorWrapper = ShiftId.create(this.data[18]);
+		this.data[29] = Meta.getReplacedId(this.data[29], _idReplacements);
+		this.paymentMethodIdWrapper = Id.create(this.data[29]);
+		this.data[37] = Meta.getReplacedId(this.data[37], _idReplacements);
+		this.cancellationPolicyIdWrapper = Id.create(this.data[37]);
+		this.data[39] = Meta.getReplacedId(this.data[39], _idReplacements);
+		this.applicableCancellationFeePeriodIdWrapper = Id.create(this.data[39]);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 43);
+
+			data[8] = false;
+			data[12] = INITIALIZED_IN_BACKEND;
+			if(data[15] === null)
+				data[15] = Meta.createNewList();
+			data[20] = false;
+			data[21] = false;
+			data[31] = false;
+			data[38] = false;
+			data[41] = false;
+		}
+
+		// propagate new raw data to children
+		if(!Meta.isSameId(data ? data[4] : null, this.courseSelectorWrapper))
+			this.courseSelectorWrapper = data && data[4] ? ShiftSelector.create(data[4]) : null!;
+		if(!Meta.isSameId(data ? data[5] : null, this.shiftModelIdWrapper))
+			this.shiftModelIdWrapper = data && data[5] ? Id.create(data[5]) : null!;
+		this.participantsWrapper._updateRawData(data ? data[15] : null, generateMissingData);
+		if(!Meta.isSameId(data ? data[16] : null, this.overallTariffIdWrapper))
+			this.overallTariffIdWrapper = data && data[16] ? Id.create(data[16]) : null!;
+		if(!Meta.isSameId(data ? data[18] : null, this.firstShiftSelectorWrapper))
+			this.firstShiftSelectorWrapper = data && data[18] ? ShiftId.create(data[18]) : null!;
+		if(!Meta.isSameId(data ? data[29] : null, this.paymentMethodIdWrapper))
+			this.paymentMethodIdWrapper = data && data[29] ? Id.create(data[29]) : null!;
+		if(!Meta.isSameId(data ? data[37] : null, this.cancellationPolicyIdWrapper))
+			this.cancellationPolicyIdWrapper = data && data[37] ? Id.create(data[37]) : null!;
+		if(!Meta.isSameId(data ? data[39] : null, this.applicableCancellationFeePeriodIdWrapper))
+			this.applicableCancellationFeePeriodIdWrapper = data && data[39] ? Id.create(data[39]) : null!;
+	}
+
+	protected get dni() : string {
+		return '406';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '406', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiBooking<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+export enum SchedulingApiBookingState {
+	INQUIRY = 1,
+	INQUIRY_DECLINED = 2,
+	BOOKED = 3,
+	CANCELED = 4,
+}
+		 export class SchedulingApiBookingParticipants<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'participants');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiBookingParticipant<ValidationMode> {
+		const newWrapper = new SchedulingApiBookingParticipant<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiBookingParticipants<ValidationMode> {
+		return new SchedulingApiBookingParticipants<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '421';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiBookingParticipant<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('participants');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiBookingParticipants<ValidationMode>, SchedulingApiBookingParticipants<ValidationMode>> = new ApiAttributeInfo<SchedulingApiBookingParticipants<ValidationMode>, SchedulingApiBookingParticipants<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiBookingParticipants<ValidationMode>,
+			name: 'participants',
+			id: 'BOOKING_PARTICIPANTS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+		});
+}
+
+				 
+export class SchedulingApiBookingParticipantBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiBookingParticipant as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiBookingParticipant<ValidationMode>, SchedulingApiBookingParticipant<ValidationMode>> = new ApiAttributeInfo<SchedulingApiBookingParticipant<ValidationMode>, SchedulingApiBookingParticipant<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiBookingParticipant<ValidationMode>,
+			name: 'bookingParticipant',
+			id: 'BOOKING_PARTICIPANT',
+		});
+	attributeInfoAttended =  new ApiAttributeInfo<SchedulingApiBookingParticipant<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiBookingParticipant<ValidationMode>,
+			name: 'attended',
+			id: 'BOOKING_PARTICIPANT_ATTENDED',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsBookingPerson =  new ApiAttributeInfo<SchedulingApiBookingParticipant<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiBookingParticipant<ValidationMode>,
+			name: 'isBookingPerson',
+			id: 'BOOKING_PARTICIPANT_IS_BOOKING_PERSON',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoFirstName =  new ApiAttributeInfo<SchedulingApiBookingParticipant<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiBookingParticipant<ValidationMode>,
+			name: 'firstName',
+			id: 'BOOKING_PARTICIPANT_FIRST_NAME',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoLastName =  new ApiAttributeInfo<SchedulingApiBookingParticipant<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiBookingParticipant<ValidationMode>,
+			name: 'lastName',
+			id: 'BOOKING_PARTICIPANT_LAST_NAME',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoEmail =  new ApiAttributeInfo<SchedulingApiBookingParticipant<ValidationMode>, Email>({
+			apiObjWrapper: this as any as SchedulingApiBookingParticipant<ValidationMode>,
+			name: 'email',
+			id: 'BOOKING_PARTICIPANT_EMAIL',
+			primitiveType: PApiPrimitiveTypes.Email,
+		});
+	attributeInfoDateOfBirth =  new ApiAttributeInfo<SchedulingApiBookingParticipant<ValidationMode>, Date>({
+			apiObjWrapper: this as any as SchedulingApiBookingParticipant<ValidationMode>,
+			name: 'dateOfBirth',
+			id: 'BOOKING_PARTICIPANT_DATE_OF_BIRTH',
+			primitiveType: PApiPrimitiveTypes.Date,
+			validations: function(this : SchedulingApiBookingParticipant<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.min(-1577926800000, true, PApiPrimitiveTypes.Date, undefined, undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.max(+this.api!.pMoment.m().add(0, 'minutes'), true, PApiPrimitiveTypes.Date, undefined, undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoTariffId =  new ApiAttributeInfo<SchedulingApiBookingParticipant<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiBookingParticipant<ValidationMode>,
+			name: 'tariffId',
+			id: 'BOOKING_PARTICIPANT_TARIFF_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+	attributeInfoAdditionalFieldValue =  new ApiAttributeInfo<SchedulingApiBookingParticipant<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiBookingParticipant<ValidationMode>,
+			name: 'additionalFieldValue',
+			id: 'BOOKING_PARTICIPANT_ADDITIONAL_FIELD_VALUE',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+
+	/**
+     *  Has the participant attended?
+	 *
+	 * @type {boolean}
+     */
+	get attended() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[1];
+	}
+
+	set attended(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(1, v, 'attended');
+	}
+
+	/**
+     *  Is this the booking person? If so, the attributes like firstName, lastName, ... from this item will be ignored and data from booking item will be taken.
+	 *
+	 * @type {boolean}
+     */
+	get isBookingPerson() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[2];
+	}
+
+	set isBookingPerson(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(2, v, 'isBookingPerson');
+	}
+
+	/**
+     *  First name of the participant
+	 *
+	 * @type {string}
+     */
+	get firstName() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[3];
+	}
+
+	set firstName(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(3, v, 'firstName');
+	}
+
+	/**
+     *  Last name of the participant
+	 *
+	 * @type {string}
+     */
+	get lastName() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[4];
+	}
+
+	set lastName(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(4, v, 'lastName');
+	}
+
+	/**
+     *  Email of the participant
+	 *
+	 * @type {Email}
+     */
+	get email() : NullableInDraftMode<Email, ValidationMode> {
+		return this.data[5];
+	}
+
+	set email(v : NullableInDraftMode<Email, ValidationMode>) {
+        this.setterImpl(5, v, 'email');
+	}
+
+	/**
+     *  Date of birth of the participant
+	 *
+	 * @type {Date}
+     */
+	get dateOfBirth() : NullableInDraftMode<Date, ValidationMode> {
+		return this.data[6];
+	}
+
+	set dateOfBirth(v : NullableInDraftMode<Date, ValidationMode>) {
+        this.setterImpl(6, v, 'dateOfBirth');
+	}
+
+	private tariffIdWrapper : Id | null = null!;
+
+	/**
+     *  Tariff id of the participant
+	 *
+	 * @type {Id}
+     */
+	get tariffId() : Id | null {
+		return this.tariffIdWrapper;
+	}
+
+	set tariffId(v : Id | null) {
+        this.setterImpl(7, v, 'tariffId', () => {this.tariffIdWrapper = v;});
+	}
+
+	/**
+     * (Detail)  Additional field value for this participant. Should only be shown when participant has a tariff with "tariff.additionalFieldLabel" defined.
+	 *
+	 * @type {string}
+     */
+	get additionalFieldValue() : string | null {
+		return this.data[8];
+	}
+
+	set additionalFieldValue(v : string | null) {
+        this.setterImpl(8, v, 'additionalFieldValue');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.data[7] = Meta.getReplacedId(this.data[7], _idReplacements);
+		this.tariffIdWrapper = Id.create(this.data[7]);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 9);
+
+			data[1] = false;
+			data[2] = false;
+		}
+
+		// propagate new raw data to children
+		if(!Meta.isSameId(data ? data[7] : null, this.tariffIdWrapper))
+			this.tariffIdWrapper = data && data[7] ? Id.create(data[7]) : null!;
+	}
+
+	protected get dni() : string {
+		return '449';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '449', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiBookingParticipant<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiShiftModelsBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'shiftModels');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiShiftModel<ValidationMode> {
+		const newWrapper = new SchedulingApiShiftModel<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiShiftModels<ValidationMode> {
+		return new SchedulingApiShiftModels<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '9';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiShiftModel<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('shiftModels');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftModels<ValidationMode>, SchedulingApiShiftModels<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftModels<ValidationMode>, SchedulingApiShiftModels<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftModels<ValidationMode>,
+			name: 'shiftModels',
+			id: 'SHIFT_MODELS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+		});
+}
+
+				 
+export class SchedulingApiShiftModelBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftModel as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+		this.assignableMembersWrapper.parent = this as any as SchedulingApiShiftModel<ValidationMode>;
+		this.repetitionWrapper.parent = this as any as SchedulingApiShiftModel<ValidationMode>;
+		this.timeWrapper.parent = this as any as SchedulingApiShiftModel<ValidationMode>;
+		this.posAccountsWrapper.parent = this as any as SchedulingApiShiftModel<ValidationMode>;
+		this.changeSelectorWrapper.parent = this as any as SchedulingApiShiftModel<ValidationMode>;
+		this.automaticBookableMailIdsWrapper.parent = this as any as SchedulingApiShiftModel<ValidationMode>;
+		this.courseTariffsWrapper.parent = this as any as SchedulingApiShiftModel<ValidationMode>;
+		this.coursePaymentMethodsWrapper.parent = this as any as SchedulingApiShiftModel<ValidationMode>;
+		this.cancellationPoliciesWrapper.parent = this as any as SchedulingApiShiftModel<ValidationMode>;
+		this.neededMembersCountConfWrapper.parent = this as any as SchedulingApiShiftModel<ValidationMode>;
+		this.assignedMemberIdsWrapper.parent = this as any as SchedulingApiShiftModel<ValidationMode>;
+		this.courseHighlightsWrapper.parent = this as any as SchedulingApiShiftModel<ValidationMode>;
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, SchedulingApiShiftModel<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, SchedulingApiShiftModel<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'shiftModel',
+			id: 'SHIFT_MODEL',
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoColor =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'color',
+			id: 'SHIFT_MODEL_COLOR',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoName =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'name',
+			id: 'SHIFT_MODEL_NAME',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoParentName =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'parentName',
+			id: 'SHIFT_MODEL_PARENT_NAME',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoTrashed =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'trashed',
+			id: 'SHIFT_MODEL_TRASHED',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoCostCentre =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'costCentre',
+			id: 'SHIFT_MODEL_COST_CENTRE',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+	attributeInfoArticleGroup =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'articleGroup',
+			id: 'SHIFT_MODEL_ARTICLE_GROUP',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+	attributeInfoIsCourse =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'isCourse',
+			id: 'SHIFT_MODEL_IS_COURSE',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoCourseType =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, SchedulingApiCourseType>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'courseType',
+			id: 'SHIFT_MODEL_COURSE_TYPE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+		});
+	attributeInfoOnlyWholeCourseBookable =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'onlyWholeCourseBookable',
+			id: 'SHIFT_MODEL_ONLY_WHOLE_COURSE_BOOKABLE',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoOnlineCancellationForChargeableBookingsEnabled =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'onlineCancellationForChargeableBookingsEnabled',
+			id: 'SHIFT_MODEL_ONLINE_CANCELLATION_FOR_CHARGEABLE_BOOKINGS_ENABLED',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoCurrentCancellationPolicyId =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'currentCancellationPolicyId',
+			id: 'SHIFT_MODEL_CURRENT_CANCELLATION_POLICY_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoIsCourseOnline =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'isCourseOnline',
+			id: 'SHIFT_MODEL_IS_COURSE_ONLINE',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoBookingDesiredDateSetting =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, SchedulingApiBookingDesiredDateSetting>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'bookingDesiredDateSetting',
+			id: 'SHIFT_MODEL_BOOKING_DESIRED_DATE_SETTING',
+			primitiveType: PApiPrimitiveTypes.Enum,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoCourseCodePrefix =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'courseCodePrefix',
+			id: 'SHIFT_MODEL_COURSE_CODE_PREFIX',
+			primitiveType: PApiPrimitiveTypes.string,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoCourseGroup =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'courseGroup',
+			id: 'SHIFT_MODEL_COURSE_GROUP',
+			primitiveType: PApiPrimitiveTypes.string,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoFreeclimberArticleId =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'freeclimberArticleId',
+			id: 'SHIFT_MODEL_FREECLIMBER_ARTICLE_ID',
+			primitiveType: PApiPrimitiveTypes.Integer,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoBookingPersonMinAge =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, Years>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'bookingPersonMinAge',
+			id: 'SHIFT_MODEL_BOOKING_PERSON_MIN_AGE',
+			primitiveType: PApiPrimitiveTypes.Years,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+			validations: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.min(1, true, PApiPrimitiveTypes.Years, undefined, undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.max(100, true, PApiPrimitiveTypes.Years, undefined, undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoParticipantMinAge =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, Years>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'participantMinAge',
+			id: 'SHIFT_MODEL_PARTICIPANT_MIN_AGE',
+			primitiveType: PApiPrimitiveTypes.Years,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+			validations: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.min(1, true, PApiPrimitiveTypes.Years, undefined, undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.max(100, true, PApiPrimitiveTypes.Years, undefined, undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.max(() => this.participantMaxAge, true, PApiPrimitiveTypes.Years, 'SHIFT_MODEL_PARTICIPANT_MAX_AGE', undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoParticipantMaxAge =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, Years>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'participantMaxAge',
+			id: 'SHIFT_MODEL_PARTICIPANT_MAX_AGE',
+			primitiveType: PApiPrimitiveTypes.Years,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+			validations: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.min(1, true, PApiPrimitiveTypes.Years, undefined, undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.max(100, true, PApiPrimitiveTypes.Years, undefined, undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.min(() => this.participantMinAge, true, PApiPrimitiveTypes.Years, 'SHIFT_MODEL_PARTICIPANT_MIN_AGE', undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoDescription =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'description',
+			id: 'SHIFT_MODEL_DESCRIPTION',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoWorkingTimeCreationMethod =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, SchedulingApiWorkingTimeCreationMethod>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'workingTimeCreationMethod',
+			id: 'SHIFT_MODEL_WORKING_TIME_CREATION_METHOD',
+			primitiveType: PApiPrimitiveTypes.Enum,
+			show: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+		});
+	attributeInfoCourseTitle =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'courseTitle',
+			id: 'SHIFT_MODEL_COURSE_TITLE',
+			primitiveType: PApiPrimitiveTypes.string,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoCourseSubtitle =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'courseSubtitle',
+			id: 'SHIFT_MODEL_COURSE_SUBTITLE',
+			primitiveType: PApiPrimitiveTypes.string,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoCourseDescription =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'courseDescription',
+			id: 'SHIFT_MODEL_COURSE_DESCRIPTION',
+			primitiveType: PApiPrimitiveTypes.string,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoCourseEquipmentRequirements =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'courseEquipmentRequirements',
+			id: 'SHIFT_MODEL_COURSE_EQUIPMENT_REQUIREMENTS',
+			primitiveType: PApiPrimitiveTypes.string,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoCourseSkillRequirements =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'courseSkillRequirements',
+			id: 'SHIFT_MODEL_COURSE_SKILL_REQUIREMENTS',
+			primitiveType: PApiPrimitiveTypes.string,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoCourseLocation =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'courseLocation',
+			id: 'SHIFT_MODEL_COURSE_LOCATION',
+			primitiveType: PApiPrimitiveTypes.string,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoCourseContactName =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'courseContactName',
+			id: 'SHIFT_MODEL_COURSE_CONTACT_NAME',
+			primitiveType: PApiPrimitiveTypes.string,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoCourseContactEmail =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, Email>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'courseContactEmail',
+			id: 'SHIFT_MODEL_COURSE_CONTACT_EMAIL',
+			primitiveType: PApiPrimitiveTypes.Email,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoCourseContactPhone =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, Tel>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'courseContactPhone',
+			id: 'SHIFT_MODEL_COURSE_CONTACT_PHONE',
+			primitiveType: PApiPrimitiveTypes.Tel,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoArrivalTimeBeforeCourse =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, Duration>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'arrivalTimeBeforeCourse',
+			id: 'SHIFT_MODEL_ARRIVAL_TIME_BEFORE_COURSE',
+			primitiveType: PApiPrimitiveTypes.Duration,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoCourseBookingDeadlineFrom =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, Duration>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'courseBookingDeadlineFrom',
+			id: 'SHIFT_MODEL_COURSE_BOOKING_DEADLINE_FROM',
+			primitiveType: PApiPrimitiveTypes.Duration,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoCourseBookingDeadlineUntil =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, Duration>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'courseBookingDeadlineUntil',
+			id: 'SHIFT_MODEL_COURSE_BOOKING_DEADLINE_UNTIL',
+			primitiveType: PApiPrimitiveTypes.Duration,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoMinCourseParticipantCount =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'minCourseParticipantCount',
+			id: 'SHIFT_MODEL_MIN_COURSE_PARTICIPANT_COUNT',
+			primitiveType: PApiPrimitiveTypes.Integer,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoMaxCourseParticipantCount =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'maxCourseParticipantCount',
+			id: 'SHIFT_MODEL_MAX_COURSE_PARTICIPANT_COUNT',
+			primitiveType: PApiPrimitiveTypes.Integer,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoIsCoronaSlotBooking =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'isCoronaSlotBooking',
+			id: 'SHIFT_MODEL_IS_CORONA_SLOT_BOOKING',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoOnlineCancellationForFreeBookingsEnabled =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'onlineCancellationForFreeBookingsEnabled',
+			id: 'SHIFT_MODEL_ONLINE_CANCELLATION_FOR_FREE_BOOKINGS_ENABLED',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoOnlineCancellationForFreeBookingsDeadline =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, Duration>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'onlineCancellationForFreeBookingsDeadline',
+			id: 'SHIFT_MODEL_ONLINE_CANCELLATION_FOR_FREE_BOOKINGS_DEADLINE',
+			primitiveType: PApiPrimitiveTypes.Duration,
+			show: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.onlineCancellationForFreeBookingsEnabled)))
+		{
+			return false;
+		}
+				return true;
+			},
+			validations: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.min(0, true, PApiPrimitiveTypes.Duration, undefined, undefined);
+							return null;
+					},
+					() => {
+						return this.api!.validators.notUndefined(PApiPrimitiveTypes.Duration, undefined);
+					},
+				];
+			},
+		});
+	attributeInfoOnlineCancellationForChargeableBookingsDeadline =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, Duration>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'onlineCancellationForChargeableBookingsDeadline',
+			id: 'SHIFT_MODEL_ONLINE_CANCELLATION_FOR_CHARGEABLE_BOOKINGS_DEADLINE',
+			primitiveType: PApiPrimitiveTypes.Duration,
+			show: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.onlineCancellationForChargeableBookingsEnabled)))
+		{
+			return false;
+		}
+				return true;
+			},
+			validations: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.min(0, true, PApiPrimitiveTypes.Duration, undefined, undefined);
+							return null;
+					},
+					() => {
+						return this.api!.validators.notUndefined(PApiPrimitiveTypes.Duration, undefined);
+					},
+				];
+			},
+		});
+	attributeInfoOnlineCancellationForWithdrawableBookingsAlwaysEnabled =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'onlineCancellationForWithdrawableBookingsAlwaysEnabled',
+			id: 'SHIFT_MODEL_ONLINE_CANCELLATION_FOR_WITHDRAWABLE_BOOKINGS_ALWAYS_ENABLED',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.currentCancellationPolicy!.withdrawalPeriod !== null)))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+			vars: {
+				cannotEditHint: 'Um diese Funktionalität nutzen zu können, setze bitte erst eine Widerrufsfrist.',
+			}
+		});
+	attributeInfoOnlineCancellationAutomaticOnlineRefundEnabled =  new ApiAttributeInfo<SchedulingApiShiftModel<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModel<ValidationMode>,
+			name: 'onlineCancellationAutomaticOnlineRefundEnabled',
+			id: 'SHIFT_MODEL_ONLINE_CANCELLATION_AUTOMATIC_ONLINE_REFUND_ENABLED',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: function(this : SchedulingApiShiftModel<ValidationMode>) {
+		if(!((this.api!.data.isOnlinePaymentAvailable)))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModel<ValidationMode>) {
+				 
+		
+				return false;
+			},
+			vars: {
+				cannotEditHint: 'Um diese Funktionalität nutzen zu können, aktiviere bitte erst die <a href="client/plugin/payments" target="_blank">Online-Zahlung</a>.',
+			}
+		});
+
+	/**
+     *  Color of shift model in format "rrggbb".
+	 *
+	 * @type {string}
+     */
+	get color() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[1];
+	}
+
+	set color(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(1, v, 'color');
+	}
+
+	/**
+     *  Name of shift model.
+	 *
+	 * @type {string}
+     */
+	get name() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[2];
+	}
+
+	set name(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(2, v, 'name');
+	}
+
+	/**
+     *  Name of this shift-model's parent.
+	 *
+	 * @type {string}
+     */
+	get parentName() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[3];
+	}
+
+	set parentName(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(3, v, 'parentName');
+	}
+
+	/**
+     *  Is this shift model trashed?
+	 *
+	 * @type {boolean}
+     */
+	get trashed() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[4];
+	}
+
+	set trashed(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(4, v, 'trashed');
+	}
+
+	private assignableMembersWrapper : SchedulingApiShiftModelAssignableMembers<ValidationMode> = new SchedulingApiShiftModelAssignableMembers<ValidationMode>(this.api, false);
+
+	/**
+     *  Only send to client owners. Which members are assignable to this shift-model. Make sure this is deserialized before assignedMemberIds because this is a prerequisite.  Can be used with "changeSelector".
+     */
+	get assignableMembers() : SchedulingApiShiftModelAssignableMembers<ValidationMode> {
+		return this.assignableMembersWrapper;
+	}
+
+	set assignableMembersTestSetter(v : SchedulingApiShiftModelAssignableMembers<ValidationMode>) {
+        this.setterImpl(5, v.rawData, 'assignableMembers', () => {this.assignableMembersWrapper = v;});
+	}
+
+	private repetitionWrapper : SchedulingApiShiftModelRepetition<ValidationMode> = new SchedulingApiShiftModelRepetition<ValidationMode>(this.api);
+
+	/**
+     *  Repetition pattern of this shift-model.
+     */
+	get repetition() : SchedulingApiShiftModelRepetition<ValidationMode> {
+		return this.repetitionWrapper;
+	}
+
+	set repetitionTestSetter(v : SchedulingApiShiftModelRepetition<ValidationMode>) {
+        this.setterImpl(6, v.rawData, 'repetition', () => {this.repetitionWrapper = v;});
+	}
+
+	private timeWrapper : SchedulingApiShiftModelTime<ValidationMode> = new SchedulingApiShiftModelTime<ValidationMode>(this.api);
+
+	/**
+     *  The time when this shift-model will start (relative to current day). Can be used with "changeSelector".
+     */
+	get time() : SchedulingApiShiftModelTime<ValidationMode> {
+		return this.timeWrapper;
+	}
+
+	set timeTestSetter(v : SchedulingApiShiftModelTime<ValidationMode>) {
+        this.setterImpl(7, v.rawData, 'time', () => {this.timeWrapper = v;});
+	}
+
+	/**
+     *  "Kostenstelle" used for controlling. Note that this is not a detailed field to enable type-ahead functionality.
+	 *
+	 * @type {string}
+     */
+	get costCentre() : string | null {
+		return this.data[8];
+	}
+
+	set costCentre(v : string | null) {
+        this.setterImpl(8, v, 'costCentre');
+	}
+
+	/**
+     *  "Warengruppe" used for controlling. Note that this is not a detailed field to enable type-ahead functionality.
+	 *
+	 * @type {string}
+     */
+	get articleGroup() : string | null {
+		return this.data[9];
+	}
+
+	set articleGroup(v : string | null) {
+        this.setterImpl(9, v, 'articleGroup');
+	}
+
+	private posAccountsWrapper : SchedulingApiShiftModelPosAccounts<ValidationMode> = new SchedulingApiShiftModelPosAccounts<ValidationMode>(this.api, false);
+
+	/**
+     *  Pos accounts for this shift-model. Note that this is not a detailed field to enable type-ahead functionality.
+     */
+	get posAccounts() : SchedulingApiShiftModelPosAccounts<ValidationMode> {
+		return this.posAccountsWrapper;
+	}
+
+	set posAccountsTestSetter(v : SchedulingApiShiftModelPosAccounts<ValidationMode>) {
+        this.setterImpl(10, v.rawData, 'posAccounts', () => {this.posAccountsWrapper = v;});
+	}
+
+	/**
+     *  Is this a course?
+	 *
+	 * @type {boolean}
+     */
+	get isCourse() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[11];
+	}
+
+	set isCourse(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(11, v, 'isCourse');
+	}
+
+	/**
+     *  course type
+	 *
+	 * @type {SchedulingApiCourseType}
+     */
+	get courseType() : SchedulingApiCourseType | null {
+		return this.data[12];
+	}
+
+	set courseType(v : SchedulingApiCourseType | null) {
+        this.setterImpl(12, v, 'courseType');
+	}
+
+	private changeSelectorWrapper : SchedulingApiShiftModelChangeSelector<ValidationMode> = new SchedulingApiShiftModelChangeSelector<ValidationMode>(this.api);
+
+	/**
+     *  Set by user to define what should - additionally to this member - be modified.
+     */
+	get changeSelector() : SchedulingApiShiftModelChangeSelector<ValidationMode> {
+		return this.changeSelectorWrapper;
+	}
+
+	set changeSelectorTestSetter(v : SchedulingApiShiftModelChangeSelector<ValidationMode>) {
+        this.setterImpl(13, v.rawData, 'changeSelector', () => {this.changeSelectorWrapper = v;});
+	}
+
+	private automaticBookableMailIdsWrapper : SchedulingApiShiftModelAutomaticBookableMailIds<ValidationMode> = new SchedulingApiShiftModelAutomaticBookableMailIds<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of custom-bookable-mail ids which are attached to this shift-model for automatic mail sending.
+     */
+	get automaticBookableMailIds() : SchedulingApiShiftModelAutomaticBookableMailIds<ValidationMode> {
+		return this.automaticBookableMailIdsWrapper;
+	}
+
+	set automaticBookableMailIdsTestSetter(v : SchedulingApiShiftModelAutomaticBookableMailIds<ValidationMode>) {
+        this.setterImpl(14, v.rawData, 'automaticBookableMailIds', () => {this.automaticBookableMailIdsWrapper = v;});
+	}
+
+	/**
+     *  A booking will book the whole course? Only possible when courseType is not NO_BOOKING. (Note for Milad: This has currently be deserialized before tariffs/payment-methods. Thus, it is positioned currently here).
+	 *
+	 * @type {boolean}
+     */
+	get onlyWholeCourseBookable() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[15];
+	}
+
+	set onlyWholeCourseBookable(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(15, v, 'onlyWholeCourseBookable');
+	}
+
+	private courseTariffsWrapper : SchedulingApiShiftModelCourseTariffs<ValidationMode> = new SchedulingApiShiftModelCourseTariffs<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of course tariffs.
+     */
+	get courseTariffs() : SchedulingApiShiftModelCourseTariffs<ValidationMode> {
+		return this.courseTariffsWrapper;
+	}
+
+	set courseTariffsTestSetter(v : SchedulingApiShiftModelCourseTariffs<ValidationMode>) {
+        this.setterImpl(16, v.rawData, 'courseTariffs', () => {this.courseTariffsWrapper = v;});
+	}
+
+	private coursePaymentMethodsWrapper : SchedulingApiShiftModelCoursePaymentMethods<ValidationMode> = new SchedulingApiShiftModelCoursePaymentMethods<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of course payment methods.
+     */
+	get coursePaymentMethods() : SchedulingApiShiftModelCoursePaymentMethods<ValidationMode> {
+		return this.coursePaymentMethodsWrapper;
+	}
+
+	set coursePaymentMethodsTestSetter(v : SchedulingApiShiftModelCoursePaymentMethods<ValidationMode>) {
+        this.setterImpl(17, v.rawData, 'coursePaymentMethods', () => {this.coursePaymentMethodsWrapper = v;});
+	}
+
+	/**
+     *  Is online cancellation by booking person for chargeable bookings allowed? (Backend-note by Milad: This has to be deserialized before SHIFT_MODEL_ONLINE_CANCELLATION_FOR_CHARGEABLE_BOOKINGS_ENABLED because the "required" validation of this depends on that value)
+	 *
+	 * @type {boolean}
+     */
+	get onlineCancellationForChargeableBookingsEnabled() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[18];
+	}
+
+	set onlineCancellationForChargeableBookingsEnabled(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(18, v, 'onlineCancellationForChargeableBookingsEnabled');
+	}
+
+	private currentCancellationPolicyIdWrapper : NullableInDraftMode<Id, ValidationMode> = null!;
+
+	/**
+     *  The id of the current cancellationPolicy which will be used for new bookings.
+	 *
+	 * @type {Id}
+     */
+	get currentCancellationPolicyId() : NullableInDraftMode<Id, ValidationMode> {
+		return this.currentCancellationPolicyIdWrapper;
+	}
+
+	set currentCancellationPolicyIdTestSetter(v : NullableInDraftMode<Id, ValidationMode>) {
+        this.setterImpl(19, v, 'currentCancellationPolicyId', () => {this.currentCancellationPolicyIdWrapper = v;});
+	}
+
+	private cancellationPoliciesWrapper : SchedulingApiShiftModelCancellationPolicies<ValidationMode> = new SchedulingApiShiftModelCancellationPolicies<ValidationMode>(this.api, false);
+
+	/**
+     *  The list of all cancellation policies of this shift-model. You can only edit shift-models current cancellation policy. See "shiftModel.currentCancellationPolicyId". (Note by Milad: This has to be deserialized after SHIFT_MODEL_CANCELLATION_POLICIES because the "required" validation of that depends on this value)
+     */
+	get cancellationPolicies() : SchedulingApiShiftModelCancellationPolicies<ValidationMode> {
+		return this.cancellationPoliciesWrapper;
+	}
+
+	set cancellationPoliciesTestSetter(v : SchedulingApiShiftModelCancellationPolicies<ValidationMode>) {
+        this.setterImpl(20, v.rawData, 'cancellationPolicies', () => {this.cancellationPoliciesWrapper = v;});
+	}
+
+	/**
+     *  Is the course online?
+	 *
+	 * @type {boolean}
+     */
+	get isCourseOnline() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[21];
+	}
+
+	set isCourseOnline(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(21, v, 'isCourseOnline');
+	}
+
+	/**
+     *  Can the booking person give a desired date? Only set this when courseType is INQUIRY. Otherwise by default it is DESIRED_DATE_NOT_ALLOWED.
+	 *
+	 * @type {SchedulingApiBookingDesiredDateSetting}
+     */
+	get bookingDesiredDateSetting() : NullableInDraftMode<SchedulingApiBookingDesiredDateSetting, ValidationMode> {
+		return this.data[22];
+	}
+
+	set bookingDesiredDateSetting(v : NullableInDraftMode<SchedulingApiBookingDesiredDateSetting, ValidationMode>) {
+        this.setterImpl(22, v, 'bookingDesiredDateSetting');
+	}
+
+	/**
+     *  Prefix being used to generate course codes. If no value is set then no course codes will be generated.
+	 *
+	 * @type {string}
+     */
+	get courseCodePrefix() : string | null {
+		return this.data[23];
+	}
+
+	set courseCodePrefix(v : string | null) {
+        this.setterImpl(23, v, 'courseCodePrefix');
+	}
+
+	/**
+     *  course group which is used to group the courses in the booking plug-in.
+	 *
+	 * @type {string}
+     */
+	get courseGroup() : string | null {
+		return this.data[24];
+	}
+
+	set courseGroup(v : string | null) {
+        this.setterImpl(24, v, 'courseGroup');
+	}
+
+	/**
+     *  Article id of Freeclimber POS system enabling payments through Freeclimber. Optional and only relevant when a course is bookable.
+	 *
+	 * @type {Integer}
+     */
+	get freeclimberArticleId() : Integer | null {
+		return this.data[25];
+	}
+
+	set freeclimberArticleId(v : Integer | null) {
+        this.setterImpl(25, v, 'freeclimberArticleId');
+	}
+
+	/**
+     *  The minimal age allowed for the booking person. The booking person's age is calculate at the date of booking.
+	 *
+	 * @type {Years}
+     */
+	get bookingPersonMinAge() : Years | null {
+		return this.data[26];
+	}
+
+	set bookingPersonMinAge(v : Years | null) {
+        this.setterImpl(26, v, 'bookingPersonMinAge');
+	}
+
+	/**
+     *  The minimal age allowed for the participant. Participant ages are defined by "participant.dateOfBirth" or "booking.ageMin" + "booking.ageMax". In case of "participant.dateOfBirth" the age is calculated at the date of the first shift of the course.
+	 *
+	 * @type {Years}
+     */
+	get participantMinAge() : Years | null {
+		return this.data[27];
+	}
+
+	set participantMinAge(v : Years | null) {
+        this.setterImpl(27, v, 'participantMinAge');
+	}
+
+	/**
+     *  See "participantMinAge".
+	 *
+	 * @type {Years}
+     */
+	get participantMaxAge() : Years | null {
+		return this.data[28];
+	}
+
+	set participantMaxAge(v : Years | null) {
+        this.setterImpl(28, v, 'participantMaxAge');
+	}
+
+	private neededMembersCountConfWrapper : SchedulingApiShiftModelNeededMembersCountConf<ValidationMode> = new SchedulingApiShiftModelNeededMembersCountConf<ValidationMode>(this.api);
+
+	/**
+     * (Detail)  Configuration values from which a shift's "neededMembersCount" is calculated. Can be used with "changeSelector".
+     */
+	get neededMembersCountConf() : SchedulingApiShiftModelNeededMembersCountConf<ValidationMode> {
+		return this.neededMembersCountConfWrapper;
+	}
+
+	set neededMembersCountConfTestSetter(v : SchedulingApiShiftModelNeededMembersCountConf<ValidationMode>) {
+        this.setterImpl(29, v.rawData, 'neededMembersCountConf', () => {this.neededMembersCountConfWrapper = v;});
+	}
+
+	/**
+     * (Detail)  Description of the shift-model. Can be used with "changeSelector".
+	 *
+	 * @type {string}
+     */
+	get description() : string | null {
+		return this.data[30];
+	}
+
+	set description(v : string | null) {
+        this.setterImpl(30, v, 'description');
+	}
+
+	private assignedMemberIdsWrapper : SchedulingApiShiftModelAssignedMemberIds<ValidationMode> = new SchedulingApiShiftModelAssignedMemberIds<ValidationMode>(this.api, false);
+
+	/**
+     * (Detail)  Only send to client owners. A list of the assigned members' ids. Can be used with "changeSelector".
+     */
+	get assignedMemberIds() : SchedulingApiShiftModelAssignedMemberIds<ValidationMode> {
+		return this.assignedMemberIdsWrapper;
+	}
+
+	set assignedMemberIdsTestSetter(v : SchedulingApiShiftModelAssignedMemberIds<ValidationMode>) {
+        this.setterImpl(31, v.rawData, 'assignedMemberIds', () => {this.assignedMemberIdsWrapper = v;});
+	}
+
+	/**
+     * (Detail)  How is the corresponding working-time to this shift-model going to be created? Only send to client owners. Can be used with "changeSelector".
+	 *
+	 * @type {SchedulingApiWorkingTimeCreationMethod}
+     */
+	get workingTimeCreationMethod() : NullableInDraftMode<SchedulingApiWorkingTimeCreationMethod, ValidationMode> {
+		return this.data[32];
+	}
+
+	set workingTimeCreationMethod(v : NullableInDraftMode<SchedulingApiWorkingTimeCreationMethod, ValidationMode>) {
+        this.setterImpl(32, v, 'workingTimeCreationMethod');
+	}
+
+	/**
+     * (Detail)  course title
+	 *
+	 * @type {string}
+     */
+	get courseTitle() : string | null {
+		return this.data[33];
+	}
+
+	set courseTitle(v : string | null) {
+        this.setterImpl(33, v, 'courseTitle');
+	}
+
+	/**
+     * (Detail)  course subtitle
+	 *
+	 * @type {string}
+     */
+	get courseSubtitle() : string | null {
+		return this.data[34];
+	}
+
+	set courseSubtitle(v : string | null) {
+        this.setterImpl(34, v, 'courseSubtitle');
+	}
+
+	/**
+     * (Detail)  course description
+	 *
+	 * @type {string}
+     */
+	get courseDescription() : string | null {
+		return this.data[35];
+	}
+
+	set courseDescription(v : string | null) {
+        this.setterImpl(35, v, 'courseDescription');
+	}
+
+	private courseHighlightsWrapper : SchedulingApiShiftModelCourseHighlights<ValidationMode> = new SchedulingApiShiftModelCourseHighlights<ValidationMode>(this.api, false);
+
+	/**
+     * (Detail)  A list of course highlights
+     */
+	get courseHighlights() : SchedulingApiShiftModelCourseHighlights<ValidationMode> {
+		return this.courseHighlightsWrapper;
+	}
+
+	set courseHighlightsTestSetter(v : SchedulingApiShiftModelCourseHighlights<ValidationMode>) {
+        this.setterImpl(36, v.rawData, 'courseHighlights', () => {this.courseHighlightsWrapper = v;});
+	}
+
+	/**
+     * (Detail)  What a participant should bring to the course.
+	 *
+	 * @type {string}
+     */
+	get courseEquipmentRequirements() : string | null {
+		return this.data[37];
+	}
+
+	set courseEquipmentRequirements(v : string | null) {
+        this.setterImpl(37, v, 'courseEquipmentRequirements');
+	}
+
+	/**
+     * (Detail)  Course skill requirements for a participant
+	 *
+	 * @type {string}
+     */
+	get courseSkillRequirements() : string | null {
+		return this.data[38];
+	}
+
+	set courseSkillRequirements(v : string | null) {
+        this.setterImpl(38, v, 'courseSkillRequirements');
+	}
+
+	/**
+     * (Detail)  Course location
+	 *
+	 * @type {string}
+     */
+	get courseLocation() : string | null {
+		return this.data[39];
+	}
+
+	set courseLocation(v : string | null) {
+        this.setterImpl(39, v, 'courseLocation');
+	}
+
+	/**
+     * (Detail)  Contact name for any questions.
+	 *
+	 * @type {string}
+     */
+	get courseContactName() : string | null {
+		return this.data[40];
+	}
+
+	set courseContactName(v : string | null) {
+        this.setterImpl(40, v, 'courseContactName');
+	}
+
+	/**
+     * (Detail)  Contact email for any questions.
+	 *
+	 * @type {Email}
+     */
+	get courseContactEmail() : Email | null {
+		return this.data[41];
+	}
+
+	set courseContactEmail(v : Email | null) {
+        this.setterImpl(41, v, 'courseContactEmail');
+	}
+
+	/**
+     * (Detail)  Contact phone for any questions.
+	 *
+	 * @type {Tel}
+     */
+	get courseContactPhone() : Tel | null {
+		return this.data[42];
+	}
+
+	set courseContactPhone(v : Tel | null) {
+        this.setterImpl(42, v, 'courseContactPhone');
+	}
+
+	/**
+     * (Detail)  How many milliseconds before course begin should a participant arrive?
+	 *
+	 * @type {Duration}
+     */
+	get arrivalTimeBeforeCourse() : Duration | null {
+		return this.data[43];
+	}
+
+	set arrivalTimeBeforeCourse(v : Duration | null) {
+        this.setterImpl(43, v, 'arrivalTimeBeforeCourse');
+	}
+
+	/**
+     * (Detail)  From how many milliseconds before course begin can a booking be done?
+	 *
+	 * @type {Duration}
+     */
+	get courseBookingDeadlineFrom() : Duration | null {
+		return this.data[44];
+	}
+
+	set courseBookingDeadlineFrom(v : Duration | null) {
+        this.setterImpl(44, v, 'courseBookingDeadlineFrom');
+	}
+
+	/**
+     * (Detail)  Until how many milliseconds before course begin can a booking be done?
+	 *
+	 * @type {Duration}
+     */
+	get courseBookingDeadlineUntil() : Duration | null {
+		return this.data[45];
+	}
+
+	set courseBookingDeadlineUntil(v : Duration | null) {
+        this.setterImpl(45, v, 'courseBookingDeadlineUntil');
+	}
+
+	/**
+     * (Detail)  Minimal course participant count. Can be used with "changeSelector".
+	 *
+	 * @type {Integer}
+     */
+	get minCourseParticipantCount() : NullableInDraftMode<Integer, ValidationMode> {
+		return this.data[46];
+	}
+
+	set minCourseParticipantCount(v : NullableInDraftMode<Integer, ValidationMode>) {
+        this.setterImpl(46, v, 'minCourseParticipantCount');
+	}
+
+	/**
+     * (Detail)  Maximal course participant count. Set "null" to have no maximal course participant count. Can be used with "changeSelector".
+	 *
+	 * @type {Integer}
+     */
+	get maxCourseParticipantCount() : Integer | null {
+		return this.data[47];
+	}
+
+	set maxCourseParticipantCount(v : Integer | null) {
+        this.setterImpl(47, v, 'maxCourseParticipantCount');
+	}
+
+	/**
+     * (Detail)  Is this shift-model for corona slot-booking?
+	 *
+	 * @type {boolean}
+     */
+	get isCoronaSlotBooking() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[48];
+	}
+
+	set isCoronaSlotBooking(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(48, v, 'isCoronaSlotBooking');
+	}
+
+	/**
+     * (Detail)  Is online cancellation by booking person for free bookings allowed?
+	 *
+	 * @type {boolean}
+     */
+	get onlineCancellationForFreeBookingsEnabled() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[49];
+	}
+
+	set onlineCancellationForFreeBookingsEnabled(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(49, v, 'onlineCancellationForFreeBookingsEnabled');
+	}
+
+	/**
+     * (Detail)  When "onlineCancellationForFreeBookingsEnabled" is "true" then this defines the deadline until how many milliseconds before course start the online cancellation is allowed. When "null" is returned then there is no such deadline.
+	 *
+	 * @type {Duration}
+     */
+	get onlineCancellationForFreeBookingsDeadline() : Duration | null {
+		return this.data[50];
+	}
+
+	set onlineCancellationForFreeBookingsDeadline(v : Duration | null) {
+        this.setterImpl(50, v, 'onlineCancellationForFreeBookingsDeadline');
+	}
+
+	/**
+     * (Detail)  When "onlineCancellationForChargeableBookingsEnabled" is "true" then this defines the deadline until how many milliseconds before course start the online cancellation is allowed. When "null" is returned then there is no such deadline.
+	 *
+	 * @type {Duration}
+     */
+	get onlineCancellationForChargeableBookingsDeadline() : Duration | null {
+		return this.data[51];
+	}
+
+	set onlineCancellationForChargeableBookingsDeadline(v : Duration | null) {
+        this.setterImpl(51, v, 'onlineCancellationForChargeableBookingsDeadline');
+	}
+
+	/**
+     * (Detail)  Is online cancellation by booking person for withdrawable bookings allowed?
+	 *
+	 * @type {boolean}
+     */
+	get onlineCancellationForWithdrawableBookingsAlwaysEnabled() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[52];
+	}
+
+	set onlineCancellationForWithdrawableBookingsAlwaysEnabled(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(52, v, 'onlineCancellationForWithdrawableBookingsAlwaysEnabled');
+	}
+
+	/**
+     * (Detail)  When online cancellation is done should any online payment be automatically refunded?
+	 *
+	 * @type {boolean}
+     */
+	get onlineCancellationAutomaticOnlineRefundEnabled() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[53];
+	}
+
+	set onlineCancellationAutomaticOnlineRefundEnabled(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(53, v, 'onlineCancellationAutomaticOnlineRefundEnabled');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.assignableMembersWrapper._fixIds(_idReplacements);
+		this.repetitionWrapper._fixIds(_idReplacements);
+		this.timeWrapper._fixIds(_idReplacements);
+		this.posAccountsWrapper._fixIds(_idReplacements);
+		this.changeSelectorWrapper._fixIds(_idReplacements);
+		this.automaticBookableMailIdsWrapper._fixIds(_idReplacements);
+		this.courseTariffsWrapper._fixIds(_idReplacements);
+		this.coursePaymentMethodsWrapper._fixIds(_idReplacements);
+		this.data[19] = Meta.getReplacedId(this.data[19], _idReplacements);
+		this.currentCancellationPolicyIdWrapper = Id.create(this.data[19]);
+		this.cancellationPoliciesWrapper._fixIds(_idReplacements);
+		this.neededMembersCountConfWrapper._fixIds(_idReplacements);
+		this.assignedMemberIdsWrapper._fixIds(_idReplacements);
+		this.courseHighlightsWrapper._fixIds(_idReplacements);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 54);
+
+			data[4] = false;
+			if(data[5] === null)
+				data[5] = Meta.createNewList();
+			if(data[6] === null)
+				data[6] = Meta.createNewObject(true);
+			if(data[7] === null)
+				data[7] = Meta.createNewObject(true);
+			if(data[10] === null)
+				data[10] = Meta.createNewList();
+			data[11] = false;
+			if(data[13] === null)
+				data[13] = Meta.createNewObject(false);
+			if(data[14] === null)
+				data[14] = Meta.createNewList();
+			data[15] = false;
+			if(data[16] === null)
+				data[16] = Meta.createNewList();
+			if(data[17] === null)
+				data[17] = Meta.createNewList();
+			data[18] = false;
+			if(data[20] === null)
+				data[20] = Meta.createNewList();
+			data[21] = false;
+			if(data[29] === null)
+				data[29] = Meta.createNewObject(true);
+			if(data[31] === null)
+				data[31] = Meta.createNewList();
+			if(data[36] === null)
+				data[36] = Meta.createNewList();
+			data[48] = false;
+			data[49] = false;
+			data[52] = false;
+			data[53] = false;
+		}
+
+		// propagate new raw data to children
+		this.assignableMembersWrapper._updateRawData(data ? data[5] : null, generateMissingData);
+		this.repetitionWrapper._updateRawData(data ? data[6] : null, generateMissingData);
+		this.timeWrapper._updateRawData(data ? data[7] : null, generateMissingData);
+		this.posAccountsWrapper._updateRawData(data ? data[10] : null, generateMissingData);
+		this.changeSelectorWrapper._updateRawData(data ? data[13] : null, generateMissingData);
+		this.automaticBookableMailIdsWrapper._updateRawData(data ? data[14] : null, generateMissingData);
+		this.courseTariffsWrapper._updateRawData(data ? data[16] : null, generateMissingData);
+		this.coursePaymentMethodsWrapper._updateRawData(data ? data[17] : null, generateMissingData);
+		if(!Meta.isSameId(data ? data[19] : null, this.currentCancellationPolicyIdWrapper))
+			this.currentCancellationPolicyIdWrapper = data && data[19] ? Id.create(data[19]) : null!;
+		this.cancellationPoliciesWrapper._updateRawData(data ? data[20] : null, generateMissingData);
+		this.neededMembersCountConfWrapper._updateRawData(data ? data[29] : null, generateMissingData);
+		this.assignedMemberIdsWrapper._updateRawData(data ? data[31] : null, generateMissingData);
+		this.courseHighlightsWrapper._updateRawData(data ? data[36] : null, generateMissingData);
+	}
+
+	protected get dni() : string {
+		return '237';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '237', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftModel<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiShiftModelAssignableMembersBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'assignableMembers');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiShiftModelAssignableMember<ValidationMode> {
+		const newWrapper = new SchedulingApiShiftModelAssignableMember<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiShiftModelAssignableMembers<ValidationMode> {
+		return new SchedulingApiShiftModelAssignableMembers<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '242';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiShiftModelAssignableMember<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('assignableMembers');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftModelAssignableMembers<ValidationMode>, SchedulingApiShiftModelAssignableMembers<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftModelAssignableMembers<ValidationMode>, SchedulingApiShiftModelAssignableMembers<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelAssignableMembers<ValidationMode>,
+			name: 'assignableMembers',
+			id: 'SHIFT_MODEL_ASSIGNABLE_MEMBERS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			show: function(this : SchedulingApiShiftModelAssignableMembers<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this.parent!))))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: function(this : SchedulingApiShiftModelAssignableMembers<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this.parent!))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModelAssignableMembers<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+}
+
+				 
+export class SchedulingApiShiftModelAssignableMemberBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftModelAssignableMember as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftModelAssignableMember<ValidationMode>, SchedulingApiShiftModelAssignableMember<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftModelAssignableMember<ValidationMode>, SchedulingApiShiftModelAssignableMember<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelAssignableMember<ValidationMode>,
+			name: 'shiftModelAssignableMember',
+			id: 'SHIFT_MODEL_ASSIGNABLE_MEMBER',
+		});
+	attributeInfoHourlyEarnings =  new ApiAttributeInfo<SchedulingApiShiftModelAssignableMember<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelAssignableMember<ValidationMode>,
+			name: 'hourlyEarnings',
+			id: 'SHIFT_MODEL_ASSIGNABLE_MEMBER_EARNINGS',
+			primitiveType: PApiPrimitiveTypes.Currency,
+		});
+	attributeInfoMemberId =  new ApiAttributeInfo<SchedulingApiShiftModelAssignableMember<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelAssignableMember<ValidationMode>,
+			name: 'memberId',
+			id: 'SHIFT_MODEL_ASSIGNABLE_MEMBER_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+
+	/**
+     *  Members hourly earnings for this shift model
+	 *
+	 * @type {Currency}
+     */
+	get hourlyEarnings() : NullableInDraftMode<Currency, ValidationMode> {
+		return this.data[1];
+	}
+
+	set hourlyEarnings(v : NullableInDraftMode<Currency, ValidationMode>) {
+        this.setterImpl(1, v, 'hourlyEarnings');
+	}
+
+	private memberIdWrapper : NullableInDraftMode<Id, ValidationMode> = null!;
+
+	/**
+     *  Id of assignable member
+	 *
+	 * @type {Id}
+     */
+	get memberId() : NullableInDraftMode<Id, ValidationMode> {
+		return this.memberIdWrapper;
+	}
+
+	set memberId(v : NullableInDraftMode<Id, ValidationMode>) {
+        this.setterImpl(2, v, 'memberId', () => {this.memberIdWrapper = v;});
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.data[2] = Meta.getReplacedId(this.data[2], _idReplacements);
+		this.memberIdWrapper = Id.create(this.data[2]);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 3);
+
+		}
+
+		// propagate new raw data to children
+		if(!Meta.isSameId(data ? data[2] : null, this.memberIdWrapper))
+			this.memberIdWrapper = data && data[2] ? Id.create(data[2]) : null!;
+	}
+
+	protected get dni() : string {
+		return '296';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '296', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftModelAssignableMember<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 
+export class SchedulingApiShiftModelRepetition<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftModelRepetition as any);
+
+		this._updateRawData(Meta.createNewObject(true, idRaw), true);
+
+		// set parent attribute
+		this.packetRepetitionWrapper.parent = this as any as SchedulingApiShiftModelRepetition<ValidationMode>;
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftModelRepetition<ValidationMode>, SchedulingApiShiftModelRepetition<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftModelRepetition<ValidationMode>, SchedulingApiShiftModelRepetition<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelRepetition<ValidationMode>,
+			name: 'repetition',
+			id: 'SHIFT_MODEL_REPETITION',
+		});
+	attributeInfoType =  new ApiAttributeInfo<SchedulingApiShiftModelRepetition<ValidationMode>, SchedulingApiShiftRepetitionType>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelRepetition<ValidationMode>,
+			name: 'type',
+			id: 'SHIFT_MODEL_REPETITION_TYPE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+		});
+	attributeInfoX =  new ApiAttributeInfo<SchedulingApiShiftModelRepetition<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelRepetition<ValidationMode>,
+			name: 'x',
+			id: 'SHIFT_MODEL_REPETITION_X',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+	attributeInfoEndsAfterRepetitionCount =  new ApiAttributeInfo<SchedulingApiShiftModelRepetition<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelRepetition<ValidationMode>,
+			name: 'endsAfterRepetitionCount',
+			id: 'SHIFT_MODEL_REPETITION_ENDS_AFTER_REPETITION_COUNT',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+	attributeInfoEndsAfterDate =  new ApiAttributeInfo<SchedulingApiShiftModelRepetition<ValidationMode>, DateExclusiveEnd>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelRepetition<ValidationMode>,
+			name: 'endsAfterDate',
+			id: 'SHIFT_MODEL_REPETITION_ENDS_AFTER_DATE',
+			primitiveType: PApiPrimitiveTypes.DateExclusiveEnd,
+		});
+	attributeInfoIsRepeatingOnMonday =  new ApiAttributeInfo<SchedulingApiShiftModelRepetition<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelRepetition<ValidationMode>,
+			name: 'isRepeatingOnMonday',
+			id: 'SHIFT_MODEL_REPETITION_ON_MONDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsRepeatingOnTuesday =  new ApiAttributeInfo<SchedulingApiShiftModelRepetition<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelRepetition<ValidationMode>,
+			name: 'isRepeatingOnTuesday',
+			id: 'SHIFT_MODEL_REPETITION_ON_TUESDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsRepeatingOnWednesday =  new ApiAttributeInfo<SchedulingApiShiftModelRepetition<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelRepetition<ValidationMode>,
+			name: 'isRepeatingOnWednesday',
+			id: 'SHIFT_MODEL_REPETITION_ON_WEDNESDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsRepeatingOnThursday =  new ApiAttributeInfo<SchedulingApiShiftModelRepetition<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelRepetition<ValidationMode>,
+			name: 'isRepeatingOnThursday',
+			id: 'SHIFT_MODEL_REPETITION_ON_THURSDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsRepeatingOnFriday =  new ApiAttributeInfo<SchedulingApiShiftModelRepetition<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelRepetition<ValidationMode>,
+			name: 'isRepeatingOnFriday',
+			id: 'SHIFT_MODEL_REPETITION_ON_FRIDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsRepeatingOnSaturday =  new ApiAttributeInfo<SchedulingApiShiftModelRepetition<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelRepetition<ValidationMode>,
+			name: 'isRepeatingOnSaturday',
+			id: 'SHIFT_MODEL_REPETITION_ON_SATURDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsRepeatingOnSunday =  new ApiAttributeInfo<SchedulingApiShiftModelRepetition<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelRepetition<ValidationMode>,
+			name: 'isRepeatingOnSunday',
+			id: 'SHIFT_MODEL_REPETITION_ON_SUNDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+
+	/**
+     *  repetition type. "NONE" means no repetition
+	 *
+	 * @type {SchedulingApiShiftRepetitionType}
+     */
+	get type() : NullableInDraftMode<SchedulingApiShiftRepetitionType, ValidationMode> {
+		return this.data[1];
+	}
+
+	set type(v : NullableInDraftMode<SchedulingApiShiftRepetitionType, ValidationMode>) {
+        this.setterImpl(1, v, 'type');
+	}
+
+	/**
+     *  This is the "x" value defined by the type property (e.g. EVERY_X_DAYS or EVERY_X_WEEKS).
+	 *
+	 * @type {Integer}
+     */
+	get x() : NullableInDraftMode<Integer, ValidationMode> {
+		return this.data[2];
+	}
+
+	set x(v : NullableInDraftMode<Integer, ValidationMode>) {
+        this.setterImpl(2, v, 'x');
+	}
+
+	/**
+     *  Should the repetition end after a given count? If not, set to "0".
+	 *
+	 * @type {Integer}
+     */
+	get endsAfterRepetitionCount() : NullableInDraftMode<Integer, ValidationMode> {
+		return this.data[3];
+	}
+
+	set endsAfterRepetitionCount(v : NullableInDraftMode<Integer, ValidationMode>) {
+        this.setterImpl(3, v, 'endsAfterRepetitionCount');
+	}
+
+	/**
+     *  Should the repetition end after a given date? If not, set to "0".
+	 *
+	 * @type {DateExclusiveEnd}
+     */
+	get endsAfterDate() : NullableInDraftMode<DateExclusiveEnd, ValidationMode> {
+		return this.data[4];
+	}
+
+	set endsAfterDate(v : NullableInDraftMode<DateExclusiveEnd, ValidationMode>) {
+        this.setterImpl(4, v, 'endsAfterDate');
+	}
+
+	private packetRepetitionWrapper : SchedulingApiShiftModelRepetitionPacket<ValidationMode> = new SchedulingApiShiftModelRepetitionPacket<ValidationMode>(this.api);
+
+	/**
+     *  The packet repetition pattern.
+     */
+	get packetRepetition() : SchedulingApiShiftModelRepetitionPacket<ValidationMode> {
+		return this.packetRepetitionWrapper;
+	}
+
+	set packetRepetitionTestSetter(v : SchedulingApiShiftModelRepetitionPacket<ValidationMode>) {
+        this.setterImpl(5, v.rawData, 'packetRepetition', () => {this.packetRepetitionWrapper = v;});
+	}
+
+	/**
+     *  Is there a repetition on Monday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnMonday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[6];
+	}
+
+	set isRepeatingOnMonday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(6, v, 'isRepeatingOnMonday');
+	}
+
+	/**
+     *  Is there a repetition on Tuesday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnTuesday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[7];
+	}
+
+	set isRepeatingOnTuesday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(7, v, 'isRepeatingOnTuesday');
+	}
+
+	/**
+     *  Is there a repetition on Wednesday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnWednesday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[8];
+	}
+
+	set isRepeatingOnWednesday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(8, v, 'isRepeatingOnWednesday');
+	}
+
+	/**
+     *  Is there a repetition on Thursday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnThursday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[9];
+	}
+
+	set isRepeatingOnThursday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(9, v, 'isRepeatingOnThursday');
+	}
+
+	/**
+     *  Is there a repetition on Friday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnFriday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[10];
+	}
+
+	set isRepeatingOnFriday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(10, v, 'isRepeatingOnFriday');
+	}
+
+	/**
+     *  Is there a repetition on Saturday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnSaturday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[11];
+	}
+
+	set isRepeatingOnSaturday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(11, v, 'isRepeatingOnSaturday');
+	}
+
+	/**
+     *  Is there a repetition on Sunday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnSunday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[12];
+	}
+
+	set isRepeatingOnSunday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(12, v, 'isRepeatingOnSunday');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.packetRepetitionWrapper._fixIds(_idReplacements);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 13);
+
+			if(data[5] === null)
+				data[5] = Meta.createNewObject(true);
+			data[6] = false;
+			data[7] = false;
+			data[8] = false;
+			data[9] = false;
+			data[10] = false;
+			data[11] = false;
+			data[12] = false;
+		}
+
+		// propagate new raw data to children
+		this.packetRepetitionWrapper._updateRawData(data ? data[5] : null, generateMissingData);
+	}
+
+	protected get dni() : string {
+		return '243';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '243', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftModelRepetition<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 
+export class SchedulingApiShiftModelRepetitionPacket<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftModelRepetitionPacket as any);
+
+		this._updateRawData(Meta.createNewObject(true, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftModelRepetitionPacket<ValidationMode>, SchedulingApiShiftModelRepetitionPacket<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftModelRepetitionPacket<ValidationMode>, SchedulingApiShiftModelRepetitionPacket<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelRepetitionPacket<ValidationMode>,
+			name: 'packetRepetition',
+			id: 'SHIFT_MODEL_REPETITION_PACKET',
+		});
+	attributeInfoType =  new ApiAttributeInfo<SchedulingApiShiftModelRepetitionPacket<ValidationMode>, SchedulingApiShiftRepetitionType>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelRepetitionPacket<ValidationMode>,
+			name: 'type',
+			id: 'SHIFT_MODEL_REPETITION_PACKET_TYPE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+		});
+	attributeInfoX =  new ApiAttributeInfo<SchedulingApiShiftModelRepetitionPacket<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelRepetitionPacket<ValidationMode>,
+			name: 'x',
+			id: 'SHIFT_MODEL_REPETITION_PACKET_X',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+	attributeInfoEndsAfterRepetitionCount =  new ApiAttributeInfo<SchedulingApiShiftModelRepetitionPacket<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelRepetitionPacket<ValidationMode>,
+			name: 'endsAfterRepetitionCount',
+			id: 'SHIFT_MODEL_REPETITION_PACKET_ENDS_AFTER_REPETITION_COUNT',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+	attributeInfoIsRepeatingOnMonday =  new ApiAttributeInfo<SchedulingApiShiftModelRepetitionPacket<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelRepetitionPacket<ValidationMode>,
+			name: 'isRepeatingOnMonday',
+			id: 'SHIFT_MODEL_REPETITION_PACKET_ON_MONDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsRepeatingOnTuesday =  new ApiAttributeInfo<SchedulingApiShiftModelRepetitionPacket<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelRepetitionPacket<ValidationMode>,
+			name: 'isRepeatingOnTuesday',
+			id: 'SHIFT_MODEL_REPETITION_PACKET_ON_TUESDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsRepeatingOnWednesday =  new ApiAttributeInfo<SchedulingApiShiftModelRepetitionPacket<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelRepetitionPacket<ValidationMode>,
+			name: 'isRepeatingOnWednesday',
+			id: 'SHIFT_MODEL_REPETITION_PACKET_ON_WEDNESDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsRepeatingOnThursday =  new ApiAttributeInfo<SchedulingApiShiftModelRepetitionPacket<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelRepetitionPacket<ValidationMode>,
+			name: 'isRepeatingOnThursday',
+			id: 'SHIFT_MODEL_REPETITION_PACKET_ON_THURSDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsRepeatingOnFriday =  new ApiAttributeInfo<SchedulingApiShiftModelRepetitionPacket<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelRepetitionPacket<ValidationMode>,
+			name: 'isRepeatingOnFriday',
+			id: 'SHIFT_MODEL_REPETITION_PACKET_ON_FRIDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsRepeatingOnSaturday =  new ApiAttributeInfo<SchedulingApiShiftModelRepetitionPacket<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelRepetitionPacket<ValidationMode>,
+			name: 'isRepeatingOnSaturday',
+			id: 'SHIFT_MODEL_REPETITION_PACKET_ON_SATURDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoIsRepeatingOnSunday =  new ApiAttributeInfo<SchedulingApiShiftModelRepetitionPacket<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelRepetitionPacket<ValidationMode>,
+			name: 'isRepeatingOnSunday',
+			id: 'SHIFT_MODEL_REPETITION_PACKET_ON_SUNDAY',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+
+	/**
+     *  repetition type. "NONE" means no repetition
+	 *
+	 * @type {SchedulingApiShiftRepetitionType}
+     */
+	get type() : NullableInDraftMode<SchedulingApiShiftRepetitionType, ValidationMode> {
+		return this.data[1];
+	}
+
+	set type(v : NullableInDraftMode<SchedulingApiShiftRepetitionType, ValidationMode>) {
+        this.setterImpl(1, v, 'type');
+	}
+
+	/**
+     *  This is the "x" value defined by the type property (e.g. EVERY_X_DAYS or EVERY_X_WEEKS).
+	 *
+	 * @type {Integer}
+     */
+	get x() : NullableInDraftMode<Integer, ValidationMode> {
+		return this.data[2];
+	}
+
+	set x(v : NullableInDraftMode<Integer, ValidationMode>) {
+        this.setterImpl(2, v, 'x');
+	}
+
+	/**
+     *  Should the repetition end after a given count? If not, set to "0".
+	 *
+	 * @type {Integer}
+     */
+	get endsAfterRepetitionCount() : NullableInDraftMode<Integer, ValidationMode> {
+		return this.data[3];
+	}
+
+	set endsAfterRepetitionCount(v : NullableInDraftMode<Integer, ValidationMode>) {
+        this.setterImpl(3, v, 'endsAfterRepetitionCount');
+	}
+
+	/**
+     *  Is there a repetition on Monday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnMonday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[4];
+	}
+
+	set isRepeatingOnMonday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(4, v, 'isRepeatingOnMonday');
+	}
+
+	/**
+     *  Is there a repetition on Tuesday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnTuesday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[5];
+	}
+
+	set isRepeatingOnTuesday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(5, v, 'isRepeatingOnTuesday');
+	}
+
+	/**
+     *  Is there a repetition on Wednesday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnWednesday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[6];
+	}
+
+	set isRepeatingOnWednesday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(6, v, 'isRepeatingOnWednesday');
+	}
+
+	/**
+     *  Is there a repetition on Thursday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnThursday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[7];
+	}
+
+	set isRepeatingOnThursday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(7, v, 'isRepeatingOnThursday');
+	}
+
+	/**
+     *  Is there a repetition on Friday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnFriday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[8];
+	}
+
+	set isRepeatingOnFriday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(8, v, 'isRepeatingOnFriday');
+	}
+
+	/**
+     *  Is there a repetition on Saturday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnSaturday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[9];
+	}
+
+	set isRepeatingOnSaturday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(9, v, 'isRepeatingOnSaturday');
+	}
+
+	/**
+     *  Is there a repetition on Sunday? Only valid when type is "EVERY_X_WEEKS".
+	 *
+	 * @type {boolean}
+     */
+	get isRepeatingOnSunday() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[10];
+	}
+
+	set isRepeatingOnSunday(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(10, v, 'isRepeatingOnSunday');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 11);
+
+			data[4] = false;
+			data[5] = false;
+			data[6] = false;
+			data[7] = false;
+			data[8] = false;
+			data[9] = false;
+			data[10] = false;
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '305';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '305', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftModelRepetitionPacket<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 
+export class SchedulingApiShiftModelTime<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftModelTime as any);
+
+		this._updateRawData(Meta.createNewObject(true, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftModelTime<ValidationMode>, SchedulingApiShiftModelTime<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftModelTime<ValidationMode>, SchedulingApiShiftModelTime<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelTime<ValidationMode>,
+			name: 'time',
+			id: 'SHIFT_MODEL_TIME',
+			canEdit: function(this : SchedulingApiShiftModelTime<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this.parent!))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModelTime<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoStart =  new ApiAttributeInfo<SchedulingApiShiftModelTime<ValidationMode>, LocalTime>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelTime<ValidationMode>,
+			name: 'start',
+			id: 'SHIFT_MODEL_TIME_START',
+			primitiveType: PApiPrimitiveTypes.LocalTime,
+		});
+	attributeInfoEnd =  new ApiAttributeInfo<SchedulingApiShiftModelTime<ValidationMode>, LocalTime>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelTime<ValidationMode>,
+			name: 'end',
+			id: 'SHIFT_MODEL_TIME_END',
+			primitiveType: PApiPrimitiveTypes.LocalTime,
+		});
+
+	/**
+     *  The time when this shift-model will start.
+	 *
+	 * @type {LocalTime}
+     */
+	get start() : NullableInDraftMode<LocalTime, ValidationMode> {
+		return this.data[1];
+	}
+
+	set start(v : NullableInDraftMode<LocalTime, ValidationMode>) {
+        this.setterImpl(1, v, 'start');
+	}
+
+	/**
+     * (Detail)  The time when this shift-model will end.
+	 *
+	 * @type {LocalTime}
+     */
+	get end() : NullableInDraftMode<LocalTime, ValidationMode> {
+		return this.data[2];
+	}
+
+	set end(v : NullableInDraftMode<LocalTime, ValidationMode>) {
+        this.setterImpl(2, v, 'end');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 3);
+
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '244';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '244', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftModelTime<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiShiftModelPosAccounts<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'posAccounts');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiShiftModelPosAccount<ValidationMode> {
+		const newWrapper = new SchedulingApiShiftModelPosAccount<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiShiftModelPosAccounts<ValidationMode> {
+		return new SchedulingApiShiftModelPosAccounts<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '247';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiShiftModelPosAccount<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('posAccounts');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftModelPosAccounts<ValidationMode>, SchedulingApiShiftModelPosAccounts<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftModelPosAccounts<ValidationMode>, SchedulingApiShiftModelPosAccounts<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelPosAccounts<ValidationMode>,
+			name: 'posAccounts',
+			id: 'SHIFT_MODEL_POS_ACCOUNTS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+		});
+}
+
+				 
+export class SchedulingApiShiftModelPosAccount<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftModelPosAccount as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftModelPosAccount<ValidationMode>, SchedulingApiShiftModelPosAccount<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftModelPosAccount<ValidationMode>, SchedulingApiShiftModelPosAccount<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelPosAccount<ValidationMode>,
+			name: 'shiftModelPosAccount',
+			id: 'SHIFT_MODEL_POS_ACCOUNT',
+		});
+	attributeInfoTax =  new ApiAttributeInfo<SchedulingApiShiftModelPosAccount<ValidationMode>, number>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelPosAccount<ValidationMode>,
+			name: 'tax',
+			id: 'SHIFT_MODEL_POS_ACCOUNT_TAX',
+			primitiveType: PApiPrimitiveTypes.number,
+			validations: function(this : SchedulingApiShiftModelPosAccount<ValidationMode>) {
+				return [
+					() => {
+						return this.api!.validators.maxDecimalPlacesCount(1, PApiPrimitiveTypes.number, undefined);
+					},
+				];
+			},
+		});
+	attributeInfoName =  new ApiAttributeInfo<SchedulingApiShiftModelPosAccount<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelPosAccount<ValidationMode>,
+			name: 'name',
+			id: 'SHIFT_MODEL_POS_ACCOUNT_NAME',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+
+	/**
+     *  Tax value.
+	 *
+	 * @type {number}
+     */
+	get tax() : NullableInDraftMode<number, ValidationMode> {
+		return this.data[1];
+	}
+
+	set tax(v : NullableInDraftMode<number, ValidationMode>) {
+        this.setterImpl(1, v, 'tax');
+	}
+
+	/**
+     *  Name of the pos account.
+	 *
+	 * @type {string}
+     */
+	get name() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[2];
+	}
+
+	set name(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(2, v, 'name');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 3);
+
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '323';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '323', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftModelPosAccount<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+export enum SchedulingApiCourseType {
+	ONLINE_BOOKABLE = 1,
+	ONLINE_INQUIRY = 2,
+	NO_BOOKING = 3,
+}
+		 
+export class SchedulingApiShiftModelChangeSelector<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftModelChangeSelector as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftModelChangeSelector<ValidationMode>, SchedulingApiShiftModelChangeSelector<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftModelChangeSelector<ValidationMode>, SchedulingApiShiftModelChangeSelector<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelChangeSelector<ValidationMode>,
+			name: 'changeSelector',
+			id: 'SHIFT_MODEL_CHANGE_SELECTOR',
+		});
+	attributeInfoStart =  new ApiAttributeInfo<SchedulingApiShiftModelChangeSelector<ValidationMode>, Date>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelChangeSelector<ValidationMode>,
+			name: 'start',
+			id: 'SHIFT_MODEL_CHANGE_SELECTOR_START',
+			primitiveType: PApiPrimitiveTypes.Date,
+			validations: function(this : SchedulingApiShiftModelChangeSelector<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.min(+this.api!.pMoment.monthsFromNow(-5), true, PApiPrimitiveTypes.Date, undefined, undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.max(+this.api!.pMoment.monthsFromNow(12), true, PApiPrimitiveTypes.Date, undefined, undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.Date, undefined);
+							return null;
+					},
+				];
+			},
+		});
+
+	/**
+     *  The start time from which the existing shifts should be modified. If "null" then no shifts will be modified.
+	 *
+	 * @type {Date}
+     */
+	get start() : Date | null {
+		return this.data[1];
+	}
+
+	set start(v : Date | null) {
+        this.setterImpl(1, v, 'start');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 2);
+
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '250';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '250', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftModelChangeSelector<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiShiftModelAutomaticBookableMailIds<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'automaticBookableMailIds');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : Id {
+		return Id.create(item);
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return true;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiShiftModelAutomaticBookableMailIds<ValidationMode> {
+		return new SchedulingApiShiftModelAutomaticBookableMailIds<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '251';
+	}
+
+	override createNewItem() : Id {
+		const newItemRaw = null;
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('automaticBookableMailIds');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftModelAutomaticBookableMailIds<ValidationMode>, SchedulingApiShiftModelAutomaticBookableMailIds<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftModelAutomaticBookableMailIds<ValidationMode>, SchedulingApiShiftModelAutomaticBookableMailIds<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelAutomaticBookableMailIds<ValidationMode>,
+			name: 'automaticBookableMailIds',
+			id: 'SHIFT_MODEL_AUTOMATIC_BOOKABLE_MAIL_IDS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+		});
+	attributeInfoShiftModelAutomaticBookableMailId =  new ApiAttributeInfo<SchedulingApiShiftModelAutomaticBookableMailIds<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelAutomaticBookableMailIds<ValidationMode>,
+			name: 'shiftModelAutomaticBookableMailId',
+			id: 'SHIFT_MODEL_AUTOMATIC_BOOKABLE_MAIL_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+}
+
+				 export class SchedulingApiShiftModelCourseTariffsBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'courseTariffs');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiShiftModelCourseTariff<ValidationMode> {
+		const newWrapper = new SchedulingApiShiftModelCourseTariff<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiShiftModelCourseTariffs<ValidationMode> {
+		return new SchedulingApiShiftModelCourseTariffs<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '253';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiShiftModelCourseTariff<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('courseTariffs');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftModelCourseTariffs<ValidationMode>, SchedulingApiShiftModelCourseTariffs<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftModelCourseTariffs<ValidationMode>, SchedulingApiShiftModelCourseTariffs<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCourseTariffs<ValidationMode>,
+			name: 'courseTariffs',
+			id: 'SHIFT_MODEL_COURSE_TARIFFS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+		});
+}
+
+				 
+export class SchedulingApiShiftModelCourseTariffBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftModelCourseTariff as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+		this.feesWrapper.parent = this as any as SchedulingApiShiftModelCourseTariff<ValidationMode>;
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftModelCourseTariff<ValidationMode>, SchedulingApiShiftModelCourseTariff<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftModelCourseTariff<ValidationMode>, SchedulingApiShiftModelCourseTariff<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCourseTariff<ValidationMode>,
+			name: 'shiftModelCourseTariff',
+			id: 'SHIFT_MODEL_COURSE_TARIFF',
+		});
+	attributeInfoName =  new ApiAttributeInfo<SchedulingApiShiftModelCourseTariff<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCourseTariff<ValidationMode>,
+			name: 'name',
+			id: 'SHIFT_MODEL_COURSE_TARIFF_NAME',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoDescription =  new ApiAttributeInfo<SchedulingApiShiftModelCourseTariff<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCourseTariff<ValidationMode>,
+			name: 'description',
+			id: 'SHIFT_MODEL_COURSE_TARIFF_DESCRIPTION',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoIsInternal =  new ApiAttributeInfo<SchedulingApiShiftModelCourseTariff<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCourseTariff<ValidationMode>,
+			name: 'isInternal',
+			id: 'SHIFT_MODEL_COURSE_TARIFF_IS_INTERNAL',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoAdditionalFieldLabel =  new ApiAttributeInfo<SchedulingApiShiftModelCourseTariff<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCourseTariff<ValidationMode>,
+			name: 'additionalFieldLabel',
+			id: 'SHIFT_MODEL_COURSE_TARIFF_ADDITIONAL_FIELD_LABEL',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoForCourseDatesFrom =  new ApiAttributeInfo<SchedulingApiShiftModelCourseTariff<ValidationMode>, Date>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCourseTariff<ValidationMode>,
+			name: 'forCourseDatesFrom',
+			id: 'SHIFT_MODEL_COURSE_TARIFF_FOR_COURSE_DATES_FROM',
+			primitiveType: PApiPrimitiveTypes.Date,
+			validations: function(this : SchedulingApiShiftModelCourseTariff<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.max(() => this.forCourseDatesUntil, false, PApiPrimitiveTypes.Date, 'SHIFT_MODEL_COURSE_TARIFF_FOR_COURSE_DATES_UNTIL', undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoForCourseDatesUntil =  new ApiAttributeInfo<SchedulingApiShiftModelCourseTariff<ValidationMode>, DateExclusiveEnd>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCourseTariff<ValidationMode>,
+			name: 'forCourseDatesUntil',
+			id: 'SHIFT_MODEL_COURSE_TARIFF_FOR_COURSE_DATES_UNTIL',
+			primitiveType: PApiPrimitiveTypes.DateExclusiveEnd,
+			validations: function(this : SchedulingApiShiftModelCourseTariff<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.min(() => this.forCourseDatesFrom, false, PApiPrimitiveTypes.DateExclusiveEnd, 'SHIFT_MODEL_COURSE_TARIFF_FOR_COURSE_DATES_FROM', undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoNegateForCourseDatesInterval =  new ApiAttributeInfo<SchedulingApiShiftModelCourseTariff<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCourseTariff<ValidationMode>,
+			name: 'negateForCourseDatesInterval',
+			id: 'SHIFT_MODEL_COURSE_TARIFF_NEGATE_FOR_COURSE_DATES_INTERVAL',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			validations: function(this : SchedulingApiShiftModelCourseTariff<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.boolean, undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoTrashed =  new ApiAttributeInfo<SchedulingApiShiftModelCourseTariff<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCourseTariff<ValidationMode>,
+			name: 'trashed',
+			id: 'SHIFT_MODEL_COURSE_TARIFF_TRASHED',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoApplyToBooking =  new ApiAttributeInfo<SchedulingApiShiftModelCourseTariff<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCourseTariff<ValidationMode>,
+			name: 'applyToBooking',
+			id: 'SHIFT_MODEL_COURSE_TARIFF_APPLY_TO_BOOKING',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+	attributeInfoApplyToParticipant =  new ApiAttributeInfo<SchedulingApiShiftModelCourseTariff<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCourseTariff<ValidationMode>,
+			name: 'applyToParticipant',
+			id: 'SHIFT_MODEL_COURSE_TARIFF_APPLY_TO_PARTICIPANT',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+
+	/**
+     *  Tariff Name
+	 *
+	 * @type {string}
+     */
+	get name() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[1];
+	}
+
+	set name(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(1, v, 'name');
+	}
+
+	/**
+     *  Tariff Description
+	 *
+	 * @type {string}
+     */
+	get description() : string | null {
+		return this.data[2];
+	}
+
+	set description(v : string | null) {
+        this.setterImpl(2, v, 'description');
+	}
+
+	/**
+     *  Is the tariff internal? I.e. only usable during manual booking?
+	 *
+	 * @type {boolean}
+     */
+	get isInternal() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[3];
+	}
+
+	set isInternal(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(3, v, 'isInternal');
+	}
+
+	private feesWrapper : SchedulingApiShiftModelCourseTariffFees<ValidationMode> = new SchedulingApiShiftModelCourseTariffFees<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of tariff's fees
+     */
+	get fees() : SchedulingApiShiftModelCourseTariffFees<ValidationMode> {
+		return this.feesWrapper;
+	}
+
+	set feesTestSetter(v : SchedulingApiShiftModelCourseTariffFees<ValidationMode>) {
+        this.setterImpl(4, v.rawData, 'fees', () => {this.feesWrapper = v;});
+	}
+
+	/**
+     *  If this contains an empty string then this tariff does not require an additional field. Otherwise this contains the label of the additional field.
+	 *
+	 * @type {string}
+     */
+	get additionalFieldLabel() : string | null {
+		return this.data[5];
+	}
+
+	set additionalFieldLabel(v : string | null) {
+        this.setterImpl(5, v, 'additionalFieldLabel');
+	}
+
+	/**
+     *  This tariff should be used for course dates from this given date-time. Relevant is start of the first course-shift. Optional value.
+	 *
+	 * @type {Date}
+     */
+	get forCourseDatesFrom() : Date | null {
+		return this.data[6];
+	}
+
+	set forCourseDatesFrom(v : Date | null) {
+        this.setterImpl(6, v, 'forCourseDatesFrom');
+	}
+
+	/**
+     *  This tariff should be used for course dates until this given date-time. Relevant is start of the first course-shift. Optional value.
+	 *
+	 * @type {DateExclusiveEnd}
+     */
+	get forCourseDatesUntil() : DateExclusiveEnd | null {
+		return this.data[7];
+	}
+
+	set forCourseDatesUntil(v : DateExclusiveEnd | null) {
+        this.setterImpl(7, v, 'forCourseDatesUntil');
+	}
+
+	/**
+     *  Normally "forCourseDatesFrom" and "forCourseDatesUntil" define an interval for which this tariff should be used. When this is "true" then they define an interval for which this tariff should NOT be used.
+	 *
+	 * @type {boolean}
+     */
+	get negateForCourseDatesInterval() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[8];
+	}
+
+	set negateForCourseDatesInterval(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(8, v, 'negateForCourseDatesInterval');
+	}
+
+	/**
+     *  Is the tariff trashed?
+	 *
+	 * @type {boolean}
+     */
+	get trashed() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[9];
+	}
+
+	set trashed(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(9, v, 'trashed');
+	}
+
+	private applyToBookingWrapper : Id | null = null!;
+
+
+	set applyToBooking(v : Id | null) {
+        this.setterImpl(10, v, 'applyToBooking', () => {this.applyToBookingWrapper = v;});
+	}
+
+	private applyToParticipantWrapper : Id | null = null!;
+
+
+	set applyToParticipant(v : Id | null) {
+        this.setterImpl(11, v, 'applyToParticipant', () => {this.applyToParticipantWrapper = v;});
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.feesWrapper._fixIds(_idReplacements);
+		this.data[10] = Meta.getReplacedId(this.data[10], _idReplacements);
+		this.applyToBookingWrapper = Id.create(this.data[10]);
+		this.data[11] = Meta.getReplacedId(this.data[11], _idReplacements);
+		this.applyToParticipantWrapper = Id.create(this.data[11]);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 12);
+
+			data[3] = false;
+			if(data[4] === null)
+				data[4] = Meta.createNewList();
+			data[8] = false;
+			data[9] = false;
+		}
+
+		// propagate new raw data to children
+		this.feesWrapper._updateRawData(data ? data[4] : null, generateMissingData);
+		if(!Meta.isSameId(data ? data[10] : null, this.applyToBookingWrapper))
+			this.applyToBookingWrapper = data && data[10] ? Id.create(data[10]) : null!;
+		if(!Meta.isSameId(data ? data[11] : null, this.applyToParticipantWrapper))
+			this.applyToParticipantWrapper = data && data[11] ? Id.create(data[11]) : null!;
+	}
+
+	protected get dni() : string {
+		return '328';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '328', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftModelCourseTariff<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiShiftModelCourseTariffFees<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'fees');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiShiftModelCourseTariffFee<ValidationMode> {
+		const newWrapper = new SchedulingApiShiftModelCourseTariffFee<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiShiftModelCourseTariffFees<ValidationMode> {
+		return new SchedulingApiShiftModelCourseTariffFees<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '332';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiShiftModelCourseTariffFee<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('fees');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftModelCourseTariffFees<ValidationMode>, SchedulingApiShiftModelCourseTariffFees<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftModelCourseTariffFees<ValidationMode>, SchedulingApiShiftModelCourseTariffFees<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCourseTariffFees<ValidationMode>,
+			name: 'fees',
+			id: 'SHIFT_MODEL_COURSE_TARIFF_FEES',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+		});
+}
+
+				 
+export class SchedulingApiShiftModelCourseTariffFee<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftModelCourseTariffFee as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftModelCourseTariffFee<ValidationMode>, SchedulingApiShiftModelCourseTariffFee<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftModelCourseTariffFee<ValidationMode>, SchedulingApiShiftModelCourseTariffFee<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCourseTariffFee<ValidationMode>,
+			name: 'shiftModelCourseTariffFee',
+			id: 'SHIFT_MODEL_COURSE_TARIFF_FEE',
+		});
+	attributeInfoName =  new ApiAttributeInfo<SchedulingApiShiftModelCourseTariffFee<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCourseTariffFee<ValidationMode>,
+			name: 'name',
+			id: 'SHIFT_MODEL_COURSE_TARIFF_FEE_NAME',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoFee =  new ApiAttributeInfo<SchedulingApiShiftModelCourseTariffFee<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCourseTariffFee<ValidationMode>,
+			name: 'fee',
+			id: 'SHIFT_MODEL_COURSE_TARIFF_FEE_FEE',
+			primitiveType: PApiPrimitiveTypes.Currency,
+		});
+	attributeInfoPerXParticipants =  new ApiAttributeInfo<SchedulingApiShiftModelCourseTariffFee<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCourseTariffFee<ValidationMode>,
+			name: 'perXParticipants',
+			id: 'SHIFT_MODEL_COURSE_TARIFF_FEE_PER_X_PARTICIPANTS',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+	attributeInfoTaxPercentage =  new ApiAttributeInfo<SchedulingApiShiftModelCourseTariffFee<ValidationMode>, number>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCourseTariffFee<ValidationMode>,
+			name: 'taxPercentage',
+			id: 'SHIFT_MODEL_COURSE_TARIFF_FEE_TAX_PERCENTAGE',
+			primitiveType: PApiPrimitiveTypes.number,
+			validations: function(this : SchedulingApiShiftModelCourseTariffFee<ValidationMode>) {
+				return [
+					() => {
+						return this.api!.validators.maxDecimalPlacesCount(1, PApiPrimitiveTypes.number, undefined);
+					},
+				];
+			},
+		});
+
+	/**
+     *  Fee Name
+	 *
+	 * @type {string}
+     */
+	get name() : string | null {
+		return this.data[1];
+	}
+
+	set name(v : string | null) {
+        this.setterImpl(1, v, 'name');
+	}
+
+	/**
+     *  Gross amount to pay
+	 *
+	 * @type {Currency}
+     */
+	get fee() : NullableInDraftMode<Currency, ValidationMode> {
+		return this.data[2];
+	}
+
+	set fee(v : NullableInDraftMode<Currency, ValidationMode>) {
+        this.setterImpl(2, v, 'fee');
+	}
+
+	/**
+     *  Amount has to be paid per how many participants?
+	 *
+	 * @type {Integer}
+     */
+	get perXParticipants() : NullableInDraftMode<Integer, ValidationMode> {
+		return this.data[3];
+	}
+
+	set perXParticipants(v : NullableInDraftMode<Integer, ValidationMode>) {
+        this.setterImpl(3, v, 'perXParticipants');
+	}
+
+	/**
+     *  Tax percentage
+	 *
+	 * @type {number}
+     */
+	get taxPercentage() : NullableInDraftMode<number, ValidationMode> {
+		return this.data[4];
+	}
+
+	set taxPercentage(v : NullableInDraftMode<number, ValidationMode>) {
+        this.setterImpl(4, v, 'taxPercentage');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 5);
+
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '340';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '340', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftModelCourseTariffFee<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiShiftModelCoursePaymentMethodsBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'coursePaymentMethods');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiShiftModelCoursePaymentMethod<ValidationMode> {
+		const newWrapper = new SchedulingApiShiftModelCoursePaymentMethod<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiShiftModelCoursePaymentMethods<ValidationMode> {
+		return new SchedulingApiShiftModelCoursePaymentMethods<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '254';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiShiftModelCoursePaymentMethod<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('coursePaymentMethods');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftModelCoursePaymentMethods<ValidationMode>, SchedulingApiShiftModelCoursePaymentMethods<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftModelCoursePaymentMethods<ValidationMode>, SchedulingApiShiftModelCoursePaymentMethods<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCoursePaymentMethods<ValidationMode>,
+			name: 'coursePaymentMethods',
+			id: 'SHIFT_MODEL_COURSE_PAYMENT_METHODS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+		});
+}
+
+				 
+export class SchedulingApiShiftModelCoursePaymentMethod<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftModelCoursePaymentMethod as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftModelCoursePaymentMethod<ValidationMode>, SchedulingApiShiftModelCoursePaymentMethod<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftModelCoursePaymentMethod<ValidationMode>, SchedulingApiShiftModelCoursePaymentMethod<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCoursePaymentMethod<ValidationMode>,
+			name: 'shiftModelCoursePaymentMethod',
+			id: 'SHIFT_MODEL_COURSE_PAYMENT_METHOD',
+		});
+	attributeInfoType =  new ApiAttributeInfo<SchedulingApiShiftModelCoursePaymentMethod<ValidationMode>, SchedulingApiPaymentMethodType>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCoursePaymentMethod<ValidationMode>,
+			name: 'type',
+			id: 'SHIFT_MODEL_COURSE_PAYMENT_METHOD_TYPE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+		});
+	attributeInfoName =  new ApiAttributeInfo<SchedulingApiShiftModelCoursePaymentMethod<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCoursePaymentMethod<ValidationMode>,
+			name: 'name',
+			id: 'SHIFT_MODEL_COURSE_PAYMENT_METHOD_NAME',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoDescription =  new ApiAttributeInfo<SchedulingApiShiftModelCoursePaymentMethod<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCoursePaymentMethod<ValidationMode>,
+			name: 'description',
+			id: 'SHIFT_MODEL_COURSE_PAYMENT_METHOD_DESCRIPTION',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoIsInternal =  new ApiAttributeInfo<SchedulingApiShiftModelCoursePaymentMethod<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCoursePaymentMethod<ValidationMode>,
+			name: 'isInternal',
+			id: 'SHIFT_MODEL_COURSE_PAYMENT_METHOD_IS_INTERNAL',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoTrashed =  new ApiAttributeInfo<SchedulingApiShiftModelCoursePaymentMethod<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCoursePaymentMethod<ValidationMode>,
+			name: 'trashed',
+			id: 'SHIFT_MODEL_COURSE_PAYMENT_METHOD_TRASHED',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoApplyToBooking =  new ApiAttributeInfo<SchedulingApiShiftModelCoursePaymentMethod<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCoursePaymentMethod<ValidationMode>,
+			name: 'applyToBooking',
+			id: 'SHIFT_MODEL_COURSE_PAYMENT_METHOD_APPLY_TO_BOOKING',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+
+	/**
+     *  Payment method type
+	 *
+	 * @type {SchedulingApiPaymentMethodType}
+     */
+	get type() : NullableInDraftMode<SchedulingApiPaymentMethodType, ValidationMode> {
+		return this.data[1];
+	}
+
+	set type(v : NullableInDraftMode<SchedulingApiPaymentMethodType, ValidationMode>) {
+        this.setterImpl(1, v, 'type');
+	}
+
+	/**
+     *  Payment method name
+	 *
+	 * @type {string}
+     */
+	get name() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[2];
+	}
+
+	set name(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(2, v, 'name');
+	}
+
+	/**
+     *  Payment method description. This value is ignored for type == "PAYPAL".
+	 *
+	 * @type {string}
+     */
+	get description() : string | null {
+		return this.data[3];
+	}
+
+	set description(v : string | null) {
+        this.setterImpl(3, v, 'description');
+	}
+
+	/**
+     *  Is the payment-method internal? I.e. only usable during manual booking?
+	 *
+	 * @type {boolean}
+     */
+	get isInternal() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[4];
+	}
+
+	set isInternal(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(4, v, 'isInternal');
+	}
+
+	/**
+     *  Is the payment method trashed?
+	 *
+	 * @type {boolean}
+     */
+	get trashed() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[5];
+	}
+
+	set trashed(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(5, v, 'trashed');
+	}
+
+	private applyToBookingWrapper : Id | null = null!;
+
+
+	set applyToBooking(v : Id | null) {
+        this.setterImpl(6, v, 'applyToBooking', () => {this.applyToBookingWrapper = v;});
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.data[6] = Meta.getReplacedId(this.data[6], _idReplacements);
+		this.applyToBookingWrapper = Id.create(this.data[6]);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 7);
+
+			data[4] = false;
+			data[5] = false;
+		}
+
+		// propagate new raw data to children
+		if(!Meta.isSameId(data ? data[6] : null, this.applyToBookingWrapper))
+			this.applyToBookingWrapper = data && data[6] ? Id.create(data[6]) : null!;
+	}
+
+	protected get dni() : string {
+		return '345';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '345', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftModelCoursePaymentMethod<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+export enum SchedulingApiPaymentMethodType {
+	ONLINE_PAYMENT = 1,
+	PAYPAL = 2,
+	MISC = 3,
+}
+		 export class SchedulingApiShiftModelCancellationPolicies<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'cancellationPolicies');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiShiftModelCancellationPolicy<ValidationMode> {
+		const newWrapper = new SchedulingApiShiftModelCancellationPolicy<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiShiftModelCancellationPolicies<ValidationMode> {
+		return new SchedulingApiShiftModelCancellationPolicies<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '257';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiShiftModelCancellationPolicy<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(true, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('cancellationPolicies');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftModelCancellationPolicies<ValidationMode>, SchedulingApiShiftModelCancellationPolicies<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftModelCancellationPolicies<ValidationMode>, SchedulingApiShiftModelCancellationPolicies<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCancellationPolicies<ValidationMode>,
+			name: 'cancellationPolicies',
+			id: 'SHIFT_MODEL_CANCELLATION_POLICIES',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			validations: function(this : SchedulingApiShiftModelCancellationPolicies<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.ApiList, undefined);
+							return null;
+					},
+				];
+			},
+		});
+}
+
+				 
+export class SchedulingApiShiftModelCancellationPolicy<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftModelCancellationPolicy as any);
+
+		this._updateRawData(Meta.createNewObject(true, idRaw), true);
+
+		// set parent attribute
+		this.feePeriodsWrapper.parent = this as any as SchedulingApiShiftModelCancellationPolicy<ValidationMode>;
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftModelCancellationPolicy<ValidationMode>, SchedulingApiShiftModelCancellationPolicy<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftModelCancellationPolicy<ValidationMode>, SchedulingApiShiftModelCancellationPolicy<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCancellationPolicy<ValidationMode>,
+			name: 'shiftModelCancellationPolicy',
+			id: 'SHIFT_MODEL_CANCELLATION_POLICY',
+		});
+	attributeInfoWithdrawalEnabled =  new ApiAttributeInfo<SchedulingApiShiftModelCancellationPolicy<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCancellationPolicy<ValidationMode>,
+			name: 'withdrawalEnabled',
+			id: 'SHIFT_MODEL_CANCELLATION_POLICY_WITHDRAWAL_ENABLED',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoWithdrawalPeriod =  new ApiAttributeInfo<SchedulingApiShiftModelCancellationPolicy<ValidationMode>, Days>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCancellationPolicy<ValidationMode>,
+			name: 'withdrawalPeriod',
+			id: 'SHIFT_MODEL_CANCELLATION_POLICY_WITHDRAWAL_PERIOD',
+			primitiveType: PApiPrimitiveTypes.Days,
+			show: function(this : SchedulingApiShiftModelCancellationPolicy<ValidationMode>) {
+		if(!((this.withdrawalEnabled)))
+		{
+			return false;
+		}
+				return true;
+			},
+			validations: function(this : SchedulingApiShiftModelCancellationPolicy<ValidationMode>) {
+				return [
+					() => {
+		if(((this.withdrawalEnabled)))
+		{
+			return this.api!.validators.required(PApiPrimitiveTypes.Days, undefined);
+		}
+						return null;
+					},
+					() => {
+		return this.api!.validators.min(0, false, PApiPrimitiveTypes.Days, undefined, undefined);
+							return null;
+					},
+				];
+			},
+		});
+
+	private feePeriodsWrapper : SchedulingApiShiftModelCancellationPolicyFeePeriods<ValidationMode> = new SchedulingApiShiftModelCancellationPolicyFeePeriods<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of all fee periods. The items of this list are sorted in a chronological direction where each period starts at "feePeriod.start" and ends at the next period's "start". The first period in the list must have "start" set to "null" which means that it starts from "infinite". The last period in the list is valid to infinite. So, for any given date-time a specific period can be associated.
+     */
+	get feePeriods() : SchedulingApiShiftModelCancellationPolicyFeePeriods<ValidationMode> {
+		return this.feePeriodsWrapper;
+	}
+
+	set feePeriodsTestSetter(v : SchedulingApiShiftModelCancellationPolicyFeePeriods<ValidationMode>) {
+        this.setterImpl(1, v.rawData, 'feePeriods', () => {this.feePeriodsWrapper = v;});
+	}
+
+	/**
+     *  Is booking withdrawal allowed? See "withdrawalPeriod".
+	 *
+	 * @type {boolean}
+     */
+	get withdrawalEnabled() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[2];
+	}
+
+	set withdrawalEnabled(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(2, v, 'withdrawalEnabled', () => {this.withdrawalPeriod = null;});
+	}
+
+	/**
+     *  Defines the number of days after the booking date in which the booking person has the right of withdrawal. I.e. he can cancel the booking without paying any cancellation fees. Only relevant when "withdrawalPeriod" is "true".
+	 *
+	 * @type {Days}
+     */
+	get withdrawalPeriod() : Days | null {
+		return this.data[3];
+	}
+
+	set withdrawalPeriod(v : Days | null) {
+        this.setterImpl(3, v, 'withdrawalPeriod');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.feePeriodsWrapper._fixIds(_idReplacements);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 4);
+
+			if(data[1] === null)
+				data[1] = Meta.createNewList();
+			data[2] = false;
+		}
+
+		// propagate new raw data to children
+		this.feePeriodsWrapper._updateRawData(data ? data[1] : null, generateMissingData);
+	}
+
+	protected get dni() : string {
+		return '353';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '353', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftModelCancellationPolicy<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiShiftModelCancellationPolicyFeePeriodsBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'feePeriods');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiShiftModelCancellationPolicyFeePeriod<ValidationMode> {
+		const newWrapper = new SchedulingApiShiftModelCancellationPolicyFeePeriod<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiShiftModelCancellationPolicyFeePeriods<ValidationMode> {
+		return new SchedulingApiShiftModelCancellationPolicyFeePeriods<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '354';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiShiftModelCancellationPolicyFeePeriod<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('feePeriods');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftModelCancellationPolicyFeePeriods<ValidationMode>, SchedulingApiShiftModelCancellationPolicyFeePeriods<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftModelCancellationPolicyFeePeriods<ValidationMode>, SchedulingApiShiftModelCancellationPolicyFeePeriods<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCancellationPolicyFeePeriods<ValidationMode>,
+			name: 'feePeriods',
+			id: 'SHIFT_MODEL_CANCELLATION_POLICY_FEE_PERIODS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			validations: function(this : SchedulingApiShiftModelCancellationPolicyFeePeriods<ValidationMode>) {
+				return [
+					() => {
+		if(((this.parent!.parent?.parent!.onlineCancellationForChargeableBookingsEnabled)))
+		{
+			return this.api!.validators.required(PApiPrimitiveTypes.ApiList, undefined);
+		}
+						return null;
+					},
+					() => { return this.checkFirstPeriodShouldHaveNullStart() },
+				];
+			},
+		});
+}
+
+				 
+export class SchedulingApiShiftModelCancellationPolicyFeePeriodBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftModelCancellationPolicyFeePeriod as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftModelCancellationPolicyFeePeriod<ValidationMode>, SchedulingApiShiftModelCancellationPolicyFeePeriod<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftModelCancellationPolicyFeePeriod<ValidationMode>, SchedulingApiShiftModelCancellationPolicyFeePeriod<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCancellationPolicyFeePeriod<ValidationMode>,
+			name: 'shiftModelCancellationPolicyFeePeriod',
+			id: 'SHIFT_MODEL_CANCELLATION_POLICY_FEE_PERIOD',
+		});
+	attributeInfoFeeFix =  new ApiAttributeInfo<SchedulingApiShiftModelCancellationPolicyFeePeriod<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCancellationPolicyFeePeriod<ValidationMode>,
+			name: 'feeFix',
+			id: 'SHIFT_MODEL_CANCELLATION_POLICY_FEE_PERIOD_FEE_FIX',
+			primitiveType: PApiPrimitiveTypes.Currency,
+			validations: function(this : SchedulingApiShiftModelCancellationPolicyFeePeriod<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.Currency, undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.min(0, true, PApiPrimitiveTypes.Currency, undefined, undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoFeePercentage =  new ApiAttributeInfo<SchedulingApiShiftModelCancellationPolicyFeePeriod<ValidationMode>, number>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCancellationPolicyFeePeriod<ValidationMode>,
+			name: 'feePercentage',
+			id: 'SHIFT_MODEL_CANCELLATION_POLICY_FEE_PERIOD_FEE_PERCENTAGE',
+			primitiveType: PApiPrimitiveTypes.number,
+			validations: function(this : SchedulingApiShiftModelCancellationPolicyFeePeriod<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.number, undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.min(0, true, PApiPrimitiveTypes.number, undefined, undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.max(100, true, PApiPrimitiveTypes.number, undefined, undefined);
+							return null;
+					},
+					() => {
+						return this.api!.validators.maxDecimalPlacesCount(1, PApiPrimitiveTypes.number, undefined);
+					},
+				];
+			},
+		});
+	attributeInfoStart =  new ApiAttributeInfo<SchedulingApiShiftModelCancellationPolicyFeePeriod<ValidationMode>, Days>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCancellationPolicyFeePeriod<ValidationMode>,
+			name: 'start',
+			id: 'SHIFT_MODEL_CANCELLATION_POLICY_FEE_PERIOD_START',
+			primitiveType: PApiPrimitiveTypes.Days,
+			validations: function(this : SchedulingApiShiftModelCancellationPolicyFeePeriod<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.min(0, true, PApiPrimitiveTypes.Days, undefined, undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.min(() => this.end, true, PApiPrimitiveTypes.Days, 'SHIFT_MODEL_CANCELLATION_POLICY_FEE_PERIOD_END', undefined);
+							return null;
+					},
+					() => {
+						return this.api!.validators.notUndefined(PApiPrimitiveTypes.Days, undefined);
+					},
+					() => {
+		if(((this.parent!.indexOf(this)! > 0)))
+		{
+			return this.api!.validators.required(PApiPrimitiveTypes.Days, undefined);
+		}
+						return null;
+					},
+				];
+			},
+		});
+	attributeInfoEnd =  new ApiAttributeInfo<SchedulingApiShiftModelCancellationPolicyFeePeriod<ValidationMode>, Days>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCancellationPolicyFeePeriod<ValidationMode>,
+			name: 'end',
+			id: 'SHIFT_MODEL_CANCELLATION_POLICY_FEE_PERIOD_END',
+			primitiveType: PApiPrimitiveTypes.Days,
+			canEdit: function(this : SchedulingApiShiftModelCancellationPolicyFeePeriod<ValidationMode>) {
+		return false;
+					return true;
+			},
+			readMode: function(this : SchedulingApiShiftModelCancellationPolicyFeePeriod<ValidationMode>) {
+				 
+		
+				return false;
+			},
+			vars: {
+				cannotEditHint: () => this.end === null ? 'Das Ende der ersten Zeitspanne muss so definiert sein, um Lücken zu vermeiden und sicherzustellen, dass auch Stornos nach dem gebuchten Termin abgedeckt sind. Bei mehrtägigen Angeboten gilt immer der Starttermin als Referenz.' :
+				'Das Ende errechnet sich automatisch anhand des Startzeitpunktes der vorherigen Zeitspanne. So werden Lücken zwischen den Zeiträumen vermieden.',
+			}
+		});
+
+	/**
+     *  The fix fee of a booking cancellation.
+	 *
+	 * @type {Currency}
+     */
+	get feeFix() : NullableInDraftMode<Currency, ValidationMode> {
+		return this.data[1];
+	}
+
+	set feeFix(v : NullableInDraftMode<Currency, ValidationMode>) {
+        this.setterImpl(1, v, 'feeFix');
+	}
+
+	/**
+     *  The percentage fee of a booking cancellation.
+	 *
+	 * @type {number}
+     */
+	get feePercentage() : NullableInDraftMode<number, ValidationMode> {
+		return this.data[2];
+	}
+
+	set feePercentage(v : NullableInDraftMode<number, ValidationMode>) {
+        this.setterImpl(2, v, 'feePercentage');
+	}
+
+	/**
+     *  From when is this period valid? The number of days is relative to the beginning of the day when the course starts. The first item in the list must always have this set to "null". See "cancellationPeriod.feePeriods" for more details.
+	 *
+	 * @type {Days}
+     */
+	get start() : Days | null {
+		return this.data[3];
+	}
+
+	set start(v : Days | null) {
+        this.setterImpl(3, v, 'start');
+	}
+
+
+	set end(v : Days | null) {
+        this.setterImpl(4, v, 'end');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 5);
+
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '357';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '357', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftModelCancellationPolicyFeePeriod<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+export enum SchedulingApiBookingDesiredDateSetting {
+	DESIRED_DATE_NOT_ALLOWED = 1,
+	DESIRED_DATE_OPTIONAL = 2,
+	ONLY_DESIRED_DATES = 3,
+}
+		 
+export class SchedulingApiShiftModelNeededMembersCountConf<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftModelNeededMembersCountConf as any);
+
+		this._updateRawData(Meta.createNewObject(true, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftModelNeededMembersCountConf<ValidationMode>, SchedulingApiShiftModelNeededMembersCountConf<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftModelNeededMembersCountConf<ValidationMode>, SchedulingApiShiftModelNeededMembersCountConf<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelNeededMembersCountConf<ValidationMode>,
+			name: 'neededMembersCountConf',
+			id: 'SHIFT_MODEL_NEEDED_MEMBERS_COUNT_CONF',
+			canEdit: function(this : SchedulingApiShiftModelNeededMembersCountConf<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this.parent!))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModelNeededMembersCountConf<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoNeededMembersCount =  new ApiAttributeInfo<SchedulingApiShiftModelNeededMembersCountConf<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelNeededMembersCountConf<ValidationMode>,
+			name: 'neededMembersCount',
+			id: 'SHIFT_MODEL_NEEDED_MEMBERS_COUNT_CONF_NEEDED_MEMBERS_COUNT',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+	attributeInfoPerXParticipants =  new ApiAttributeInfo<SchedulingApiShiftModelNeededMembersCountConf<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelNeededMembersCountConf<ValidationMode>,
+			name: 'perXParticipants',
+			id: 'SHIFT_MODEL_NEEDED_MEMBERS_COUNT_CONF_PER_X_PARTICIPANTS',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+	attributeInfoIsZeroNotReachedMinParticipantsCount =  new ApiAttributeInfo<SchedulingApiShiftModelNeededMembersCountConf<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelNeededMembersCountConf<ValidationMode>,
+			name: 'isZeroNotReachedMinParticipantsCount',
+			id: 'SHIFT_MODEL_NEEDED_MEMBERS_COUNT_CONF_IS_ZERO_NOT_REACHED_MIN_PARTICIPANTS_COUNT',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+
+	/**
+     *  See perXParticipants for documentation.
+	 *
+	 * @type {Integer}
+     */
+	get neededMembersCount() : NullableInDraftMode<Integer, ValidationMode> {
+		return this.data[1];
+	}
+
+	set neededMembersCount(v : NullableInDraftMode<Integer, ValidationMode>) {
+        this.setterImpl(1, v, 'neededMembersCount');
+	}
+
+	/**
+     *  If this value is "null" then the final needed-members-count will be just "neededMembersCount". Otherwise it will be "neededMembersCount * ceil(participant-count / perXParticipants)". The calculated needed-members-count can be retrieved in shift.neededMembersCount.
+	 *
+	 * @type {Integer}
+     */
+	get perXParticipants() : Integer | null {
+		return this.data[2];
+	}
+
+	set perXParticipants(v : Integer | null) {
+        this.setterImpl(2, v, 'perXParticipants');
+	}
+
+	/**
+     *  If "true" then needed-members-count will be zero when participants count has not reached min-participants-count.
+	 *
+	 * @type {boolean}
+     */
+	get isZeroNotReachedMinParticipantsCount() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[3];
+	}
+
+	set isZeroNotReachedMinParticipantsCount(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(3, v, 'isZeroNotReachedMinParticipantsCount');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 4);
+
+			data[3] = false;
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '266';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '266', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftModelNeededMembersCountConf<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiShiftModelAssignedMemberIds<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'assignedMemberIds');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : Id {
+		return Id.create(item);
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return true;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiShiftModelAssignedMemberIds<ValidationMode> {
+		return new SchedulingApiShiftModelAssignedMemberIds<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '268';
+	}
+
+	override createNewItem() : Id {
+		const newItemRaw = null;
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('assignedMemberIds');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftModelAssignedMemberIds<ValidationMode>, SchedulingApiShiftModelAssignedMemberIds<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftModelAssignedMemberIds<ValidationMode>, SchedulingApiShiftModelAssignedMemberIds<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelAssignedMemberIds<ValidationMode>,
+			name: 'assignedMemberIds',
+			id: 'SHIFT_MODEL_ASSIGNED_MEMBER_IDS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			show: function(this : SchedulingApiShiftModelAssignedMemberIds<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this.parent!))))
+		{
+			return false;
+		}
+				return true;
+			},
+		});
+	attributeInfoShiftModelAssignedMemberId =  new ApiAttributeInfo<SchedulingApiShiftModelAssignedMemberIds<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelAssignedMemberIds<ValidationMode>,
+			name: 'shiftModelAssignedMemberId',
+			id: 'SHIFT_MODEL_ASSIGNED_MEMBER_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+}
+
+				 export class SchedulingApiShiftModelCourseHighlights<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'courseHighlights');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiShiftModelCourseHighlight<ValidationMode> {
+		const newWrapper = new SchedulingApiShiftModelCourseHighlight<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiShiftModelCourseHighlights<ValidationMode> {
+		return new SchedulingApiShiftModelCourseHighlights<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '273';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiShiftModelCourseHighlight<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('courseHighlights');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftModelCourseHighlights<ValidationMode>, SchedulingApiShiftModelCourseHighlights<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftModelCourseHighlights<ValidationMode>, SchedulingApiShiftModelCourseHighlights<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCourseHighlights<ValidationMode>,
+			name: 'courseHighlights',
+			id: 'SHIFT_MODEL_COURSE_HIGHLIGHTS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			canEdit: function(this : SchedulingApiShiftModelCourseHighlights<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanWrite(this.parent!))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiShiftModelCourseHighlights<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+}
+
+				 
+export class SchedulingApiShiftModelCourseHighlight<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftModelCourseHighlight as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftModelCourseHighlight<ValidationMode>, SchedulingApiShiftModelCourseHighlight<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftModelCourseHighlight<ValidationMode>, SchedulingApiShiftModelCourseHighlight<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCourseHighlight<ValidationMode>,
+			name: 'shiftModelCourseHighlight',
+			id: 'SHIFT_MODEL_COURSE_HIGHLIGHT',
+		});
+	attributeInfoText =  new ApiAttributeInfo<SchedulingApiShiftModelCourseHighlight<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiShiftModelCourseHighlight<ValidationMode>,
+			name: 'text',
+			id: 'SHIFT_MODEL_COURSE_HIGHLIGHT_TEXT',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+
+	/**
+     *  Highlight text
+	 *
+	 * @type {string}
+     */
+	get text() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[1];
+	}
+
+	set text(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(1, v, 'text');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 2);
+
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '326';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '326', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftModelCourseHighlight<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+export enum SchedulingApiPosSystem {
+	BOULDERADO = 1,
+	FREECLIMBER = 2,
+}
+		 
+export class SchedulingApiNotificationsConf<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiNotificationsConf as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiNotificationsConf<ValidationMode>, SchedulingApiNotificationsConf<ValidationMode>> = new ApiAttributeInfo<SchedulingApiNotificationsConf<ValidationMode>, SchedulingApiNotificationsConf<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiNotificationsConf<ValidationMode>,
+			name: 'notificationsConf',
+			id: 'NOTIFICATIONS_CONF',
+		});
+	attributeInfoSendEmail =  new ApiAttributeInfo<SchedulingApiNotificationsConf<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiNotificationsConf<ValidationMode>,
+			name: 'sendEmail',
+			id: 'NOTIFICATIONS_CONF_SEND_EMAIL',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+
+	/**
+     *  Should email notifications be send for current action? Default is "true".
+	 *
+	 * @type {boolean}
+     */
+	get sendEmail() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[1];
+	}
+
+	set sendEmail(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(1, v, 'sendEmail');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 2);
+
+			data[1] = false;
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '15';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '15', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiNotificationsConf<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiRightGroupsBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'rightGroups');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiRightGroup<ValidationMode> {
+		const newWrapper = new SchedulingApiRightGroup<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiRightGroups<ValidationMode> {
+		return new SchedulingApiRightGroups<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '16';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiRightGroup<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('rightGroups');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiRightGroups<ValidationMode>, SchedulingApiRightGroups<ValidationMode>> = new ApiAttributeInfo<SchedulingApiRightGroups<ValidationMode>, SchedulingApiRightGroups<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiRightGroups<ValidationMode>,
+			name: 'rightGroups',
+			id: 'RIGHT_GROUPS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			canEdit: function(this : SchedulingApiRightGroups<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiRightGroups<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+}
+
+				 
+export class SchedulingApiRightGroupBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiRightGroup as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+		this.shiftModelRightsWrapper.parent = this as any as SchedulingApiRightGroup<ValidationMode>;
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiRightGroup<ValidationMode>, SchedulingApiRightGroup<ValidationMode>> = new ApiAttributeInfo<SchedulingApiRightGroup<ValidationMode>, SchedulingApiRightGroup<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiRightGroup<ValidationMode>,
+			name: 'rightGroup',
+			id: 'RIGHT_GROUP',
+		});
+	attributeInfoName =  new ApiAttributeInfo<SchedulingApiRightGroup<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiRightGroup<ValidationMode>,
+			name: 'name',
+			id: 'RIGHT_GROUP_NAME',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoRole =  new ApiAttributeInfo<SchedulingApiRightGroup<ValidationMode>, SchedulingApiRightGroupRole>({
+			apiObjWrapper: this as any as SchedulingApiRightGroup<ValidationMode>,
+			name: 'role',
+			id: 'RIGHT_GROUP_ROLE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+			canEdit: function(this : SchedulingApiRightGroup<ValidationMode>) {
+ 
+		
+				return true;
+			},
+			readMode: function(this : SchedulingApiRightGroup<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+	attributeInfoCanReadAndWriteBookingSystemSettings =  new ApiAttributeInfo<SchedulingApiRightGroup<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiRightGroup<ValidationMode>,
+			name: 'canReadAndWriteBookingSystemSettings',
+			id: 'RIGHT_GROUP_CAN_READ_AND_WRITE_BOOKING_SYSTEM_SETTINGS',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+
+	/**
+     *  The name of the right group
+	 *
+	 * @type {string}
+     */
+	get name() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[1];
+	}
+
+	set name(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(1, v, 'name');
+	}
+
+	/**
+     *  The role of this right group.
+	 *
+	 * @type {SchedulingApiRightGroupRole}
+     */
+	get role() : NullableInDraftMode<SchedulingApiRightGroupRole, ValidationMode> {
+		return this.data[2];
+	}
+
+	set role(v : NullableInDraftMode<SchedulingApiRightGroupRole, ValidationMode>) {
+        this.setterImpl(2, v, 'role');
+	}
+
+	/**
+     *  Can this member read and write booking system settings? For role == "CLIENT_OWNER" this value be always "true".
+	 *
+	 * @type {boolean}
+     */
+	get canReadAndWriteBookingSystemSettings() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[3];
+	}
+
+	set canReadAndWriteBookingSystemSettings(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(3, v, 'canReadAndWriteBookingSystemSettings');
+	}
+
+	private shiftModelRightsWrapper : SchedulingApiRightGroupShiftModelRights<ValidationMode> = new SchedulingApiRightGroupShiftModelRights<ValidationMode>(this.api, false);
+
+	/**
+     *  Additional shift-model rights. Only send for right group of requester or when owner and data="rights".
+     */
+	get shiftModelRights() : SchedulingApiRightGroupShiftModelRights<ValidationMode> {
+		return this.shiftModelRightsWrapper;
+	}
+
+	set shiftModelRightsTestSetter(v : SchedulingApiRightGroupShiftModelRights<ValidationMode>) {
+        this.setterImpl(4, v.rawData, 'shiftModelRights', () => {this.shiftModelRightsWrapper = v;});
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.shiftModelRightsWrapper._fixIds(_idReplacements);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 5);
+
+			data[3] = false;
+			if(data[4] === null)
+				data[4] = Meta.createNewList();
+		}
+
+		// propagate new raw data to children
+		this.shiftModelRightsWrapper._updateRawData(data ? data[4] : null, generateMissingData);
+	}
+
+	protected get dni() : string {
+		return '362';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '362', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiRightGroup<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+export enum SchedulingApiRightGroupRole {
+	CLIENT_DEFAULT = 1,
+	CLIENT_OWNER = 2,
+}
+		 export class SchedulingApiRightGroupShiftModelRightsBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'shiftModelRights');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiRightGroupShiftModelRight<ValidationMode> {
+		const newWrapper = new SchedulingApiRightGroupShiftModelRight<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiRightGroupShiftModelRights<ValidationMode> {
+		return new SchedulingApiRightGroupShiftModelRights<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '366';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiRightGroupShiftModelRight<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('shiftModelRights');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiRightGroupShiftModelRights<ValidationMode>, SchedulingApiRightGroupShiftModelRights<ValidationMode>> = new ApiAttributeInfo<SchedulingApiRightGroupShiftModelRights<ValidationMode>, SchedulingApiRightGroupShiftModelRights<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiRightGroupShiftModelRights<ValidationMode>,
+			name: 'shiftModelRights',
+			id: 'RIGHT_GROUP_SHIFT_MODEL_RIGHTS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			show: function(this : SchedulingApiRightGroupShiftModelRights<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> RIGHT_GROUP_SHIFT_MODEL_RIGHTS is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> RIGHT_GROUP_SHIFT_MODEL_RIGHTS is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+		});
+}
+
+				 
+export class SchedulingApiRightGroupShiftModelRight<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiRightGroupShiftModelRight as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiRightGroupShiftModelRight<ValidationMode>, SchedulingApiRightGroupShiftModelRight<ValidationMode>> = new ApiAttributeInfo<SchedulingApiRightGroupShiftModelRight<ValidationMode>, SchedulingApiRightGroupShiftModelRight<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiRightGroupShiftModelRight<ValidationMode>,
+			name: 'rightGroupShiftModelRight',
+			id: 'RIGHT_GROUP_SHIFT_MODEL_RIGHT',
+		});
+	attributeInfoCanRead =  new ApiAttributeInfo<SchedulingApiRightGroupShiftModelRight<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiRightGroupShiftModelRight<ValidationMode>,
+			name: 'canRead',
+			id: 'RIGHT_GROUP_SHIFT_MODEL_RIGHT_CAN_READ',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoCanWrite =  new ApiAttributeInfo<SchedulingApiRightGroupShiftModelRight<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiRightGroupShiftModelRight<ValidationMode>,
+			name: 'canWrite',
+			id: 'RIGHT_GROUP_SHIFT_MODEL_RIGHT_CAN_WRITE',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoCanWriteBookings =  new ApiAttributeInfo<SchedulingApiRightGroupShiftModelRight<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiRightGroupShiftModelRight<ValidationMode>,
+			name: 'canWriteBookings',
+			id: 'RIGHT_GROUP_SHIFT_MODEL_RIGHT_CAN_WRITE_BOOKINGS',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoCanOnlineRefund =  new ApiAttributeInfo<SchedulingApiRightGroupShiftModelRight<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiRightGroupShiftModelRight<ValidationMode>,
+			name: 'canOnlineRefund',
+			id: 'RIGHT_GROUP_SHIFT_MODEL_RIGHT_CAN_ONLINE_REFUND',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoCanGetManagerNotifications =  new ApiAttributeInfo<SchedulingApiRightGroupShiftModelRight<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiRightGroupShiftModelRight<ValidationMode>,
+			name: 'canGetManagerNotifications',
+			id: 'RIGHT_GROUP_SHIFT_MODEL_RIGHT_CAN_GET_MANAGER_NOTIFICATIONS',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoShiftModelId =  new ApiAttributeInfo<SchedulingApiRightGroupShiftModelRight<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiRightGroupShiftModelRight<ValidationMode>,
+			name: 'shiftModelId',
+			id: 'RIGHT_GROUP_SHIFT_MODEL_RIGHT_SHIFT_MODEL_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+	attributeInfoShiftModelParentName =  new ApiAttributeInfo<SchedulingApiRightGroupShiftModelRight<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiRightGroupShiftModelRight<ValidationMode>,
+			name: 'shiftModelParentName',
+			id: 'RIGHT_GROUP_SHIFT_MODEL_RIGHT_SHIFT_MODEL_PARENT_NAME',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+
+	/**
+     *  Granting read right to member? If no shiftModelRight-item is send then for owner this values is assumed to be "true". For default member "true" if he is assignable otherwise "false".
+	 *
+	 * @type {boolean}
+     */
+	get canRead() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[1];
+	}
+
+	set canRead(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(1, v, 'canRead');
+	}
+
+	/**
+     *  Granting write right to member? If no shiftModelRight-item is send then for owner this values is assumed to be "true" and for default member "false".
+	 *
+	 * @type {boolean}
+     */
+	get canWrite() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[2];
+	}
+
+	set canWrite(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(2, v, 'canWrite');
+	}
+
+	/**
+     *  Granting bookings write right to member? If no shiftModelRight-item is send then for owner this values is assumed to be "true" and for default member "false".
+	 *
+	 * @type {boolean}
+     */
+	get canWriteBookings() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[3];
+	}
+
+	set canWriteBookings(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(3, v, 'canWriteBookings');
+	}
+
+	/**
+     *  Granting online-refund right to member? If no shiftModelRight-item is send then for owner this values is assumed to be "true" and for default member "false".
+	 *
+	 * @type {boolean}
+     */
+	get canOnlineRefund() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[4];
+	}
+
+	set canOnlineRefund(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(4, v, 'canOnlineRefund');
+	}
+
+	/**
+     *  This member should get manager notifications? If no shiftModelRight-item is send then for owner this values is assumed to be "true" and for default member "false".
+	 *
+	 * @type {boolean}
+     */
+	get canGetManagerNotifications() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[5];
+	}
+
+	set canGetManagerNotifications(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(5, v, 'canGetManagerNotifications');
+	}
+
+	private shiftModelIdWrapper : Id | null = null!;
+
+	/**
+     *  The id of the shift-model for which this item describes rights. Can be undefined in which case "shiftModelParentName" has to be defined.
+	 *
+	 * @type {Id}
+     */
+	get shiftModelId() : Id | null {
+		return this.shiftModelIdWrapper;
+	}
+
+	set shiftModelId(v : Id | null) {
+        this.setterImpl(6, v, 'shiftModelId', () => {this.shiftModelIdWrapper = v;});
+	}
+
+	/**
+     *  Parent name of shift-models for which this items describes rights. Can be undefined in which case "shiftModelId" has to be defined.
+	 *
+	 * @type {string}
+     */
+	get shiftModelParentName() : string | null {
+		return this.data[7];
+	}
+
+	set shiftModelParentName(v : string | null) {
+        this.setterImpl(7, v, 'shiftModelParentName');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.data[6] = Meta.getReplacedId(this.data[6], _idReplacements);
+		this.shiftModelIdWrapper = Id.create(this.data[6]);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 8);
+
+			data[1] = false;
+			data[2] = false;
+			data[3] = false;
+			data[4] = false;
+			data[5] = false;
+		}
+
+		// propagate new raw data to children
+		if(!Meta.isSameId(data ? data[6] : null, this.shiftModelIdWrapper))
+			this.shiftModelIdWrapper = data && data[6] ? Id.create(data[6]) : null!;
+	}
+
+	protected get dni() : string {
+		return '367';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '367', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiRightGroupShiftModelRight<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiAccountingPeriodsBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'accountingPeriods');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiAccountingPeriod<ValidationMode> {
+		const newWrapper = new SchedulingApiAccountingPeriod<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiAccountingPeriods<ValidationMode> {
+		return new SchedulingApiAccountingPeriods<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '17';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiAccountingPeriod<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('accountingPeriods');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiAccountingPeriods<ValidationMode>, SchedulingApiAccountingPeriods<ValidationMode>> = new ApiAttributeInfo<SchedulingApiAccountingPeriods<ValidationMode>, SchedulingApiAccountingPeriods<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiAccountingPeriods<ValidationMode>,
+			name: 'accountingPeriods',
+			id: 'ACCOUNTING_PERIODS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			show: function(this : SchedulingApiAccountingPeriods<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> ACCOUNTING_PERIODS is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> ACCOUNTING_PERIODS is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+			canEdit: () => false,
+			readMode: () => true,
+		});
+}
+
+				 
+export class SchedulingApiAccountingPeriodBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiAccountingPeriod as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+		this.expectedMemberDataWrapper.parent = this as any as SchedulingApiAccountingPeriod<ValidationMode>;
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiAccountingPeriod<ValidationMode>, SchedulingApiAccountingPeriod<ValidationMode>> = new ApiAttributeInfo<SchedulingApiAccountingPeriod<ValidationMode>, SchedulingApiAccountingPeriod<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiAccountingPeriod<ValidationMode>,
+			name: 'accountingPeriod',
+			id: 'ACCOUNTING_PERIOD',
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoStart =  new ApiAttributeInfo<SchedulingApiAccountingPeriod<ValidationMode>, Date>({
+			apiObjWrapper: this as any as SchedulingApiAccountingPeriod<ValidationMode>,
+			name: 'start',
+			id: 'ACCOUNTING_PERIOD_START',
+			primitiveType: PApiPrimitiveTypes.Date,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoEnd =  new ApiAttributeInfo<SchedulingApiAccountingPeriod<ValidationMode>, DateExclusiveEnd>({
+			apiObjWrapper: this as any as SchedulingApiAccountingPeriod<ValidationMode>,
+			name: 'end',
+			id: 'ACCOUNTING_PERIOD_END',
+			primitiveType: PApiPrimitiveTypes.DateExclusiveEnd,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+
+	/**
+     *  Start of the accounting period (inclusive).
+	 *
+	 * @type {Date}
+     */
+	get start() : NullableInDraftMode<Date, ValidationMode> {
+		return this.data[1];
+	}
+
+	set startTestSetter(v : NullableInDraftMode<Date, ValidationMode>) {
+        this.setterImpl(1, v, 'start');
+	}
+
+	/**
+     *  End of the accounting period (exclusive).
+	 *
+	 * @type {DateExclusiveEnd}
+     */
+	get end() : NullableInDraftMode<DateExclusiveEnd, ValidationMode> {
+		return this.data[2];
+	}
+
+	set endTestSetter(v : NullableInDraftMode<DateExclusiveEnd, ValidationMode>) {
+        this.setterImpl(2, v, 'end');
+	}
+
+	private expectedMemberDataWrapper : SchedulingApiAccountingPeriodExpectedMemberData<ValidationMode> = new SchedulingApiAccountingPeriodExpectedMemberData<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of expected member data. An item of this list has the same id as a member to whom that item belongs. Note, that this list only contains members for whom the requester has permission to read earnings.
+     */
+	get expectedMemberData() : SchedulingApiAccountingPeriodExpectedMemberData<ValidationMode> {
+		return this.expectedMemberDataWrapper;
+	}
+
+	set expectedMemberDataTestSetter(v : SchedulingApiAccountingPeriodExpectedMemberData<ValidationMode>) {
+        this.setterImpl(3, v.rawData, 'expectedMemberData', () => {this.expectedMemberDataWrapper = v;});
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.expectedMemberDataWrapper._fixIds(_idReplacements);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 4);
+
+			if(data[3] === null)
+				data[3] = Meta.createNewList();
+		}
+
+		// propagate new raw data to children
+		this.expectedMemberDataWrapper._updateRawData(data ? data[3] : null, generateMissingData);
+	}
+
+	protected get dni() : string {
+		return '375';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '375', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiAccountingPeriod<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiAccountingPeriodExpectedMemberDataBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'expectedMemberData');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiAccountingPeriodExpectedMemberDataItem<ValidationMode> {
+		const newWrapper = new SchedulingApiAccountingPeriodExpectedMemberDataItem<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiAccountingPeriodExpectedMemberData<ValidationMode> {
+		return new SchedulingApiAccountingPeriodExpectedMemberData<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '378';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiAccountingPeriodExpectedMemberDataItem<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('expectedMemberData');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiAccountingPeriodExpectedMemberData<ValidationMode>, SchedulingApiAccountingPeriodExpectedMemberData<ValidationMode>> = new ApiAttributeInfo<SchedulingApiAccountingPeriodExpectedMemberData<ValidationMode>, SchedulingApiAccountingPeriodExpectedMemberData<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiAccountingPeriodExpectedMemberData<ValidationMode>,
+			name: 'expectedMemberData',
+			id: 'ACCOUNTING_PERIOD_EXPECTED_MEMBER_DATA',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+}
+
+				 
+export class SchedulingApiAccountingPeriodExpectedMemberDataItem<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiAccountingPeriodExpectedMemberDataItem as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiAccountingPeriodExpectedMemberDataItem<ValidationMode>, SchedulingApiAccountingPeriodExpectedMemberDataItem<ValidationMode>> = new ApiAttributeInfo<SchedulingApiAccountingPeriodExpectedMemberDataItem<ValidationMode>, SchedulingApiAccountingPeriodExpectedMemberDataItem<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiAccountingPeriodExpectedMemberDataItem<ValidationMode>,
+			name: 'accountingPeriodExpectedMemberDataItem',
+			id: 'ACCOUNTING_PERIOD_EXPECTED_MEMBER_DATA_ITEM',
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoEarnings =  new ApiAttributeInfo<SchedulingApiAccountingPeriodExpectedMemberDataItem<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiAccountingPeriodExpectedMemberDataItem<ValidationMode>,
+			name: 'earnings',
+			id: 'ACCOUNTING_PERIOD_EXPECTED_MEMBER_DATA_ITEM_EARNINGS',
+			primitiveType: PApiPrimitiveTypes.Currency,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoWorkingHours =  new ApiAttributeInfo<SchedulingApiAccountingPeriodExpectedMemberDataItem<ValidationMode>, Hours>({
+			apiObjWrapper: this as any as SchedulingApiAccountingPeriodExpectedMemberDataItem<ValidationMode>,
+			name: 'workingHours',
+			id: 'ACCOUNTING_PERIOD_EXPECTED_MEMBER_DATA_ITEM_WORKING_HOURS',
+			primitiveType: PApiPrimitiveTypes.Hours,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+
+	/**
+     *  The expected earnings of the member.
+	 *
+	 * @type {Currency}
+     */
+	get earnings() : NullableInDraftMode<Currency, ValidationMode> {
+		return this.data[1];
+	}
+
+	set earningsTestSetter(v : NullableInDraftMode<Currency, ValidationMode>) {
+        this.setterImpl(1, v, 'earnings');
+	}
+
+	/**
+     *  The expected working hours of the member.
+	 *
+	 * @type {Hours}
+     */
+	get workingHours() : NullableInDraftMode<Hours, ValidationMode> {
+		return this.data[2];
+	}
+
+	set workingHoursTestSetter(v : NullableInDraftMode<Hours, ValidationMode>) {
+        this.setterImpl(2, v, 'workingHours');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 3);
+
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '379';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '379', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiAccountingPeriodExpectedMemberDataItem<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiMemosBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'memos');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiMemo<ValidationMode> {
+		const newWrapper = new SchedulingApiMemo<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiMemos<ValidationMode> {
+		return new SchedulingApiMemos<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '18';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiMemo<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('memos');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiMemos<ValidationMode>, SchedulingApiMemos<ValidationMode>> = new ApiAttributeInfo<SchedulingApiMemos<ValidationMode>, SchedulingApiMemos<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiMemos<ValidationMode>,
+			name: 'memos',
+			id: 'MEMOS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			canEdit: function(this : SchedulingApiMemos<ValidationMode>) {
+		if(!((this.api!.rightsService.hasManagerRights)))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiMemos<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+}
+
+				 
+export class SchedulingApiMemo<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiMemo as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiMemo<ValidationMode>, SchedulingApiMemo<ValidationMode>> = new ApiAttributeInfo<SchedulingApiMemo<ValidationMode>, SchedulingApiMemo<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiMemo<ValidationMode>,
+			name: 'memo',
+			id: 'MEMO',
+		});
+	attributeInfoMessage =  new ApiAttributeInfo<SchedulingApiMemo<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiMemo<ValidationMode>,
+			name: 'message',
+			id: 'MEMO_MESSAGE',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoStart =  new ApiAttributeInfo<SchedulingApiMemo<ValidationMode>, Date>({
+			apiObjWrapper: this as any as SchedulingApiMemo<ValidationMode>,
+			name: 'start',
+			id: 'MEMO_START',
+			primitiveType: PApiPrimitiveTypes.Date,
+			validations: function(this : SchedulingApiMemo<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.max(() => this.end, true, PApiPrimitiveTypes.Date, 'MEMO_END', undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoEnd =  new ApiAttributeInfo<SchedulingApiMemo<ValidationMode>, DateExclusiveEnd>({
+			apiObjWrapper: this as any as SchedulingApiMemo<ValidationMode>,
+			name: 'end',
+			id: 'MEMO_END',
+			primitiveType: PApiPrimitiveTypes.DateExclusiveEnd,
+			validations: function(this : SchedulingApiMemo<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.min(() => this.start, true, PApiPrimitiveTypes.DateExclusiveEnd, 'MEMO_START', undefined);
+							return null;
+					},
+				];
+			},
+		});
+
+	/**
+     *  Message of the memo.
+	 *
+	 * @type {string}
+     */
+	get message() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[1];
+	}
+
+	set message(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(1, v, 'message');
+	}
+
+	/**
+     *  Start time of memo (inclusive).
+	 *
+	 * @type {Date}
+     */
+	get start() : NullableInDraftMode<Date, ValidationMode> {
+		return this.data[2];
+	}
+
+	set start(v : NullableInDraftMode<Date, ValidationMode>) {
+        this.setterImpl(2, v, 'start');
+	}
+
+	/**
+     *  End time of memo (exclusive).
+	 *
+	 * @type {DateExclusiveEnd}
+     */
+	get end() : NullableInDraftMode<DateExclusiveEnd, ValidationMode> {
+		return this.data[3];
+	}
+
+	set end(v : NullableInDraftMode<DateExclusiveEnd, ValidationMode>) {
+        this.setterImpl(3, v, 'end');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 4);
+
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '382';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '382', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiMemo<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiTodaysShiftDescriptionsBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'todaysShiftDescriptions');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiTodaysShiftDescription<ValidationMode> {
+		const newWrapper = new SchedulingApiTodaysShiftDescription<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiTodaysShiftDescriptions<ValidationMode> {
+		return new SchedulingApiTodaysShiftDescriptions<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '19';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiTodaysShiftDescription<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('todaysShiftDescriptions');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiTodaysShiftDescriptions<ValidationMode>, SchedulingApiTodaysShiftDescriptions<ValidationMode>> = new ApiAttributeInfo<SchedulingApiTodaysShiftDescriptions<ValidationMode>, SchedulingApiTodaysShiftDescriptions<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiTodaysShiftDescriptions<ValidationMode>,
+			name: 'todaysShiftDescriptions',
+			id: 'TODAYS_SHIFT_DESCRIPTIONS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			show: function(this : SchedulingApiTodaysShiftDescriptions<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> TODAYS_SHIFT_DESCRIPTIONS is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> TODAYS_SHIFT_DESCRIPTIONS is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+		});
+}
+
+				 
+export class SchedulingApiTodaysShiftDescriptionBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiTodaysShiftDescription as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+		this.assignedMemberIdsWrapper.parent = this as any as SchedulingApiTodaysShiftDescription<ValidationMode>;
+	}
+
+
+	private _id : ShiftId | null = null;
+	get id() : ShiftId {
+		return this._id !== null ? this._id : ShiftId.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiTodaysShiftDescription<ValidationMode>, SchedulingApiTodaysShiftDescription<ValidationMode>> = new ApiAttributeInfo<SchedulingApiTodaysShiftDescription<ValidationMode>, SchedulingApiTodaysShiftDescription<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiTodaysShiftDescription<ValidationMode>,
+			name: 'todaysShiftDescription',
+			id: 'TODAYS_SHIFT_DESCRIPTION',
+		});
+	attributeInfoDescription =  new ApiAttributeInfo<SchedulingApiTodaysShiftDescription<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiTodaysShiftDescription<ValidationMode>,
+			name: 'description',
+			id: 'TODAYS_SHIFT_DESCRIPTION_DESCRIPTION',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoShiftStart =  new ApiAttributeInfo<SchedulingApiTodaysShiftDescription<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiTodaysShiftDescription<ValidationMode>,
+			name: 'shiftStart',
+			id: 'TODAYS_SHIFT_DESCRIPTION_SHIFT_START',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+		});
+	attributeInfoShiftEnd =  new ApiAttributeInfo<SchedulingApiTodaysShiftDescription<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiTodaysShiftDescription<ValidationMode>,
+			name: 'shiftEnd',
+			id: 'TODAYS_SHIFT_DESCRIPTION_SHIFT_END',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+		});
+
+	/**
+     *  Description of the shift.
+	 *
+	 * @type {string}
+     */
+	get description() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[1];
+	}
+
+	set description(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(1, v, 'description');
+	}
+
+	/**
+     *  Start of shift.
+	 *
+	 * @type {DateTime}
+     */
+	get shiftStart() : NullableInDraftMode<DateTime, ValidationMode> {
+		return this.data[2];
+	}
+
+	set shiftStart(v : NullableInDraftMode<DateTime, ValidationMode>) {
+        this.setterImpl(2, v, 'shiftStart');
+	}
+
+	/**
+     *  End of shift.
+	 *
+	 * @type {DateTime}
+     */
+	get shiftEnd() : NullableInDraftMode<DateTime, ValidationMode> {
+		return this.data[3];
+	}
+
+	set shiftEnd(v : NullableInDraftMode<DateTime, ValidationMode>) {
+        this.setterImpl(3, v, 'shiftEnd');
+	}
+
+	private assignedMemberIdsWrapper : SchedulingApiTodaysShiftDescriptionAssignedMemberIds<ValidationMode> = new SchedulingApiTodaysShiftDescriptionAssignedMemberIds<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of the assigned members' ids.
+     */
+	get assignedMemberIds() : SchedulingApiTodaysShiftDescriptionAssignedMemberIds<ValidationMode> {
+		return this.assignedMemberIdsWrapper;
+	}
+
+	set assignedMemberIdsTestSetter(v : SchedulingApiTodaysShiftDescriptionAssignedMemberIds<ValidationMode>) {
+        this.setterImpl(4, v.rawData, 'assignedMemberIds', () => {this.assignedMemberIdsWrapper = v;});
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.assignedMemberIdsWrapper._fixIds(_idReplacements);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : ShiftId.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 5);
+
+			if(data[4] === null)
+				data[4] = Meta.createNewList();
+		}
+
+		// propagate new raw data to children
+		this.assignedMemberIdsWrapper._updateRawData(data ? data[4] : null, generateMissingData);
+	}
+
+	protected get dni() : string {
+		return '386';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : ShiftId
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '386', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiTodaysShiftDescription<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiTodaysShiftDescriptionAssignedMemberIds<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'assignedMemberIds');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : Id {
+		return Id.create(item);
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return true;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiTodaysShiftDescriptionAssignedMemberIds<ValidationMode> {
+		return new SchedulingApiTodaysShiftDescriptionAssignedMemberIds<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '390';
+	}
+
+	override createNewItem() : Id {
+		const newItemRaw = null;
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('assignedMemberIds');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiTodaysShiftDescriptionAssignedMemberIds<ValidationMode>, SchedulingApiTodaysShiftDescriptionAssignedMemberIds<ValidationMode>> = new ApiAttributeInfo<SchedulingApiTodaysShiftDescriptionAssignedMemberIds<ValidationMode>, SchedulingApiTodaysShiftDescriptionAssignedMemberIds<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiTodaysShiftDescriptionAssignedMemberIds<ValidationMode>,
+			name: 'assignedMemberIds',
+			id: 'TODAYS_SHIFT_DESCRIPTION_ASSIGNED_MEMBER_IDS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+		});
+	attributeInfoTodaysShiftDescriptionAssignedMemberId =  new ApiAttributeInfo<SchedulingApiTodaysShiftDescriptionAssignedMemberIds<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiTodaysShiftDescriptionAssignedMemberIds<ValidationMode>,
+			name: 'todaysShiftDescriptionAssignedMemberId',
+			id: 'TODAYS_SHIFT_DESCRIPTION_ASSIGNED_MEMBER_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+}
+
+				 export class SchedulingApiHolidaysBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'holidays');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiHoliday<ValidationMode> {
+		const newWrapper = new SchedulingApiHoliday<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiHolidays<ValidationMode> {
+		return new SchedulingApiHolidays<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '20';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiHoliday<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('holidays');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiHolidays<ValidationMode>, SchedulingApiHolidays<ValidationMode>> = new ApiAttributeInfo<SchedulingApiHolidays<ValidationMode>, SchedulingApiHolidays<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiHolidays<ValidationMode>,
+			name: 'holidays',
+			id: 'HOLIDAYS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			show: function(this : SchedulingApiHolidays<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> HOLIDAYS is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> HOLIDAYS is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+			canEdit: () => false,
+			readMode: () => true,
+		});
+}
+
+				 
+export class SchedulingApiHolidayBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiHoliday as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+		this.timeWrapper.parent = this as any as SchedulingApiHoliday<ValidationMode>;
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiHoliday<ValidationMode>, SchedulingApiHoliday<ValidationMode>> = new ApiAttributeInfo<SchedulingApiHoliday<ValidationMode>, SchedulingApiHoliday<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiHoliday<ValidationMode>,
+			name: 'holiday',
+			id: 'HOLIDAY',
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoType =  new ApiAttributeInfo<SchedulingApiHoliday<ValidationMode>, SchedulingApiHolidayType>({
+			apiObjWrapper: this as any as SchedulingApiHoliday<ValidationMode>,
+			name: 'type',
+			id: 'HOLIDAY_TYPE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoName =  new ApiAttributeInfo<SchedulingApiHoliday<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiHoliday<ValidationMode>,
+			name: 'name',
+			id: 'HOLIDAY_NAME',
+			primitiveType: PApiPrimitiveTypes.string,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoFederalState =  new ApiAttributeInfo<SchedulingApiHoliday<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiHoliday<ValidationMode>,
+			name: 'federalState',
+			id: 'HOLIDAY_FEDERAL_STATE',
+			primitiveType: PApiPrimitiveTypes.string,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+
+	private timeWrapper : SchedulingApiHolidayTime<ValidationMode> = new SchedulingApiHolidayTime<ValidationMode>(this.api);
+
+	/**
+     *  Time of holiday.
+     */
+	get time() : SchedulingApiHolidayTime<ValidationMode> {
+		return this.timeWrapper;
+	}
+
+	set timeTestSetter(v : SchedulingApiHolidayTime<ValidationMode>) {
+        this.setterImpl(1, v.rawData, 'time', () => {this.timeWrapper = v;});
+	}
+
+	/**
+     *  Type of the holiday.
+	 *
+	 * @type {SchedulingApiHolidayType}
+     */
+	get type() : NullableInDraftMode<SchedulingApiHolidayType, ValidationMode> {
+		return this.data[2];
+	}
+
+	set typeTestSetter(v : NullableInDraftMode<SchedulingApiHolidayType, ValidationMode>) {
+        this.setterImpl(2, v, 'type');
+	}
+
+	/**
+     *  Name of holiday.
+	 *
+	 * @type {string}
+     */
+	get name() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[3];
+	}
+
+	set nameTestSetter(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(3, v, 'name');
+	}
+
+	/**
+     *  This is an empty string if this holiday is valid in whole Germany. Otherwise it contains the federal state to which it is associated. Possible values are "Baden-Württemberg", "Bayern", "Brandenburg", "Bremen", "Hamburg", "Hessen", "Mecklenburg-Vorpommern", "Niedersachsen", "Nordrhein-Westfalen", "Rheinland-Pfalz", "Saarland", "Sachsen", "Sachsen-Anhalt", "Schleswig-Holstein" and "Thüringen".
+	 *
+	 * @type {string}
+     */
+	get federalState() : string | null {
+		return this.data[4];
+	}
+
+	set federalStateTestSetter(v : string | null) {
+        this.setterImpl(4, v, 'federalState');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.timeWrapper._fixIds(_idReplacements);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 5);
+
+			if(data[1] === null)
+				data[1] = Meta.createNewObject(true);
+		}
+
+		// propagate new raw data to children
+		this.timeWrapper._updateRawData(data ? data[1] : null, generateMissingData);
+	}
+
+	protected get dni() : string {
+		return '392';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '392', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiHoliday<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 
+export class SchedulingApiHolidayTime<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiHolidayTime as any);
+
+		this._updateRawData(Meta.createNewObject(true, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiHolidayTime<ValidationMode>, SchedulingApiHolidayTime<ValidationMode>> = new ApiAttributeInfo<SchedulingApiHolidayTime<ValidationMode>, SchedulingApiHolidayTime<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiHolidayTime<ValidationMode>,
+			name: 'time',
+			id: 'HOLIDAY_TIME',
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoStart =  new ApiAttributeInfo<SchedulingApiHolidayTime<ValidationMode>, Date>({
+			apiObjWrapper: this as any as SchedulingApiHolidayTime<ValidationMode>,
+			name: 'start',
+			id: 'HOLIDAY_TIME_START',
+			primitiveType: PApiPrimitiveTypes.Date,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoEnd =  new ApiAttributeInfo<SchedulingApiHolidayTime<ValidationMode>, DateExclusiveEnd>({
+			apiObjWrapper: this as any as SchedulingApiHolidayTime<ValidationMode>,
+			name: 'end',
+			id: 'HOLIDAY_TIME_END',
+			primitiveType: PApiPrimitiveTypes.DateExclusiveEnd,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+
+	/**
+     *  Start time of holiday (inclusive).
+	 *
+	 * @type {Date}
+     */
+	get start() : NullableInDraftMode<Date, ValidationMode> {
+		return this.data[1];
+	}
+
+	set startTestSetter(v : NullableInDraftMode<Date, ValidationMode>) {
+        this.setterImpl(1, v, 'start');
+	}
+
+	/**
+     *  End time of holiday (exclusive).
+	 *
+	 * @type {DateExclusiveEnd}
+     */
+	get end() : NullableInDraftMode<DateExclusiveEnd, ValidationMode> {
+		return this.data[2];
+	}
+
+	set endTestSetter(v : NullableInDraftMode<DateExclusiveEnd, ValidationMode>) {
+        this.setterImpl(2, v, 'end');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 3);
+
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '393';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '393', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiHolidayTime<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+export enum SchedulingApiHolidayType {
+	SCHOOL_HOLIDAYS = 1,
+	NATIONAL_HOLIDAY = 2,
+	FESTIVE_DAY = 3,
+}
+		 export class SchedulingApiPossibleTaxes<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'possibleTaxes');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : number {
+		return item;
+	}
+
+	protected containsPrimitives() : boolean {
+		return true;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiPossibleTaxes<ValidationMode> {
+		return new SchedulingApiPossibleTaxes<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '21';
+	}
+
+	override createNewItem() : number {
+		const newItemRaw = null;
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('possibleTaxes');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiPossibleTaxes<ValidationMode>, SchedulingApiPossibleTaxes<ValidationMode>> = new ApiAttributeInfo<SchedulingApiPossibleTaxes<ValidationMode>, SchedulingApiPossibleTaxes<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiPossibleTaxes<ValidationMode>,
+			name: 'possibleTaxes',
+			id: 'POSSIBLE_TAXES',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoPossibleTax =  new ApiAttributeInfo<SchedulingApiPossibleTaxes<ValidationMode>, number>({
+			apiObjWrapper: this as any as SchedulingApiPossibleTaxes<ValidationMode>,
+			name: 'possibleTax',
+			id: 'POSSIBLE_TAX',
+			primitiveType: PApiPrimitiveTypes.number,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+}
+
+				 
+export class SchedulingApiSchedulePreferences<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiSchedulePreferences as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+		this.prioritiesWrapper.parent = this as any as SchedulingApiSchedulePreferences<ValidationMode>;
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiSchedulePreferences<ValidationMode>, SchedulingApiSchedulePreferences<ValidationMode>> = new ApiAttributeInfo<SchedulingApiSchedulePreferences<ValidationMode>, SchedulingApiSchedulePreferences<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiSchedulePreferences<ValidationMode>,
+			name: 'schedulePreferences',
+			id: 'SCHEDULE_PREFERENCES',
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoDesiredShiftDist =  new ApiAttributeInfo<SchedulingApiSchedulePreferences<ValidationMode>, Duration>({
+			apiObjWrapper: this as any as SchedulingApiSchedulePreferences<ValidationMode>,
+			name: 'desiredShiftDist',
+			id: 'SCHEDULE_PREFERENCES_DESIRED_SHIFT_DIST',
+			primitiveType: PApiPrimitiveTypes.Duration,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoFatalShiftDist =  new ApiAttributeInfo<SchedulingApiSchedulePreferences<ValidationMode>, Duration>({
+			apiObjWrapper: this as any as SchedulingApiSchedulePreferences<ValidationMode>,
+			name: 'fatalShiftDist',
+			id: 'SCHEDULE_PREFERENCES_FATAL_SHIFT_DIST',
+			primitiveType: PApiPrimitiveTypes.Duration,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+
+	private prioritiesWrapper : SchedulingApiSchedulePreferencesPriorities<ValidationMode> = new SchedulingApiSchedulePreferencesPriorities<ValidationMode>(this.api);
+
+	/**
+     *  The priorities for each criteria.
+     */
+	get priorities() : SchedulingApiSchedulePreferencesPriorities<ValidationMode> {
+		return this.prioritiesWrapper;
+	}
+
+	set prioritiesTestSetter(v : SchedulingApiSchedulePreferencesPriorities<ValidationMode>) {
+        this.setterImpl(1, v.rawData, 'priorities', () => {this.prioritiesWrapper = v;});
+	}
+
+	/**
+     *  Fatal shift distance in milliseconds.
+	 *
+	 * @type {Duration}
+     */
+	get desiredShiftDist() : NullableInDraftMode<Duration, ValidationMode> {
+		return this.data[2];
+	}
+
+	set desiredShiftDistTestSetter(v : NullableInDraftMode<Duration, ValidationMode>) {
+        this.setterImpl(2, v, 'desiredShiftDist');
+	}
+
+	/**
+     *  Desired shift distance in milliseconds.
+	 *
+	 * @type {Duration}
+     */
+	get fatalShiftDist() : NullableInDraftMode<Duration, ValidationMode> {
+		return this.data[3];
+	}
+
+	set fatalShiftDistTestSetter(v : NullableInDraftMode<Duration, ValidationMode>) {
+        this.setterImpl(3, v, 'fatalShiftDist');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.prioritiesWrapper._fixIds(_idReplacements);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 4);
+
+			if(data[1] === null)
+				data[1] = Meta.createNewObject(false);
+		}
+
+		// propagate new raw data to children
+		this.prioritiesWrapper._updateRawData(data ? data[1] : null, generateMissingData);
+	}
+
+	protected get dni() : string {
+		return '22';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '22', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiSchedulePreferences<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 
+export class SchedulingApiSchedulePreferencesPriorities<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiSchedulePreferencesPriorities as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiSchedulePreferencesPriorities<ValidationMode>, SchedulingApiSchedulePreferencesPriorities<ValidationMode>> = new ApiAttributeInfo<SchedulingApiSchedulePreferencesPriorities<ValidationMode>, SchedulingApiSchedulePreferencesPriorities<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiSchedulePreferencesPriorities<ValidationMode>,
+			name: 'priorities',
+			id: 'SCHEDULE_PREFERENCES_PRIORITIES',
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoShiftPref =  new ApiAttributeInfo<SchedulingApiSchedulePreferencesPriorities<ValidationMode>, number>({
+			apiObjWrapper: this as any as SchedulingApiSchedulePreferencesPriorities<ValidationMode>,
+			name: 'shiftPref',
+			id: 'SCHEDULE_PREFERENCES_PRIORITIES_SHIFT_PREF',
+			primitiveType: PApiPrimitiveTypes.number,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoDesiredEarnings =  new ApiAttributeInfo<SchedulingApiSchedulePreferencesPriorities<ValidationMode>, number>({
+			apiObjWrapper: this as any as SchedulingApiSchedulePreferencesPriorities<ValidationMode>,
+			name: 'desiredEarnings',
+			id: 'SCHEDULE_PREFERENCES_PRIORITIES_DESIRED_EARNINGS',
+			primitiveType: PApiPrimitiveTypes.number,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoShiftsTooClose =  new ApiAttributeInfo<SchedulingApiSchedulePreferencesPriorities<ValidationMode>, number>({
+			apiObjWrapper: this as any as SchedulingApiSchedulePreferencesPriorities<ValidationMode>,
+			name: 'shiftsTooClose',
+			id: 'SCHEDULE_PREFERENCES_PRIORITIES_SHIFTS_TOO_CLOSE',
+			primitiveType: PApiPrimitiveTypes.number,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+
+	/**
+     *  Range: [0,3]. Priority of the shift preference constrain hit.
+	 *
+	 * @type {number}
+     */
+	get shiftPref() : NullableInDraftMode<number, ValidationMode> {
+		return this.data[1];
+	}
+
+	set shiftPrefTestSetter(v : NullableInDraftMode<number, ValidationMode>) {
+        this.setterImpl(1, v, 'shiftPref');
+	}
+
+	/**
+     *  Range: [0,3]. Priority of the desired earnings constrain hit.
+	 *
+	 * @type {number}
+     */
+	get desiredEarnings() : NullableInDraftMode<number, ValidationMode> {
+		return this.data[2];
+	}
+
+	set desiredEarningsTestSetter(v : NullableInDraftMode<number, ValidationMode>) {
+        this.setterImpl(2, v, 'desiredEarnings');
+	}
+
+	/**
+     *  Range: [0,3]. Priority of the shifts too close constrain hit.
+	 *
+	 * @type {number}
+     */
+	get shiftsTooClose() : NullableInDraftMode<number, ValidationMode> {
+		return this.data[3];
+	}
+
+	set shiftsTooCloseTestSetter(v : NullableInDraftMode<number, ValidationMode>) {
+        this.setterImpl(3, v, 'shiftsTooClose');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 4);
+
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '400';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '400', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiSchedulePreferencesPriorities<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiCustomBookableMailsBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'customBookableMails');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiCustomBookableMail<ValidationMode> {
+		const newWrapper = new SchedulingApiCustomBookableMail<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiCustomBookableMails<ValidationMode> {
+		return new SchedulingApiCustomBookableMails<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '23';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiCustomBookableMail<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('customBookableMails');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiCustomBookableMails<ValidationMode>, SchedulingApiCustomBookableMails<ValidationMode>> = new ApiAttributeInfo<SchedulingApiCustomBookableMails<ValidationMode>, SchedulingApiCustomBookableMails<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiCustomBookableMails<ValidationMode>,
+			name: 'customBookableMails',
+			id: 'CUSTOM_BOOKABLE_MAILS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			canEdit: function(this : SchedulingApiCustomBookableMails<ValidationMode>) {
+		if(!(( (this.api!.rightsService.canReadAndWriteBookingSystemSettings) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiCustomBookableMails<ValidationMode>) {
+						if(!(( (this.api!.rightsService.canReadAndWriteBookingSystemSettings) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+}
+
+				 
+export class SchedulingApiCustomBookableMail<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiCustomBookableMail as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiCustomBookableMail<ValidationMode>, SchedulingApiCustomBookableMail<ValidationMode>> = new ApiAttributeInfo<SchedulingApiCustomBookableMail<ValidationMode>, SchedulingApiCustomBookableMail<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiCustomBookableMail<ValidationMode>,
+			name: 'customBookableMail',
+			id: 'CUSTOM_BOOKABLE_MAIL',
+		});
+	attributeInfoName =  new ApiAttributeInfo<SchedulingApiCustomBookableMail<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiCustomBookableMail<ValidationMode>,
+			name: 'name',
+			id: 'CUSTOM_BOOKABLE_MAIL_NAME',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoEventType =  new ApiAttributeInfo<SchedulingApiCustomBookableMail<ValidationMode>, SchedulingApiCustomBookableMailEventType>({
+			apiObjWrapper: this as any as SchedulingApiCustomBookableMail<ValidationMode>,
+			name: 'eventType',
+			id: 'CUSTOM_BOOKABLE_MAIL_EVENT_TYPE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+		});
+	attributeInfoSendToBookingPerson =  new ApiAttributeInfo<SchedulingApiCustomBookableMail<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiCustomBookableMail<ValidationMode>,
+			name: 'sendToBookingPerson',
+			id: 'CUSTOM_BOOKABLE_MAIL_SEND_TO_BOOKING_PERSON',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoSendToParticipants =  new ApiAttributeInfo<SchedulingApiCustomBookableMail<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiCustomBookableMail<ValidationMode>,
+			name: 'sendToParticipants',
+			id: 'CUSTOM_BOOKABLE_MAIL_SEND_TO_PARTICIPANTS',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoSubjectTemplate =  new ApiAttributeInfo<SchedulingApiCustomBookableMail<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiCustomBookableMail<ValidationMode>,
+			name: 'subjectTemplate',
+			id: 'CUSTOM_BOOKABLE_MAIL_SUBJECT_TEMPLATE',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoTextTemplate =  new ApiAttributeInfo<SchedulingApiCustomBookableMail<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiCustomBookableMail<ValidationMode>,
+			name: 'textTemplate',
+			id: 'CUSTOM_BOOKABLE_MAIL_TEXT_TEMPLATE',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoReplyTo =  new ApiAttributeInfo<SchedulingApiCustomBookableMail<ValidationMode>, Email>({
+			apiObjWrapper: this as any as SchedulingApiCustomBookableMail<ValidationMode>,
+			name: 'replyTo',
+			id: 'CUSTOM_BOOKABLE_MAIL_REPLY_TO',
+			primitiveType: PApiPrimitiveTypes.Email,
+		});
+
+	/**
+     *  Template name.
+	 *
+	 * @type {string}
+     */
+	get name() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[1];
+	}
+
+	set name(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(1, v, 'name');
+	}
+
+	/**
+     *  Event-type for which this email should be used.
+	 *
+	 * @type {SchedulingApiCustomBookableMailEventType}
+     */
+	get eventType() : NullableInDraftMode<SchedulingApiCustomBookableMailEventType, ValidationMode> {
+		return this.data[2];
+	}
+
+	set eventType(v : NullableInDraftMode<SchedulingApiCustomBookableMailEventType, ValidationMode>) {
+        this.setterImpl(2, v, 'eventType');
+	}
+
+	/**
+     *  Should this mail be send to the booking person?
+	 *
+	 * @type {boolean}
+     */
+	get sendToBookingPerson() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[3];
+	}
+
+	set sendToBookingPerson(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(3, v, 'sendToBookingPerson');
+	}
+
+	/**
+     *  Should this mail be send to participants of the bookings? Note that for bookings where no individual participant information are available backend will fallback to send mail to the booking person when this is true.
+	 *
+	 * @type {boolean}
+     */
+	get sendToParticipants() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[4];
+	}
+
+	set sendToParticipants(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(4, v, 'sendToParticipants');
+	}
+
+	/**
+     * (Detail)  Template for email's subject.
+	 *
+	 * @type {string}
+     */
+	get subjectTemplate() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[5];
+	}
+
+	set subjectTemplate(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(5, v, 'subjectTemplate');
+	}
+
+	/**
+     * (Detail)  Template for email's text. It is assumed that line-breaks are represented by the exact string "<br>".
+	 *
+	 * @type {string}
+     */
+	get textTemplate() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[6];
+	}
+
+	set textTemplate(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(6, v, 'textTemplate');
+	}
+
+	/**
+     * (Detail)  Email address being set as reply-to field when sending this email.
+	 *
+	 * @type {Email}
+     */
+	get replyTo() : NullableInDraftMode<Email, ValidationMode> {
+		return this.data[7];
+	}
+
+	set replyTo(v : NullableInDraftMode<Email, ValidationMode>) {
+        this.setterImpl(7, v, 'replyTo');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 8);
+
+			data[3] = false;
+			data[4] = false;
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '458';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '458', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiCustomBookableMail<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+export enum SchedulingApiCustomBookableMailEventType {
+	INQUIRY_ARRIVAL_NOTICE = 1,
+	INQUIRY_DECLINED = 2,
+	BOOKED = 3,
+	COURSE_REMINDER = 4,
+	BOOKING_CANCELED = 5,
+	PARTICIPATED = 6,
+	PAYMENT_PARTIAL = 7,
+	PAYMENT_COMPLETE = 8,
+	ONLINE_PAYMENT_FAILED = 9,
+	REFUNDED = 10,
+	REFUND_FAILED = 11,
+	AMOUNT_TO_PAY_CHANGED = 12,
+	DATE_CHANGED = 13,
+	PAYMENT_METHOD_CHANGED = 14,
+	VOUCHER_NEW_ITEM = 15,
+}
+		 
+export class SchedulingApiNotificationSettings<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiNotificationSettings as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+		this.pushTokensWrapper.parent = this as any as SchedulingApiNotificationSettings<ValidationMode>;
+		this.settingsForDeviceTypesWrapper.parent = this as any as SchedulingApiNotificationSettings<ValidationMode>;
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiNotificationSettings<ValidationMode>, SchedulingApiNotificationSettings<ValidationMode>> = new ApiAttributeInfo<SchedulingApiNotificationSettings<ValidationMode>, SchedulingApiNotificationSettings<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiNotificationSettings<ValidationMode>,
+			name: 'notificationSettings',
+			id: 'NOTIFICATION_SETTINGS',
+		});
+
+	private pushTokensWrapper : SchedulingApiNotificationSettingsPushTokens<ValidationMode> = new SchedulingApiNotificationSettingsPushTokens<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of the push-tokens registered for this user. This list is read-only. To modify this user's push-tokens use the "/push_token" api.
+     */
+	get pushTokens() : SchedulingApiNotificationSettingsPushTokens<ValidationMode> {
+		return this.pushTokensWrapper;
+	}
+
+	set pushTokensTestSetter(v : SchedulingApiNotificationSettingsPushTokens<ValidationMode>) {
+        this.setterImpl(1, v.rawData, 'pushTokens', () => {this.pushTokensWrapper = v;});
+	}
+
+	private settingsForDeviceTypesWrapper : SchedulingApiNotificationSettingsSettingsForDeviceTypes<ValidationMode> = new SchedulingApiNotificationSettingsSettingsForDeviceTypes<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of settings for each available device type. Send when data="notificationSettings".
+     */
+	get settingsForDeviceTypes() : SchedulingApiNotificationSettingsSettingsForDeviceTypes<ValidationMode> {
+		return this.settingsForDeviceTypesWrapper;
+	}
+
+	set settingsForDeviceTypesTestSetter(v : SchedulingApiNotificationSettingsSettingsForDeviceTypes<ValidationMode>) {
+        this.setterImpl(2, v.rawData, 'settingsForDeviceTypes', () => {this.settingsForDeviceTypesWrapper = v;});
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.pushTokensWrapper._fixIds(_idReplacements);
+		this.settingsForDeviceTypesWrapper._fixIds(_idReplacements);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 3);
+
+			if(data[1] === null)
+				data[1] = Meta.createNewList();
+			if(data[2] === null)
+				data[2] = Meta.createNewList();
+		}
+
+		// propagate new raw data to children
+		this.pushTokensWrapper._updateRawData(data ? data[1] : null, generateMissingData);
+		this.settingsForDeviceTypesWrapper._updateRawData(data ? data[2] : null, generateMissingData);
+	}
+
+	protected get dni() : string {
+		return '24';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '24', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiNotificationSettings<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiNotificationSettingsPushTokens<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'pushTokens');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiNotificationSettingsPushToken<ValidationMode> {
+		const newWrapper = new SchedulingApiNotificationSettingsPushToken<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiNotificationSettingsPushTokens<ValidationMode> {
+		return new SchedulingApiNotificationSettingsPushTokens<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '466';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiNotificationSettingsPushToken<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(true, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('pushTokens');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiNotificationSettingsPushTokens<ValidationMode>, SchedulingApiNotificationSettingsPushTokens<ValidationMode>> = new ApiAttributeInfo<SchedulingApiNotificationSettingsPushTokens<ValidationMode>, SchedulingApiNotificationSettingsPushTokens<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiNotificationSettingsPushTokens<ValidationMode>,
+			name: 'pushTokens',
+			id: 'NOTIFICATION_SETTINGS_PUSH_TOKENS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+		});
+}
+
+				 
+export class SchedulingApiNotificationSettingsPushToken<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiNotificationSettingsPushToken as any);
+
+		this._updateRawData(Meta.createNewObject(true, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiNotificationSettingsPushToken<ValidationMode>, SchedulingApiNotificationSettingsPushToken<ValidationMode>> = new ApiAttributeInfo<SchedulingApiNotificationSettingsPushToken<ValidationMode>, SchedulingApiNotificationSettingsPushToken<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiNotificationSettingsPushToken<ValidationMode>,
+			name: 'notificationSettingsPushToken',
+			id: 'NOTIFICATION_SETTINGS_PUSH_TOKEN',
+		});
+	attributeInfoToken =  new ApiAttributeInfo<SchedulingApiNotificationSettingsPushToken<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiNotificationSettingsPushToken<ValidationMode>,
+			name: 'token',
+			id: 'NOTIFICATION_SETTINGS_PUSH_TOKEN_TOKEN',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoType =  new ApiAttributeInfo<SchedulingApiNotificationSettingsPushToken<ValidationMode>, SchedulingApiPushTokenType>({
+			apiObjWrapper: this as any as SchedulingApiNotificationSettingsPushToken<ValidationMode>,
+			name: 'type',
+			id: 'NOTIFICATION_SETTINGS_PUSH_TOKEN_TYPE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+		});
+	attributeInfoAction =  new ApiAttributeInfo<SchedulingApiNotificationSettingsPushToken<ValidationMode>, SchedulingApiPushTokenAction>({
+			apiObjWrapper: this as any as SchedulingApiNotificationSettingsPushToken<ValidationMode>,
+			name: 'action',
+			id: 'NOTIFICATION_SETTINGS_PUSH_TOKEN_ACTION',
+			primitiveType: PApiPrimitiveTypes.Enum,
+		});
+
+	/**
+     *  The token.
+	 *
+	 * @type {string}
+     */
+	get token() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[1];
+	}
+
+	set token(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(1, v, 'token');
+	}
+
+
+	set type(v : NullableInDraftMode<SchedulingApiPushTokenType, ValidationMode>) {
+        this.setterImpl(2, v, 'type');
+	}
+
+	/**
+     *  The action to be executed for this push-token.
+	 *
+	 * @type {SchedulingApiPushTokenAction}
+     */
+	get action() : SchedulingApiPushTokenAction | null {
+		return this.data[3];
+	}
+
+	set action(v : SchedulingApiPushTokenAction | null) {
+        this.setterImpl(3, v, 'action');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 4);
+
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '468';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '468', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiNotificationSettingsPushToken<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+export enum SchedulingApiPushTokenType {
+	WEB = 1,
+	ANDROID = 2,
+	IOS = 3,
+}
+export enum SchedulingApiPushTokenAction {
+	CREATE = 1,
+	REMOVE = 2,
+	ENABLE = 3,
+	DISABLE = 4,
+}
+		 export class SchedulingApiNotificationSettingsSettingsForDeviceTypes<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'settingsForDeviceTypes');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiNotificationSettingsSettingsForDeviceType<ValidationMode> {
+		const newWrapper = new SchedulingApiNotificationSettingsSettingsForDeviceType<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiNotificationSettingsSettingsForDeviceTypes<ValidationMode> {
+		return new SchedulingApiNotificationSettingsSettingsForDeviceTypes<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '467';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiNotificationSettingsSettingsForDeviceType<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('settingsForDeviceTypes');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiNotificationSettingsSettingsForDeviceTypes<ValidationMode>, SchedulingApiNotificationSettingsSettingsForDeviceTypes<ValidationMode>> = new ApiAttributeInfo<SchedulingApiNotificationSettingsSettingsForDeviceTypes<ValidationMode>, SchedulingApiNotificationSettingsSettingsForDeviceTypes<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiNotificationSettingsSettingsForDeviceTypes<ValidationMode>,
+			name: 'settingsForDeviceTypes',
+			id: 'NOTIFICATION_SETTINGS_SETTINGS_FOR_DEVICE_TYPES',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			show: function(this : SchedulingApiNotificationSettingsSettingsForDeviceTypes<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> NOTIFICATION_SETTINGS_SETTINGS_FOR_DEVICE_TYPES is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> NOTIFICATION_SETTINGS_SETTINGS_FOR_DEVICE_TYPES is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+		});
+}
+
+				 
+export class SchedulingApiNotificationSettingsSettingsForDeviceType<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiNotificationSettingsSettingsForDeviceType as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+		this.notificationGroupsWrapper.parent = this as any as SchedulingApiNotificationSettingsSettingsForDeviceType<ValidationMode>;
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiNotificationSettingsSettingsForDeviceType<ValidationMode>, SchedulingApiNotificationSettingsSettingsForDeviceType<ValidationMode>> = new ApiAttributeInfo<SchedulingApiNotificationSettingsSettingsForDeviceType<ValidationMode>, SchedulingApiNotificationSettingsSettingsForDeviceType<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiNotificationSettingsSettingsForDeviceType<ValidationMode>,
+			name: 'notificationSettingsSettingsForDeviceType',
+			id: 'NOTIFICATION_SETTINGS_SETTINGS_FOR_DEVICE_TYPE',
+			show: function(this : SchedulingApiNotificationSettingsSettingsForDeviceType<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> NOTIFICATION_SETTINGS_SETTINGS_FOR_DEVICE_TYPE is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> NOTIFICATION_SETTINGS_SETTINGS_FOR_DEVICE_TYPE is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+		});
+	attributeInfoDeviceType =  new ApiAttributeInfo<SchedulingApiNotificationSettingsSettingsForDeviceType<ValidationMode>, SchedulingApiNotificationSettingsDeviceType>({
+			apiObjWrapper: this as any as SchedulingApiNotificationSettingsSettingsForDeviceType<ValidationMode>,
+			name: 'deviceType',
+			id: 'NOTIFICATION_SETTINGS_SETTINGS_FOR_DEVICE_TYPE_DEVICE_TYPE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+
+	private notificationGroupsWrapper : SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroups<ValidationMode> = new SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroups<ValidationMode>(this.api, false);
+
+	/**
+     *  A list of all notification groups.
+     */
+	get notificationGroups() : SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroups<ValidationMode> {
+		return this.notificationGroupsWrapper;
+	}
+
+	set notificationGroupsTestSetter(v : SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroups<ValidationMode>) {
+        this.setterImpl(1, v.rawData, 'notificationGroups', () => {this.notificationGroupsWrapper = v;});
+	}
+
+	/**
+     *  For which device type does this item define settings? Read-only.
+	 *
+	 * @type {SchedulingApiNotificationSettingsDeviceType}
+     */
+	get deviceType() : NullableInDraftMode<SchedulingApiNotificationSettingsDeviceType, ValidationMode> {
+		return this.data[2];
+	}
+
+	set deviceTypeTestSetter(v : NullableInDraftMode<SchedulingApiNotificationSettingsDeviceType, ValidationMode>) {
+        this.setterImpl(2, v, 'deviceType');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.notificationGroupsWrapper._fixIds(_idReplacements);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 3);
+
+			if(data[1] === null)
+				data[1] = Meta.createNewList();
+		}
+
+		// propagate new raw data to children
+		this.notificationGroupsWrapper._updateRawData(data ? data[1] : null, generateMissingData);
+	}
+
+	protected get dni() : string {
+		return '472';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '472', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiNotificationSettingsSettingsForDeviceType<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroups<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'notificationGroups');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroup<ValidationMode> {
+		const newWrapper = new SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroup<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroups<ValidationMode> {
+		return new SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroups<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '473';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroup<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('notificationGroups');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroups<ValidationMode>, SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroups<ValidationMode>> = new ApiAttributeInfo<SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroups<ValidationMode>, SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroups<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroups<ValidationMode>,
+			name: 'notificationGroups',
+			id: 'NOTIFICATION_SETTINGS_SETTINGS_FOR_DEVICE_TYPE_NOTIFICATION_GROUPS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+		});
+}
+
+				 
+export class SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroup<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroup as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroup<ValidationMode>, SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroup<ValidationMode>> = new ApiAttributeInfo<SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroup<ValidationMode>, SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroup<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroup<ValidationMode>,
+			name: 'notificationSettingsSettingsForDeviceTypeNotificationGroup',
+			id: 'NOTIFICATION_SETTINGS_SETTINGS_FOR_DEVICE_TYPE_NOTIFICATION_GROUP',
+		});
+	attributeInfoEnabled =  new ApiAttributeInfo<SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroup<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroup<ValidationMode>,
+			name: 'enabled',
+			id: 'NOTIFICATION_SETTINGS_SETTINGS_FOR_DEVICE_TYPE_NOTIFICATION_GROUP_ENABLED',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoRecommendedToReceive =  new ApiAttributeInfo<SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroup<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroup<ValidationMode>,
+			name: 'recommendedToReceive',
+			id: 'NOTIFICATION_SETTINGS_SETTINGS_FOR_DEVICE_TYPE_NOTIFICATION_GROUP_IS_RECOMMENDED_TO_RECEIVE',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoGroup =  new ApiAttributeInfo<SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroup<ValidationMode>, SchedulingApiNotificationSettingsNotificationGroup>({
+			apiObjWrapper: this as any as SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroup<ValidationMode>,
+			name: 'group',
+			id: 'NOTIFICATION_SETTINGS_SETTINGS_FOR_DEVICE_TYPE_NOTIFICATION_GROUP_GROUP',
+			primitiveType: PApiPrimitiveTypes.Enum,
+		});
+	attributeInfoTitle =  new ApiAttributeInfo<SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroup<ValidationMode>, SchedulingApiNotificationSettingsNotificationTitle>({
+			apiObjWrapper: this as any as SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroup<ValidationMode>,
+			name: 'title',
+			id: 'NOTIFICATION_SETTINGS_SETTINGS_FOR_DEVICE_TYPE_NOTIFICATION_GROUP_TITLE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+		});
+
+	/**
+     *  Is notifications for this group enabled?
+	 *
+	 * @type {boolean}
+     */
+	get enabled() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[1];
+	}
+
+	set enabled(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(1, v, 'enabled');
+	}
+
+	/**
+     *  When "true" it is recommended that this group is enabled at least for one device type.
+	 *
+	 * @type {boolean}
+     */
+	get recommendedToReceive() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[2];
+	}
+
+	set recommendedToReceive(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(2, v, 'recommendedToReceive');
+	}
+
+	/**
+     *  The notification group. Read-only.
+	 *
+	 * @type {SchedulingApiNotificationSettingsNotificationGroup}
+     */
+	get group() : NullableInDraftMode<SchedulingApiNotificationSettingsNotificationGroup, ValidationMode> {
+		return this.data[3];
+	}
+
+	set group(v : NullableInDraftMode<SchedulingApiNotificationSettingsNotificationGroup, ValidationMode>) {
+        this.setterImpl(3, v, 'group');
+	}
+
+	/**
+     *  The title of this notification group. Read-only.
+	 *
+	 * @type {SchedulingApiNotificationSettingsNotificationTitle}
+     */
+	get title() : NullableInDraftMode<SchedulingApiNotificationSettingsNotificationTitle, ValidationMode> {
+		return this.data[4];
+	}
+
+	set title(v : NullableInDraftMode<SchedulingApiNotificationSettingsNotificationTitle, ValidationMode>) {
+        this.setterImpl(4, v, 'title');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 5);
+
+			data[1] = false;
+			data[2] = false;
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '475';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '475', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiNotificationSettingsSettingsForDeviceTypeNotificationGroup<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+export enum SchedulingApiNotificationSettingsNotificationGroup {
+	SHIFTS_ASSIGNMENT_PROCESS_GENERAL = 1,
+	SHIFTS_ASSIGNMENT_PROCESS_REMINDER = 2,
+	SHIFTS_ASSIGNMENT_PROCESS_REPORTS = 3,
+	SHIFTS_ASSIGNMENT_CHANGED = 4,
+	SHIFTS_ASSIGNMENT_REMINDER = 5,
+	SHIFTS_COURSE_CANCELED = 6,
+	TIME_STAMP_NOT_STAMPED = 7,
+	TIME_STAMP_INFORM_OWNER_MEMBER_NOT_USED = 8,
+	COURSE_NOT_REACHED_MIN_PARTICIPANT_COUNT = 9,
+	COURSE_REACHED_MIN_PARTICIPANT_COUNT = 10,
+	COURSE_INQUIRY_ARRIVED = 11,
+	COURSE_INQUIRY_DECLINED = 12,
+	COURSE_BOOKED = 13,
+	COURSE_BOOKING_CANCELED_BY_MEMBER = 14,
+	COURSE_BOOKING_CANCELED_BY_BOOKING_PERSON = 15,
+	COURSE_BOOKING_CANCELED_MANUAL_REFUND_NEEDED = 16,
+	COURSE_INFORM_BOOKING_COMMENT = 17,
+	ONLINE_PAYMENT_FAILED = 18,
+	ONLINE_REFUNDED_BY_MEMBER = 19,
+	ONLINE_REFUND_FAILED = 20,
+	VOUCHER_NEW_ITEM = 21,
+	SHIFT_EXCHANGE_GENERAL = 22,
+	SHIFT_EXCHANGE_REMINDER = 23,
+	SHIFT_EXCHANGE_ITEM_CREATED = 24,
+	SHIFT_EXCHANGE_ITEM_SUCCESSFUL = 25,
+	SHIFT_EXCHANGE_ITEM_SUCCESSFUL_WITH_WARNINGS = 26,
+	SHIFT_EXCHANGE_ITEM_FAILED = 27,
+}
+export enum SchedulingApiNotificationSettingsNotificationTitle {
+	TITLE_SHIFT_EXCHANGE = 1,
+	TITLE_BOOKING_SYSTEM = 2,
+	TITLE_TIME_STAMP = 3,
+	TITLE_SHIFTS = 4,
+}
+export enum SchedulingApiNotificationSettingsDeviceType {
+	MAIL = 1,
+	APP_PUSH_NOTIFICATION = 2,
+	WEB_PUSH_NOTIFICATION = 3,
+}
+		 
+export class SchedulingApiVoucherSettings<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiVoucherSettings as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiVoucherSettings<ValidationMode>, SchedulingApiVoucherSettings<ValidationMode>> = new ApiAttributeInfo<SchedulingApiVoucherSettings<ValidationMode>, SchedulingApiVoucherSettings<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiVoucherSettings<ValidationMode>,
+			name: 'voucherSettings',
+			id: 'VOUCHER_SETTINGS',
+			show: function(this : SchedulingApiVoucherSettings<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> VOUCHER_SETTINGS is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> VOUCHER_SETTINGS is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+			canEdit: function(this : SchedulingApiVoucherSettings<ValidationMode>) {
+		if(!(( (this.api!.rightsService.canReadAndWriteBookingSystemSettings) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiVoucherSettings<ValidationMode>) {
+						if(!(( (this.api!.rightsService.canReadAndWriteBookingSystemSettings) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+	attributeInfoIsVoucherSaleEnabled =  new ApiAttributeInfo<SchedulingApiVoucherSettings<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiVoucherSettings<ValidationMode>,
+			name: 'isVoucherSaleEnabled',
+			id: 'VOUCHER_SETTINGS_IS_VOUCHER_SALE_ENABLED',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+	attributeInfoVoucherMinPrice =  new ApiAttributeInfo<SchedulingApiVoucherSettings<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiVoucherSettings<ValidationMode>,
+			name: 'voucherMinPrice',
+			id: 'VOUCHER_SETTINGS_VOUCHER_MIN_PRICE',
+			primitiveType: PApiPrimitiveTypes.Currency,
+			validations: function(this : SchedulingApiVoucherSettings<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.Currency, undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.min(0, false, PApiPrimitiveTypes.Currency, undefined, undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.max(() => this.voucherMaxPrice, false, PApiPrimitiveTypes.Currency, 'VOUCHER_SETTINGS_VOUCHER_MAX_PRICE', undefined);
+							return null;
+					},
+					() => {
+						return this.api!.validators.maxDecimalPlacesCount(0, PApiPrimitiveTypes.Currency, undefined);
+					},
+				];
+			},
+		});
+	attributeInfoVoucherMaxPrice =  new ApiAttributeInfo<SchedulingApiVoucherSettings<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiVoucherSettings<ValidationMode>,
+			name: 'voucherMaxPrice',
+			id: 'VOUCHER_SETTINGS_VOUCHER_MAX_PRICE',
+			primitiveType: PApiPrimitiveTypes.Currency,
+			validations: function(this : SchedulingApiVoucherSettings<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.Currency, undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.min(() => this.voucherMinPrice, false, PApiPrimitiveTypes.Currency, 'VOUCHER_SETTINGS_VOUCHER_MIN_PRICE', undefined);
+							return null;
+					},
+					() => {
+						return this.api!.validators.maxDecimalPlacesCount(0, PApiPrimitiveTypes.Currency, undefined);
+					},
+				];
+			},
+		});
+	attributeInfoVoucherHomepageDescriptionText =  new ApiAttributeInfo<SchedulingApiVoucherSettings<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiVoucherSettings<ValidationMode>,
+			name: 'voucherHomepageDescriptionText',
+			id: 'VOUCHER_SETTINGS_VOUCHER_HOMEPAGE_DESCRIPTION_TEXT',
+			primitiveType: PApiPrimitiveTypes.string,
+			validations: function(this : SchedulingApiVoucherSettings<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.string, undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoVoucherExpirationDuration =  new ApiAttributeInfo<SchedulingApiVoucherSettings<ValidationMode>, Years>({
+			apiObjWrapper: this as any as SchedulingApiVoucherSettings<ValidationMode>,
+			name: 'voucherExpirationDuration',
+			id: 'VOUCHER_SETTINGS_VOUCHER_EXPIRATION_DURATION',
+			primitiveType: PApiPrimitiveTypes.Years,
+		});
+	attributeInfoVoucherMailReplyTo =  new ApiAttributeInfo<SchedulingApiVoucherSettings<ValidationMode>, Email>({
+			apiObjWrapper: this as any as SchedulingApiVoucherSettings<ValidationMode>,
+			name: 'voucherMailReplyTo',
+			id: 'VOUCHER_SETTINGS_VOUCHER_MAIL_REPLY_TO',
+			primitiveType: PApiPrimitiveTypes.Email,
+			validations: function(this : SchedulingApiVoucherSettings<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.Email, undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoVoucherCodePrefix =  new ApiAttributeInfo<SchedulingApiVoucherSettings<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiVoucherSettings<ValidationMode>,
+			name: 'voucherCodePrefix',
+			id: 'VOUCHER_SETTINGS_VOUCHER_CODE_PREFIX',
+			primitiveType: PApiPrimitiveTypes.string,
+			validations: function(this : SchedulingApiVoucherSettings<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.string, undefined);
+							return null;
+					},
+					() => {
+						return this.api!.validators.maxLength(20, PApiPrimitiveTypes.string, undefined);
+					},
+				];
+			},
+		});
+	attributeInfoVoucherCodeLength =  new ApiAttributeInfo<SchedulingApiVoucherSettings<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiVoucherSettings<ValidationMode>,
+			name: 'voucherCodeLength',
+			id: 'VOUCHER_SETTINGS_VOUCHER_CODE_LENGTH',
+			primitiveType: PApiPrimitiveTypes.Integer,
+			validations: function(this : SchedulingApiVoucherSettings<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.Integer, undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.max(50, true, PApiPrimitiveTypes.Integer, undefined, undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoVoucherCodeOnlyContainsDigits =  new ApiAttributeInfo<SchedulingApiVoucherSettings<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiVoucherSettings<ValidationMode>,
+			name: 'voucherCodeOnlyContainsDigits',
+			id: 'VOUCHER_SETTINGS_VOUCHER_CODE_ONLY_CONTAINS_DIGITS',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+
+	/**
+     *  Is voucher sale enabled?
+	 *
+	 * @type {boolean}
+     */
+	get isVoucherSaleEnabled() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[1];
+	}
+
+	set isVoucherSaleEnabled(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(1, v, 'isVoucherSaleEnabled');
+	}
+
+	/**
+     *  Minimal voucher sale value. This value must be an integer.
+	 *
+	 * @type {Currency}
+     */
+	get voucherMinPrice() : NullableInDraftMode<Currency, ValidationMode> {
+		return this.data[2];
+	}
+
+	set voucherMinPrice(v : NullableInDraftMode<Currency, ValidationMode>) {
+        this.setterImpl(2, v, 'voucherMinPrice');
+	}
+
+	/**
+     *  Maximal voucher sale value. This value must be an integer.
+	 *
+	 * @type {Currency}
+     */
+	get voucherMaxPrice() : NullableInDraftMode<Currency, ValidationMode> {
+		return this.data[3];
+	}
+
+	set voucherMaxPrice(v : NullableInDraftMode<Currency, ValidationMode>) {
+        this.setterImpl(3, v, 'voucherMaxPrice');
+	}
+
+	/**
+     *  The html text which will be shown on the booking plugin.
+	 *
+	 * @type {string}
+     */
+	get voucherHomepageDescriptionText() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[4];
+	}
+
+	set voucherHomepageDescriptionText(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(4, v, 'voucherHomepageDescriptionText');
+	}
+
+	/**
+     *  The expiration duration of the vouchers.
+	 *
+	 * @type {Years}
+     */
+	get voucherExpirationDuration() : Years | null {
+		return this.data[5];
+	}
+
+	set voucherExpirationDuration(v : Years | null) {
+        this.setterImpl(5, v, 'voucherExpirationDuration');
+	}
+
+	/**
+     *  Email address being set as reply-to field when sending email to voucher booking person.
+	 *
+	 * @type {Email}
+     */
+	get voucherMailReplyTo() : NullableInDraftMode<Email, ValidationMode> {
+		return this.data[6];
+	}
+
+	set voucherMailReplyTo(v : NullableInDraftMode<Email, ValidationMode>) {
+        this.setterImpl(6, v, 'voucherMailReplyTo');
+	}
+
+	/**
+     *  An optional prefix being added before the generated code.
+	 *
+	 * @type {string}
+     */
+	get voucherCodePrefix() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[7];
+	}
+
+	set voucherCodePrefix(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(7, v, 'voucherCodePrefix');
+	}
+
+	/**
+     *  The length of the generated code. Should be greater equal 9. This value does not include the "voucherCodePrefix".
+	 *
+	 * @type {Integer}
+     */
+	get voucherCodeLength() : NullableInDraftMode<Integer, ValidationMode> {
+		return this.data[8];
+	}
+
+	set voucherCodeLength(v : NullableInDraftMode<Integer, ValidationMode>) {
+        this.setterImpl(8, v, 'voucherCodeLength');
+	}
+
+	/**
+     *  Should the generated code only contain digits? If "false" it will also contain alphabetic characters.
+	 *
+	 * @type {boolean}
+     */
+	get voucherCodeOnlyContainsDigits() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[9];
+	}
+
+	set voucherCodeOnlyContainsDigits(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(9, v, 'voucherCodeOnlyContainsDigits');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 10);
+
+			data[1] = false;
+			data[9] = false;
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '25';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '25', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiVoucherSettings<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiVouchersBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'vouchers');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiVoucher<ValidationMode> {
+		const newWrapper = new SchedulingApiVoucher<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiVouchers<ValidationMode> {
+		return new SchedulingApiVouchers<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '26';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiVoucher<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('vouchers');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiVouchers<ValidationMode>, SchedulingApiVouchers<ValidationMode>> = new ApiAttributeInfo<SchedulingApiVouchers<ValidationMode>, SchedulingApiVouchers<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiVouchers<ValidationMode>,
+			name: 'vouchers',
+			id: 'VOUCHERS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			show: function(this : SchedulingApiVouchers<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: function(this : SchedulingApiVouchers<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiVouchers<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+}
+
+				 
+export class SchedulingApiVoucherBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiVoucher as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiVoucher<ValidationMode>, SchedulingApiVoucher<ValidationMode>> = new ApiAttributeInfo<SchedulingApiVoucher<ValidationMode>, SchedulingApiVoucher<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiVoucher<ValidationMode>,
+			name: 'voucher',
+			id: 'VOUCHER',
+		});
+	attributeInfoFirstName =  new ApiAttributeInfo<SchedulingApiVoucher<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiVoucher<ValidationMode>,
+			name: 'firstName',
+			id: 'VOUCHER_FIRST_NAME',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoLastName =  new ApiAttributeInfo<SchedulingApiVoucher<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiVoucher<ValidationMode>,
+			name: 'lastName',
+			id: 'VOUCHER_LAST_NAME',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoBookingNumber =  new ApiAttributeInfo<SchedulingApiVoucher<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiVoucher<ValidationMode>,
+			name: 'bookingNumber',
+			id: 'VOUCHER_BOOKING_NUMBER',
+			primitiveType: PApiPrimitiveTypes.Integer,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoCode =  new ApiAttributeInfo<SchedulingApiVoucher<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiVoucher<ValidationMode>,
+			name: 'code',
+			id: 'VOUCHER_CODE',
+			primitiveType: PApiPrimitiveTypes.string,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoCurrentValue =  new ApiAttributeInfo<SchedulingApiVoucher<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiVoucher<ValidationMode>,
+			name: 'currentValue',
+			id: 'VOUCHER_CURRENT_VALUE',
+			primitiveType: PApiPrimitiveTypes.Currency,
+		});
+	attributeInfoDateOfBooking =  new ApiAttributeInfo<SchedulingApiVoucher<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiVoucher<ValidationMode>,
+			name: 'dateOfBooking',
+			id: 'VOUCHER_DATE_OF_BOOKING',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoPrice =  new ApiAttributeInfo<SchedulingApiVoucher<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiVoucher<ValidationMode>,
+			name: 'price',
+			id: 'VOUCHER_PRICE',
+			primitiveType: PApiPrimitiveTypes.Currency,
+		});
+	attributeInfoCurrentlyPaid =  new ApiAttributeInfo<SchedulingApiVoucher<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiVoucher<ValidationMode>,
+			name: 'currentlyPaid',
+			id: 'VOUCHER_CURRENTLY_PAID',
+			primitiveType: PApiPrimitiveTypes.Currency,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoEmail =  new ApiAttributeInfo<SchedulingApiVoucher<ValidationMode>, Email>({
+			apiObjWrapper: this as any as SchedulingApiVoucher<ValidationMode>,
+			name: 'email',
+			id: 'VOUCHER_EMAIL',
+			primitiveType: PApiPrimitiveTypes.Email,
+		});
+	attributeInfoExpirationDate =  new ApiAttributeInfo<SchedulingApiVoucher<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiVoucher<ValidationMode>,
+			name: 'expirationDate',
+			id: 'VOUCHER_EXPIRATION_DATE',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoForDescription =  new ApiAttributeInfo<SchedulingApiVoucher<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiVoucher<ValidationMode>,
+			name: 'forDescription',
+			id: 'VOUCHER_FOR_DESCRIPTION',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoPaidBeforeTransactionListIntroduction =  new ApiAttributeInfo<SchedulingApiVoucher<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiVoucher<ValidationMode>,
+			name: 'paidBeforeTransactionListIntroduction',
+			id: 'VOUCHER_PAID_BEFORE_TRANSACTION_LIST_INTRODUCTION',
+			primitiveType: PApiPrimitiveTypes.Currency,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoRefundLimitDueToOnlineBalance =  new ApiAttributeInfo<SchedulingApiVoucher<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiVoucher<ValidationMode>,
+			name: 'refundLimitDueToOnlineBalance',
+			id: 'VOUCHER_ACCOUNT_REFUND_LIMIT_DUE_TO_ONLINE_BALANCE',
+			primitiveType: PApiPrimitiveTypes.Currency,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoIsAnonymized =  new ApiAttributeInfo<SchedulingApiVoucher<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiVoucher<ValidationMode>,
+			name: 'isAnonymized',
+			id: 'VOUCHER_IS_ANONYMIZED',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoTestingDeferredPaymentToken =  new ApiAttributeInfo<SchedulingApiVoucher<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiVoucher<ValidationMode>,
+			name: 'testingDeferredPaymentToken',
+			id: 'VOUCHER_TESTING_DEFERRED_PAYMENT_TOKEN',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiVoucher<ValidationMode>) {
+ 
+		
+				return true;
+			},
+			canEdit: () => false,
+			readMode: () => true,
+		});
+
+	/**
+     *  First name of voucher owner.
+	 *
+	 * @type {string}
+     */
+	get firstName() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[1];
+	}
+
+	set firstName(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(1, v, 'firstName');
+	}
+
+	/**
+     *  Last name of voucher owner.
+	 *
+	 * @type {string}
+     */
+	get lastName() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[2];
+	}
+
+	set lastName(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(2, v, 'lastName');
+	}
+
+	/**
+     *  The booking number of this voucher.
+	 *
+	 * @type {Integer}
+     */
+	get bookingNumber() : NullableInDraftMode<Integer, ValidationMode> {
+		return this.data[3];
+	}
+
+	set bookingNumberTestSetter(v : NullableInDraftMode<Integer, ValidationMode>) {
+        this.setterImpl(3, v, 'bookingNumber');
+	}
+
+	/**
+     *  Code of voucher.
+	 *
+	 * @type {string}
+     */
+	get code() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[4];
+	}
+
+	set codeTestSetter(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(4, v, 'code');
+	}
+
+	/**
+     *  Current value of this voucher.
+	 *
+	 * @type {Currency}
+     */
+	get currentValue() : NullableInDraftMode<Currency, ValidationMode> {
+		return this.data[5];
+	}
+
+	set currentValue(v : NullableInDraftMode<Currency, ValidationMode>) {
+        this.setterImpl(5, v, 'currentValue');
+	}
+
+	/**
+     *  When was this voucher sold?
+	 *
+	 * @type {DateTime}
+     */
+	get dateOfBooking() : NullableInDraftMode<DateTime, ValidationMode> {
+		return this.data[6];
+	}
+
+	set dateOfBookingTestSetter(v : NullableInDraftMode<DateTime, ValidationMode>) {
+        this.setterImpl(6, v, 'dateOfBooking');
+	}
+
+	/**
+     *  Initial value of this voucher for which it was sold.
+	 *
+	 * @type {Currency}
+     */
+	get price() : NullableInDraftMode<Currency, ValidationMode> {
+		return this.data[7];
+	}
+
+	set price(v : NullableInDraftMode<Currency, ValidationMode>) {
+        this.setterImpl(7, v, 'price');
+	}
+
+	/**
+     *  How much has currently been paid by the booking person.
+	 *
+	 * @type {Currency}
+     */
+	get currentlyPaid() : NullableInDraftMode<Currency, ValidationMode> {
+		return this.data[8];
+	}
+
+	set currentlyPaidTestSetter(v : NullableInDraftMode<Currency, ValidationMode>) {
+        this.setterImpl(8, v, 'currentlyPaid');
+	}
+
+	/**
+     * (Detail)  Email of voucher owner.
+	 *
+	 * @type {Email}
+     */
+	get email() : NullableInDraftMode<Email, ValidationMode> {
+		return this.data[9];
+	}
+
+	set email(v : NullableInDraftMode<Email, ValidationMode>) {
+        this.setterImpl(9, v, 'email');
+	}
+
+	/**
+     * (Detail)  When will this voucher expire. Read-only.
+	 *
+	 * @type {DateTime}
+     */
+	get expirationDate() : DateTime | null {
+		return this.data[10];
+	}
+
+	set expirationDateTestSetter(v : DateTime | null) {
+        this.setterImpl(10, v, 'expirationDate');
+	}
+
+	/**
+     * (Detail)  An optional text describing for what or whom this voucher is.
+	 *
+	 * @type {string}
+     */
+	get forDescription() : string | null {
+		return this.data[11];
+	}
+
+	set forDescription(v : string | null) {
+        this.setterImpl(11, v, 'forDescription');
+	}
+
+	/**
+     * (Detail)  The amount which was paid before we introduced the detailed transaction list for each bookable. Ignore it when it is "null".
+	 *
+	 * @type {Currency}
+     */
+	get paidBeforeTransactionListIntroduction() : Currency | null {
+		return this.data[12];
+	}
+
+	set paidBeforeTransactionListIntroductionTestSetter(v : Currency | null) {
+        this.setterImpl(12, v, 'paidBeforeTransactionListIntroduction');
+	}
+
+	/**
+     * (Detail)  The max refund value when limited by online balance. This value is send to everyone who can trigger online refunds. Thus as a security measure it is only send when online balance limits the refund amount to not leak the online balance to unauthorized users. Otherwise "null" is returned.
+	 *
+	 * @type {Currency}
+     */
+	get refundLimitDueToOnlineBalance() : Currency | null {
+		return this.data[13];
+	}
+
+	set refundLimitDueToOnlineBalanceTestSetter(v : Currency | null) {
+        this.setterImpl(13, v, 'refundLimitDueToOnlineBalance');
+	}
+
+	/**
+     * (Detail)  Is this booking anonymized?
+	 *
+	 * @type {boolean}
+     */
+	get isAnonymized() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[14];
+	}
+
+	set isAnonymizedTestSetter(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(14, v, 'isAnonymized');
+	}
+
+	/**
+     * (Detail)  A token for deferred Payments. Only for testing.
+	 *
+	 * @type {string}
+     */
+	get testingDeferredPaymentToken() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[15];
+	}
+
+	set testingDeferredPaymentTokenTestSetter(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(15, v, 'testingDeferredPaymentToken');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 16);
+
+			data[14] = false;
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '522';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '522', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiVoucher<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 export class SchedulingApiTransactionsBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'transactions');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiTransaction<ValidationMode> {
+		const newWrapper = new SchedulingApiTransaction<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiTransactions<ValidationMode> {
+		return new SchedulingApiTransactions<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '27';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiTransaction<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('transactions');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiTransactions<ValidationMode>, SchedulingApiTransactions<ValidationMode>> = new ApiAttributeInfo<SchedulingApiTransactions<ValidationMode>, SchedulingApiTransactions<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiTransactions<ValidationMode>,
+			name: 'transactions',
+			id: 'TRANSACTIONS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			show: function(this : SchedulingApiTransactions<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER))  || (this.api!.rightsService.requesterIs(AuthenticatedApiRole.ADMIN))  || (this.api!.rightsService.requesterIs(AuthenticatedApiRole.SUPER_ADMIN))  || (this.api!.currentlyDetailedLoaded instanceof SchedulingApiBooking)  || (this.api!.currentlyDetailedLoaded instanceof SchedulingApiVoucher)  || (this.api!.currentlyDetailedLoaded instanceof SchedulingApiTransaction) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: function(this : SchedulingApiTransactions<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER))  || (this.api!.rightsService.requesterIs(AuthenticatedApiRole.ADMIN))  || (this.api!.rightsService.requesterIs(AuthenticatedApiRole.SUPER_ADMIN))  || (this.api!.currentlyDetailedLoaded instanceof SchedulingApiBooking && this.api!.rightsService.userCanWriteBooking(this.api!.currentlyDetailedLoaded)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiTransactions<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER))  || (this.api!.rightsService.requesterIs(AuthenticatedApiRole.ADMIN))  || (this.api!.rightsService.requesterIs(AuthenticatedApiRole.SUPER_ADMIN)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+}
+
+				 
+export class SchedulingApiTransactionBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiTransaction as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, SchedulingApiTransaction<ValidationMode>> = new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, SchedulingApiTransaction<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'transaction',
+			id: 'TRANSACTION',
+		});
+	attributeInfoType =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, SchedulingApiTransactionType>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'type',
+			id: 'TRANSACTION_TYPE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+			validations: function(this : SchedulingApiTransaction<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.Enum, undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoDateTime =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'dateTime',
+			id: 'TRANSACTION_DATE_TIME',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+			canEdit: () => false,
+			readMode: () => true,
+			validations: function(this : SchedulingApiTransaction<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.DateTime, undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoPaymentMethodType =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, SchedulingApiTransactionPaymentMethodType>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'paymentMethodType',
+			id: 'TRANSACTION_PAYMENT_METHOD_TYPE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+			validations: function(this : SchedulingApiTransaction<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.Enum, undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoMiscPaymentMethodName =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'miscPaymentMethodName',
+			id: 'TRANSACTION_MISC_PAYMENT_METHOD_NAME',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiTransaction<ValidationMode>) {
+		if(!((this.paymentMethodType === SchedulingApiTransactionPaymentMethodType.MISC)))
+		{
+			return false;
+		}
+				return true;
+			},
+			validations: function(this : SchedulingApiTransaction<ValidationMode>) {
+				return [
+					() => {
+		if(((this.paymentMethodType === SchedulingApiTransactionPaymentMethodType.MISC)))
+		{
+			return this.api!.validators.required(PApiPrimitiveTypes.string, undefined);
+		}
+		else
+		{
+			return this.api!.validators.ensureNull(PApiPrimitiveTypes.string, undefined);
+		}
+						return null;
+					},
+				];
+			},
+		});
+	attributeInfoDrPlanoFeeNet =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'drPlanoFeeNet',
+			id: 'TRANSACTION_DR_PLANO_FEE_NET',
+			primitiveType: PApiPrimitiveTypes.Currency,
+			canEdit: () => false,
+			readMode: () => true,
+			validations: function(this : SchedulingApiTransaction<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.Currency, undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.min(0, true, PApiPrimitiveTypes.Currency, undefined, undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoBalanceChange =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'balanceChange',
+			id: 'TRANSACTION_BALANCE_CHANGE',
+			primitiveType: PApiPrimitiveTypes.Currency,
+			canEdit: () => false,
+			readMode: () => true,
+			validations: function(this : SchedulingApiTransaction<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.Currency, undefined);
+							return null;
+					},
+				];
+			},
+		});
+	attributeInfoOfferName =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'offerName',
+			id: 'TRANSACTION_OFFER_NAME',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiTransaction<ValidationMode>) {
+		if(!((!!this.offerName)))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoBookingNumber =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'bookingNumber',
+			id: 'TRANSACTION_BOOKING_NUMBER',
+			primitiveType: PApiPrimitiveTypes.Integer,
+			show: function(this : SchedulingApiTransaction<ValidationMode>) {
+		if(!((!!this.bookingNumber)))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoReferencedPerson =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'referencedPerson',
+			id: 'TRANSACTION_REFERENCED_PERSON',
+			primitiveType: PApiPrimitiveTypes.string,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoBookingId =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'bookingId',
+			id: 'TRANSACTION_BOOKING_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+			show: function(this : SchedulingApiTransaction<ValidationMode>) {
+ 
+		
+				return true;
+			},
+		});
+	attributeInfoVoucherId =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'voucherId',
+			id: 'TRANSACTION_VOUCHER_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+			show: function(this : SchedulingApiTransaction<ValidationMode>) {
+ 
+		
+				return true;
+			},
+		});
+	attributeInfoShiftModelId =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'shiftModelId',
+			id: 'TRANSACTION_SHIFT_MODEL_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+			show: function(this : SchedulingApiTransaction<ValidationMode>) {
+ 
+		
+				return true;
+			},
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoFailedChildId =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'failedChildId',
+			id: 'TRANSACTION_FAILED_CHILD_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoTestingPspReference =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'testingPspReference',
+			id: 'TRANSACTION_TESTING_PSP_REFERENCE',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiTransaction<ValidationMode>) {
+ 
+		
+				return true;
+			},
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoTestingOriginalPspReference =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'testingOriginalPspReference',
+			id: 'TRANSACTION_TESTING_ORIGINAL_PSP_REFERENCE',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiTransaction<ValidationMode>) {
+ 
+		
+				return true;
+			},
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoTestingTransferFundsAmount =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'testingTransferFundsAmount',
+			id: 'TRANSACTION_TESTING_TRANSFER_FUNDS_AMOUNT',
+			primitiveType: PApiPrimitiveTypes.Currency,
+			show: function(this : SchedulingApiTransaction<ValidationMode>) {
+ 
+		
+				return true;
+			},
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoTestingTransferFundsPSP =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'testingTransferFundsPSP',
+			id: 'TRANSACTION_TESTING_TRANSFER_FUNDS_PSP',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiTransaction<ValidationMode>) {
+ 
+		
+				return true;
+			},
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoTestingTransferFundsState =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, SchedulingApiTransactionTransferFundsState>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'testingTransferFundsState',
+			id: 'TRANSACTION_TESTING_TRANSFER_FUNDS_STATE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+			show: function(this : SchedulingApiTransaction<ValidationMode>) {
+ 
+		
+				return true;
+			},
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoTestingIsSettled =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'testingIsSettled',
+			id: 'TRANSACTION_TESTING_IS_SETTLED',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			show: function(this : SchedulingApiTransaction<ValidationMode>) {
+ 
+		
+				return true;
+			},
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoAbsAmount =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'absAmount',
+			id: 'TRANSACTION_ABS_AMOUNT',
+			primitiveType: PApiPrimitiveTypes.Currency,
+			validations: function(this : SchedulingApiTransaction<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.required(PApiPrimitiveTypes.Currency, undefined);
+							return null;
+					},
+					() => {
+		if(((this.type !== SchedulingApiTransactionType.PAYOUT) && (this.type !== SchedulingApiTransactionType.PAYOUT_FAILED)))
+		{
+			return this.api!.validators.max(10000, true, PApiPrimitiveTypes.Currency, undefined, 'Der eingegebene Betrag ist außergewöhnlich hoch. Falls er mit Sicherheit richtig ist, dann melde dich bitte bei uns für die Weiterbearbeitung.');
+		}
+						return null;
+					},
+					() => {
+		return this.api!.validators.min(0, false, PApiPrimitiveTypes.Currency, undefined, undefined);
+							return null;
+					},
+					() => {
+		if(((this.type === SchedulingApiTransactionType.REFUND)))
+		{
+			return this.api!.validators.max(this.bookable!.currentlyPaid, true, PApiPrimitiveTypes.Currency, undefined, 'Dein Kunde hat insgesamt ${max} eingezahlt. Du kannst nicht mehr als das zurückzahlen.');
+		}
+						return null;
+					},
+					() => {
+		if(((this.type === SchedulingApiTransactionType.REFUND && this.paymentMethodType === SchedulingApiTransactionPaymentMethodType.ONLINE_PAYMENT)))
+		{
+			return this.api!.validators.max(this.bookable!.refundLimitDueToOnlineBalance, true, PApiPrimitiveTypes.Currency, undefined, 'Du kannst max. ${max} zurückerstatten, da das <a href="client/sales/transactions" target="_blank" rel="noopener">Online-Guthaben</a> des gesamten Accounts abzüglich Gebühren für mehr nicht ausreicht.');
+		}
+						return null;
+					},
+					() => {
+		if(((this.type === SchedulingApiTransactionType.REFUND && this.paymentMethodType === SchedulingApiTransactionPaymentMethodType.ONLINE_PAYMENT)))
+		{
+			return this.api!.validators.max(+this.bookable!.transactions.filterBy(item => !item.isNewItem()).onlineRefundableAmount!.toFixed(2), true, PApiPrimitiveTypes.Currency, undefined, 'Du kannst max. ${max} zurückerstatten, da das Online-Guthaben dieser Buchung für mehr nicht ausreicht.');
+		}
+						return null;
+					},
+				];
+			},
+		});
+	attributeInfoChildChargebackId =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'childChargebackId',
+			id: 'TRANSACTION_CHILD_CHARGEBACK_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoChildChargebackReversedId =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'childChargebackReversedId',
+			id: 'TRANSACTION_CHILD_CHARGEBACK_REVERSED_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoChildSecondChargebackId =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'childSecondChargebackId',
+			id: 'TRANSACTION_CHILD_SECOND_CHARGEBACK_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoVatPercent =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, number>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'vatPercent',
+			id: 'TRANSACTION_VAT_PERCENT',
+			primitiveType: PApiPrimitiveTypes.number,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoInternalComment =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'internalComment',
+			id: 'TRANSACTION_INTERNAL_COMMENT',
+			primitiveType: PApiPrimitiveTypes.string,
+		});
+	attributeInfoBalance =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'balance',
+			id: 'TRANSACTION_BALANCE',
+			primitiveType: PApiPrimitiveTypes.Currency,
+			show: function(this : SchedulingApiTransaction<ValidationMode>) {
+		if(!((this.paymentMethodType === SchedulingApiTransactionPaymentMethodType.ONLINE_PAYMENT)))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoCreatorId =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'creatorId',
+			id: 'TRANSACTION_CREATOR_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoBankAccountHint =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'bankAccountHint',
+			id: 'TRANSACTION_BANK_ACCOUNT_HINT',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiTransaction<ValidationMode>) {
+		if(!(( (this.type === SchedulingApiTransactionType.PAYOUT)  || (this.type === SchedulingApiTransactionType.PAYOUT_FAILED)  || (this.type === SchedulingApiTransactionType.AUTO_DEBIT)  || (this.type === SchedulingApiTransactionType.AUTO_DEBIT_FAILED) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoBankDescription =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'bankDescription',
+			id: 'TRANSACTION_BANK_DESCRIPTION',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiTransaction<ValidationMode>) {
+		if(!((this.paymentMethodType === SchedulingApiTransactionPaymentMethodType.ONLINE_PAYMENT) && (this.type !== SchedulingApiTransactionType.DR_PLANO_FEE_VAT)))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: () => false,
+			readMode: () => true,
+			validations: function(this : SchedulingApiTransaction<ValidationMode>) {
+				return [
+					() => {
+		if(((this.paymentMethodType === SchedulingApiTransactionPaymentMethodType.ONLINE_PAYMENT) && (this.type !== SchedulingApiTransactionType.DR_PLANO_FEE_VAT)))
+		{
+			return this.api!.validators.required(PApiPrimitiveTypes.string, undefined);
+		}
+		else
+		{
+			return this.api!.validators.ensureNull(PApiPrimitiveTypes.string, undefined);
+		}
+						return null;
+					},
+				];
+			},
+		});
+	attributeInfoParentId =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'parentId',
+			id: 'TRANSACTION_PARENT_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoFailedReason =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'failedReason',
+			id: 'TRANSACTION_FAILED_REASON',
+			primitiveType: PApiPrimitiveTypes.string,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoDrPlanoFeeVatDeprecated =  new ApiAttributeInfo<SchedulingApiTransaction<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiTransaction<ValidationMode>,
+			name: 'drPlanoFeeVatDeprecated',
+			id: 'TRANSACTION_DR_PLANO_FEE_VAT_DEPRECATED',
+			primitiveType: PApiPrimitiveTypes.Currency,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+
+	/**
+     *  The type of this transaction
+	 *
+	 * @type {SchedulingApiTransactionType}
+     */
+	get type() : NullableInDraftMode<SchedulingApiTransactionType, ValidationMode> {
+		return this.data[1];
+	}
+
+	set type(v : NullableInDraftMode<SchedulingApiTransactionType, ValidationMode>) {
+        this.setterImpl(1, v, 'type');
+	}
+
+	/**
+     *  The date-time of this transaction.
+	 *
+	 * @type {DateTime}
+     */
+	get dateTime() : NullableInDraftMode<DateTime, ValidationMode> {
+		return this.data[2];
+	}
+
+	set dateTimeTestSetter(v : NullableInDraftMode<DateTime, ValidationMode>) {
+        this.setterImpl(2, v, 'dateTime');
+	}
+
+	/**
+     *  The payment-method type of the transaction. See "shiftModel.coursePaymentMethods.type".
+	 *
+	 * @type {SchedulingApiTransactionPaymentMethodType}
+     */
+	get paymentMethodType() : NullableInDraftMode<SchedulingApiTransactionPaymentMethodType, ValidationMode> {
+		return this.data[3];
+	}
+
+	set paymentMethodType(v : NullableInDraftMode<SchedulingApiTransactionPaymentMethodType, ValidationMode>) {
+        this.setterImpl(3, v, 'paymentMethodType');
+	}
+
+	/**
+     *  The MISC payment-method name. Only send for "paymentMethodType" == MISC.
+	 *
+	 * @type {string}
+     */
+	get miscPaymentMethodName() : string | null {
+		return this.data[4];
+	}
+
+	set miscPaymentMethodName(v : string | null) {
+        this.setterImpl(4, v, 'miscPaymentMethodName');
+	}
+
+	/**
+     *  The fee we are taking for the transaction. This is always zero or a positive number. Note that this does not include any VAT as we will subtract whole VAT at the end of the month using a VAT transaction.
+	 *
+	 * @type {Currency}
+     */
+	get drPlanoFeeNet() : NullableInDraftMode<Currency, ValidationMode> {
+		return this.data[5];
+	}
+
+	set drPlanoFeeNetTestSetter(v : NullableInDraftMode<Currency, ValidationMode>) {
+        this.setterImpl(5, v, 'drPlanoFeeNet');
+	}
+
+	/**
+     *  The amount which will be settled on the online-payment account. Can be zero, positive or negative.
+	 *
+	 * @type {Currency}
+     */
+	get balanceChange() : NullableInDraftMode<Currency, ValidationMode> {
+		return this.data[6];
+	}
+
+	set balanceChangeTestSetter(v : NullableInDraftMode<Currency, ValidationMode>) {
+        this.setterImpl(6, v, 'balanceChange');
+	}
+
+	/**
+     *  The name of the offer. Either a translation of the word "Gutschein" or the course-title.
+	 *
+	 * @type {string}
+     */
+	get offerName() : string | null {
+		return this.data[7];
+	}
+
+	set offerNameTestSetter(v : string | null) {
+        this.setterImpl(7, v, 'offerName');
+	}
+
+	/**
+     *  The booking number of the booking/voucher.
+	 *
+	 * @type {Integer}
+     */
+	get bookingNumber() : Integer | null {
+		return this.data[8];
+	}
+
+	set bookingNumberTestSetter(v : Integer | null) {
+        this.setterImpl(8, v, 'bookingNumber');
+	}
+
+	/**
+     *  The name of the referenced person who payed/received this transaction. For type PAYOUT, PAYOUT_FAILED, AUTO_DEBIT and AUTO_DEBIT_FAILED this will return the string "Dr. Plano".
+	 *
+	 * @type {string}
+     */
+	get referencedPerson() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[9];
+	}
+
+	set referencedPersonTestSetter(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(9, v, 'referencedPerson');
+	}
+
+	private bookingIdWrapper : Id | null = null!;
+
+	/**
+     *  The id of the booking to which this transaction belongs. Can be "null".
+	 *
+	 * @type {Id}
+     */
+	get bookingId() : Id | null {
+		return this.bookingIdWrapper;
+	}
+
+	set bookingId(v : Id | null) {
+        this.setterImpl(10, v, 'bookingId', () => {this.bookingIdWrapper = v;});
+	}
+
+	private voucherIdWrapper : Id | null = null!;
+
+	/**
+     *  The id of the voucher to which this transaction belongs. Can be "null".
+	 *
+	 * @type {Id}
+     */
+	get voucherId() : Id | null {
+		return this.voucherIdWrapper;
+	}
+
+	set voucherId(v : Id | null) {
+        this.setterImpl(11, v, 'voucherId', () => {this.voucherIdWrapper = v;});
+	}
+
+	private shiftModelIdWrapper : Id | null = null!;
+
+	/**
+     *  The id of the shift-model to which this transaction belongs. Can be "null".
+	 *
+	 * @type {Id}
+     */
+	get shiftModelId() : Id | null {
+		return this.shiftModelIdWrapper;
+	}
+
+	set shiftModelIdTestSetter(v : Id | null) {
+        this.setterImpl(12, v, 'shiftModelId', () => {this.shiftModelIdWrapper = v;});
+	}
+
+	private failedChildIdWrapper : Id | null = null!;
+
+	/**
+     *  The id of a failed child transaction item. E.g. this is a PAYMENT item and there exists a corresponding PAYMENT_FAILED child item. Then this value contains the id of the PAYMENT_FAILED item. Note that a payment with chargebacks will have multiple failed children. In that case this value will be the id of one of the chargeback items. In that case, rather use "childChargebackId", "childChargebackReversedId" and "childSecondChargebackId".
+	 *
+	 * @type {Id}
+     */
+	get failedChildId() : Id | null {
+		return this.failedChildIdWrapper;
+	}
+
+	set failedChildIdTestSetter(v : Id | null) {
+        this.setterImpl(13, v, 'failedChildId', () => {this.failedChildIdWrapper = v;});
+	}
+
+	/**
+     *  Adyens PSP reference of the transaction. This is only send in testing mode.
+	 *
+	 * @type {string}
+     */
+	get testingPspReference() : string | null {
+		return this.data[14];
+	}
+
+	set testingPspReferenceTestSetter(v : string | null) {
+        this.setterImpl(14, v, 'testingPspReference');
+	}
+
+	/**
+     *  Adyens original PSP reference of the transaction. This is only send in testing mode.
+	 *
+	 * @type {string}
+     */
+	get testingOriginalPspReference() : string | null {
+		return this.data[15];
+	}
+
+	set testingOriginalPspReferenceTestSetter(v : string | null) {
+        this.setterImpl(15, v, 'testingOriginalPspReference');
+	}
+
+	/**
+     *  The TransferFunds-Amount for this transaction. This is only send in testing mode.
+	 *
+	 * @type {Currency}
+     */
+	get testingTransferFundsAmount() : Currency | null {
+		return this.data[16];
+	}
+
+	set testingTransferFundsAmountTestSetter(v : Currency | null) {
+        this.setterImpl(16, v, 'testingTransferFundsAmount');
+	}
+
+	/**
+     *  The TransferFunds-PSP for this transaction. This is only send in testing mode.
+	 *
+	 * @type {string}
+     */
+	get testingTransferFundsPSP() : string | null {
+		return this.data[17];
+	}
+
+	set testingTransferFundsPSPTestSetter(v : string | null) {
+        this.setterImpl(17, v, 'testingTransferFundsPSP');
+	}
+
+	/**
+     *  The TransferFunds-State for this transaction. This is only send in testing mode.
+	 *
+	 * @type {SchedulingApiTransactionTransferFundsState}
+     */
+	get testingTransferFundsState() : SchedulingApiTransactionTransferFundsState | null {
+		return this.data[18];
+	}
+
+	set testingTransferFundsStateTestSetter(v : SchedulingApiTransactionTransferFundsState | null) {
+        this.setterImpl(18, v, 'testingTransferFundsState');
+	}
+
+	/**
+     *  True if the transaction is settled as defined by TransactionLogic.isSettled(false). This is only send in testing mode.
+	 *
+	 * @type {boolean}
+     */
+	get testingIsSettled() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[19];
+	}
+
+	set testingIsSettledTestSetter(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(19, v, 'testingIsSettled');
+	}
+
+	/**
+     *  The absolute amount of the transaction. Set this value when creating a new transaction.
+	 *
+	 * @type {Currency}
+     */
+	get absAmount() : NullableInDraftMode<Currency, ValidationMode> {
+		return this.data[20];
+	}
+
+	set absAmount(v : NullableInDraftMode<Currency, ValidationMode>) {
+        this.setterImpl(20, v, 'absAmount');
+	}
+
+	private childChargebackIdWrapper : Id | null = null!;
+
+	/**
+     *  The id of the child chargeback transaction if it exists.
+	 *
+	 * @type {Id}
+     */
+	get childChargebackId() : Id | null {
+		return this.childChargebackIdWrapper;
+	}
+
+	set childChargebackIdTestSetter(v : Id | null) {
+        this.setterImpl(21, v, 'childChargebackId', () => {this.childChargebackIdWrapper = v;});
+	}
+
+	private childChargebackReversedIdWrapper : Id | null = null!;
+
+	/**
+     *  The id of the child chargeback-reversed transaction if it exists.
+	 *
+	 * @type {Id}
+     */
+	get childChargebackReversedId() : Id | null {
+		return this.childChargebackReversedIdWrapper;
+	}
+
+	set childChargebackReversedIdTestSetter(v : Id | null) {
+        this.setterImpl(22, v, 'childChargebackReversedId', () => {this.childChargebackReversedIdWrapper = v;});
+	}
+
+	private childSecondChargebackIdWrapper : Id | null = null!;
+
+	/**
+     *  The id of the child second-chargeback transaction if it exists.
+	 *
+	 * @type {Id}
+     */
+	get childSecondChargebackId() : Id | null {
+		return this.childSecondChargebackIdWrapper;
+	}
+
+	set childSecondChargebackIdTestSetter(v : Id | null) {
+        this.setterImpl(23, v, 'childSecondChargebackId', () => {this.childSecondChargebackIdWrapper = v;});
+	}
+
+	/**
+     *  The vat percent. Only given for "DR_PLANO_FEE_VAT" transactions.
+	 *
+	 * @type {number}
+     */
+	get vatPercent() : number | null {
+		return this.data[24];
+	}
+
+	set vatPercentTestSetter(v : number | null) {
+        this.setterImpl(24, v, 'vatPercent');
+	}
+
+	/**
+     * (Detail)  An internal comment used by the client.
+	 *
+	 * @type {string}
+     */
+	get internalComment() : string | null {
+		return this.data[25];
+	}
+
+	set internalComment(v : string | null) {
+        this.setterImpl(25, v, 'internalComment');
+	}
+
+	/**
+     * (Detail)  Current balance of the online-payment account.
+	 *
+	 * @type {Currency}
+     */
+	get balance() : NullableInDraftMode<Currency, ValidationMode> {
+		return this.data[26];
+	}
+
+	set balanceTestSetter(v : NullableInDraftMode<Currency, ValidationMode>) {
+        this.setterImpl(26, v, 'balance');
+	}
+
+	private creatorIdWrapper : Id | null = null!;
+
+	/**
+     * (Detail)  The id of the member who has created this transaction.
+	 *
+	 * @type {Id}
+     */
+	get creatorId() : Id | null {
+		return this.creatorIdWrapper;
+	}
+
+	set creatorIdTestSetter(v : Id | null) {
+        this.setterImpl(27, v, 'creatorId', () => {this.creatorIdWrapper = v;});
+	}
+
+	/**
+     * (Detail)  An bank account hint for online-payment transactions. E.g. the last characters of an IBAN number "***05432". Can be "null".
+	 *
+	 * @type {string}
+     */
+	get bankAccountHint() : string | null {
+		return this.data[28];
+	}
+
+	set bankAccountHintTestSetter(v : string | null) {
+        this.setterImpl(28, v, 'bankAccountHint');
+	}
+
+	/**
+     * (Detail)  The bank description shown in the bank account. Can be "null".
+	 *
+	 * @type {string}
+     */
+	get bankDescription() : string | null {
+		return this.data[29];
+	}
+
+	set bankDescriptionTestSetter(v : string | null) {
+        this.setterImpl(29, v, 'bankDescription');
+	}
+
+	private parentIdWrapper : Id | null = null!;
+
+	/**
+     * (Detail)  The id of the parent transaction.
+	 *
+	 * @type {Id}
+     */
+	get parentId() : Id | null {
+		return this.parentIdWrapper;
+	}
+
+	set parentIdTestSetter(v : Id | null) {
+        this.setterImpl(30, v, 'parentId', () => {this.parentIdWrapper = v;});
+	}
+
+	/**
+     * (Detail)  The fail reason String, or null if the transaction didn't fail.
+	 *
+	 * @type {string}
+     */
+	get failedReason() : string | null {
+		return this.data[31];
+	}
+
+	set failedReasonTestSetter(v : string | null) {
+        this.setterImpl(31, v, 'failedReason');
+	}
+
+	/**
+     * (Detail)  Absolute vat amount added to the fee we take for this transaction. This value is deprecated as we dont take VAT directly anymore with the transaction but we have now a special DR_PLANO_FEE_VAT transaction which we create at the end of each month. For new transactions this value will always be 0.
+	 *
+	 * @type {Currency}
+     */
+	get drPlanoFeeVatDeprecated() : NullableInDraftMode<Currency, ValidationMode> {
+		return this.data[32];
+	}
+
+	set drPlanoFeeVatDeprecatedTestSetter(v : NullableInDraftMode<Currency, ValidationMode>) {
+        this.setterImpl(32, v, 'drPlanoFeeVatDeprecated');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.data[10] = Meta.getReplacedId(this.data[10], _idReplacements);
+		this.bookingIdWrapper = Id.create(this.data[10]);
+		this.data[11] = Meta.getReplacedId(this.data[11], _idReplacements);
+		this.voucherIdWrapper = Id.create(this.data[11]);
+		this.data[12] = Meta.getReplacedId(this.data[12], _idReplacements);
+		this.shiftModelIdWrapper = Id.create(this.data[12]);
+		this.data[13] = Meta.getReplacedId(this.data[13], _idReplacements);
+		this.failedChildIdWrapper = Id.create(this.data[13]);
+		this.data[21] = Meta.getReplacedId(this.data[21], _idReplacements);
+		this.childChargebackIdWrapper = Id.create(this.data[21]);
+		this.data[22] = Meta.getReplacedId(this.data[22], _idReplacements);
+		this.childChargebackReversedIdWrapper = Id.create(this.data[22]);
+		this.data[23] = Meta.getReplacedId(this.data[23], _idReplacements);
+		this.childSecondChargebackIdWrapper = Id.create(this.data[23]);
+		this.data[27] = Meta.getReplacedId(this.data[27], _idReplacements);
+		this.creatorIdWrapper = Id.create(this.data[27]);
+		this.data[30] = Meta.getReplacedId(this.data[30], _idReplacements);
+		this.parentIdWrapper = Id.create(this.data[30]);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 33);
+
+			data[19] = false;
+		}
+
+		// propagate new raw data to children
+		if(!Meta.isSameId(data ? data[10] : null, this.bookingIdWrapper))
+			this.bookingIdWrapper = data && data[10] ? Id.create(data[10]) : null!;
+		if(!Meta.isSameId(data ? data[11] : null, this.voucherIdWrapper))
+			this.voucherIdWrapper = data && data[11] ? Id.create(data[11]) : null!;
+		if(!Meta.isSameId(data ? data[12] : null, this.shiftModelIdWrapper))
+			this.shiftModelIdWrapper = data && data[12] ? Id.create(data[12]) : null!;
+		if(!Meta.isSameId(data ? data[13] : null, this.failedChildIdWrapper))
+			this.failedChildIdWrapper = data && data[13] ? Id.create(data[13]) : null!;
+		if(!Meta.isSameId(data ? data[21] : null, this.childChargebackIdWrapper))
+			this.childChargebackIdWrapper = data && data[21] ? Id.create(data[21]) : null!;
+		if(!Meta.isSameId(data ? data[22] : null, this.childChargebackReversedIdWrapper))
+			this.childChargebackReversedIdWrapper = data && data[22] ? Id.create(data[22]) : null!;
+		if(!Meta.isSameId(data ? data[23] : null, this.childSecondChargebackIdWrapper))
+			this.childSecondChargebackIdWrapper = data && data[23] ? Id.create(data[23]) : null!;
+		if(!Meta.isSameId(data ? data[27] : null, this.creatorIdWrapper))
+			this.creatorIdWrapper = data && data[27] ? Id.create(data[27]) : null!;
+		if(!Meta.isSameId(data ? data[30] : null, this.parentIdWrapper))
+			this.parentIdWrapper = data && data[30] ? Id.create(data[30]) : null!;
+	}
+
+	protected get dni() : string {
+		return '489';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '489', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiTransaction<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+export enum SchedulingApiTransactionType {
+	PAYMENT = 1,
+	PAYMENT_FAILED = 2,
+	REFUND = 3,
+	REFUND_FAILED = 4,
+	PAYOUT = 5,
+	PAYOUT_FAILED = 6,
+	CHARGEBACK = 7,
+	CHARGEBACK_REVERSED = 8,
+	SECOND_CHARGEBACK = 9,
+	AUTO_DEBIT = 10,
+	AUTO_DEBIT_FAILED = 11,
+	DR_PLANO_FEE_VAT = 12,
+}
+export enum SchedulingApiTransactionPaymentMethodType {
+	ONLINE_PAYMENT = 1,
+	PAYPAL = 2,
+	MISC = 3,
+	POS = 4,
+}
+export enum SchedulingApiTransactionTransferFundsState {
+	OUTSTANDING = 1,
+	PENDING = 2,
+	SUCCESSFUL = 3,
+}
+		 export class SchedulingApiWarningsBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'warnings');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiWarning<ValidationMode> {
+		const newWrapper = new SchedulingApiWarning<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiWarnings<ValidationMode> {
+		return new SchedulingApiWarnings<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '28';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiWarning<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('warnings');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiWarnings<ValidationMode>, SchedulingApiWarnings<ValidationMode>> = new ApiAttributeInfo<SchedulingApiWarnings<ValidationMode>, SchedulingApiWarnings<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiWarnings<ValidationMode>,
+			name: 'warnings',
+			id: 'WARNINGS',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+}
+
+				 
+export class SchedulingApiWarningBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiWarning as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiWarning<ValidationMode>, SchedulingApiWarning<ValidationMode>> = new ApiAttributeInfo<SchedulingApiWarning<ValidationMode>, SchedulingApiWarning<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiWarning<ValidationMode>,
+			name: 'warning',
+			id: 'WARNING',
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoText =  new ApiAttributeInfo<SchedulingApiWarning<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiWarning<ValidationMode>,
+			name: 'text',
+			id: 'WARNING_TEXT',
+			primitiveType: PApiPrimitiveTypes.string,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoSeverity =  new ApiAttributeInfo<SchedulingApiWarning<ValidationMode>, SchedulingApiWarningSeverity>({
+			apiObjWrapper: this as any as SchedulingApiWarning<ValidationMode>,
+			name: 'severity',
+			id: 'WARNING_SEVERITY',
+			primitiveType: PApiPrimitiveTypes.Enum,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoConcernsMemberId =  new ApiAttributeInfo<SchedulingApiWarning<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiWarning<ValidationMode>,
+			name: 'concernsMemberId',
+			id: 'WARNING_CONCERNS_MEMBER_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoForSwapOfferId =  new ApiAttributeInfo<SchedulingApiWarning<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiWarning<ValidationMode>,
+			name: 'forSwapOfferId',
+			id: 'WARNING_FOR_SWAP_OFFER_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoForSwapOfferNewItemId =  new ApiAttributeInfo<SchedulingApiWarning<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiWarning<ValidationMode>,
+			name: 'forSwapOfferNewItemId',
+			id: 'WARNING_FOR_SWAP_OFFER_NEW_ITEM_ID',
+			primitiveType: PApiPrimitiveTypes.Integer,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+
+	/**
+     *  Text of this warning
+	 *
+	 * @type {string}
+     */
+	get text() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[1];
+	}
+
+	set textTestSetter(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(1, v, 'text');
+	}
+
+	/**
+     *  Severity level of this warning.
+	 *
+	 * @type {SchedulingApiWarningSeverity}
+     */
+	get severity() : NullableInDraftMode<SchedulingApiWarningSeverity, ValidationMode> {
+		return this.data[2];
+	}
+
+	set severityTestSetter(v : NullableInDraftMode<SchedulingApiWarningSeverity, ValidationMode>) {
+        this.setterImpl(2, v, 'severity');
+	}
+
+	private concernsMemberIdWrapper : NullableInDraftMode<Id, ValidationMode> = null!;
+
+	/**
+     *  Which member is concerned by this warning?
+	 *
+	 * @type {Id}
+     */
+	get concernsMemberId() : NullableInDraftMode<Id, ValidationMode> {
+		return this.concernsMemberIdWrapper;
+	}
+
+	set concernsMemberIdTestSetter(v : NullableInDraftMode<Id, ValidationMode>) {
+        this.setterImpl(3, v, 'concernsMemberId', () => {this.concernsMemberIdWrapper = v;});
+	}
+
+	private forSwapOfferIdWrapper : Id | null = null!;
+
+	/**
+     *  To which swap offer does this warning belong?
+	 *
+	 * @type {Id}
+     */
+	get forSwapOfferId() : Id | null {
+		return this.forSwapOfferIdWrapper;
+	}
+
+	set forSwapOfferIdTestSetter(v : Id | null) {
+        this.setterImpl(4, v, 'forSwapOfferId', () => {this.forSwapOfferIdWrapper = v;});
+	}
+
+	/**
+     *  To which swap offer newItemId does this warning belong?
+	 *
+	 * @type {Integer}
+     */
+	get forSwapOfferNewItemId() : Integer | null {
+		return this.data[5];
+	}
+
+	set forSwapOfferNewItemIdTestSetter(v : Integer | null) {
+        this.setterImpl(5, v, 'forSwapOfferNewItemId');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.data[3] = Meta.getReplacedId(this.data[3], _idReplacements);
+		this.concernsMemberIdWrapper = Id.create(this.data[3]);
+		this.data[4] = Meta.getReplacedId(this.data[4], _idReplacements);
+		this.forSwapOfferIdWrapper = Id.create(this.data[4]);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 6);
+
+		}
+
+		// propagate new raw data to children
+		if(!Meta.isSameId(data ? data[3] : null, this.concernsMemberIdWrapper))
+			this.concernsMemberIdWrapper = data && data[3] ? Id.create(data[3]) : null!;
+		if(!Meta.isSameId(data ? data[4] : null, this.forSwapOfferIdWrapper))
+			this.forSwapOfferIdWrapper = data && data[4] ? Id.create(data[4]) : null!;
+	}
+
+	protected get dni() : string {
+		return '538';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '538', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiWarning<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+export enum SchedulingApiWarningSeverity {
+	INFO = 1,
+	WARNING = 2,
+	FATAL = 3,
+}
+		 
+export class SchedulingApiEvaluation<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiEvaluation as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiEvaluation<ValidationMode>, SchedulingApiEvaluation<ValidationMode>> = new ApiAttributeInfo<SchedulingApiEvaluation<ValidationMode>, SchedulingApiEvaluation<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiEvaluation<ValidationMode>,
+			name: 'evaluation',
+			id: 'EVALUATION',
+			show: function(this : SchedulingApiEvaluation<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> EVALUATION is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> EVALUATION is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+			canEdit: function(this : SchedulingApiEvaluation<ValidationMode>) {
+		if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiEvaluation<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+	attributeInfoGenerate =  new ApiAttributeInfo<SchedulingApiEvaluation<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiEvaluation<ValidationMode>,
+			name: 'generate',
+			id: 'EVALUATION_GENERATE',
+			primitiveType: PApiPrimitiveTypes.boolean,
+		});
+
+	/**
+     *  Should a report be generated? Currently this report is being send by email to the requester.
+	 *
+	 * @type {boolean}
+     */
+	get generate() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[1];
+	}
+
+	set generate(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(1, v, 'generate');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 2);
+
+			data[1] = false;
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '29';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '29', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiEvaluation<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 
+export class SchedulingApiAdyenAccountBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiAdyenAccount as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiAdyenAccount<ValidationMode>, SchedulingApiAdyenAccount<ValidationMode>> = new ApiAttributeInfo<SchedulingApiAdyenAccount<ValidationMode>, SchedulingApiAdyenAccount<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiAdyenAccount<ValidationMode>,
+			name: 'adyenAccount',
+			id: 'ADYEN_ACCOUNT',
+			show: function(this : SchedulingApiAdyenAccount<ValidationMode>) {
+		if(!(( (this.api!.rightsService.canReadAndWriteBookingSystemSettings) )))
+		{
+			return false;
+		}
+				return true;
+			},
+		});
+	attributeInfoBalance =  new ApiAttributeInfo<SchedulingApiAdyenAccount<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiAdyenAccount<ValidationMode>,
+			name: 'balance',
+			id: 'ADYEN_ACCOUNT_BALANCE',
+			primitiveType: PApiPrimitiveTypes.Currency,
+			show: function(this : SchedulingApiAdyenAccount<ValidationMode>) {
+			console.error('AttributeInfo for /scheduling -> ADYEN_ACCOUNT_BALANCE is not implemented yet. Please create a Jira issue in the current Sprint: https://drplano.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10003&issuetype=10101&summary=' + encodeURI('AttributeInfo for /scheduling -> ADYEN_ACCOUNT_BALANCE is not implemented yet') + '&assignee=557058%3Ae58fd015-3e1d-44b8-9131-aef274b1c571');
+				return true;
+			},
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoAccountHolderState =  new ApiAttributeInfo<SchedulingApiAdyenAccount<ValidationMode>, SchedulingApiAccountHolderState>({
+			apiObjWrapper: this as any as SchedulingApiAdyenAccount<ValidationMode>,
+			name: 'accountHolderState',
+			id: 'ADYEN_ACCOUNT_HOLDER_STATE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoAccountHolderPayoutState =  new ApiAttributeInfo<SchedulingApiAdyenAccount<ValidationMode>, SchedulingApiAccountHolderPayoutState>({
+			apiObjWrapper: this as any as SchedulingApiAdyenAccount<ValidationMode>,
+			name: 'accountHolderPayoutState',
+			id: 'ADYEN_ACCOUNT_HOLDER_PAYOUT_STATE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoAccountHolderProcessingState =  new ApiAttributeInfo<SchedulingApiAdyenAccount<ValidationMode>, SchedulingApiAccountHolderProcessingState>({
+			apiObjWrapper: this as any as SchedulingApiAdyenAccount<ValidationMode>,
+			name: 'accountHolderProcessingState',
+			id: 'ADYEN_ACCOUNT_HOLDER_PROCESSING_STATE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoOnboardingUrl =  new ApiAttributeInfo<SchedulingApiAdyenAccount<ValidationMode>, Url>({
+			apiObjWrapper: this as any as SchedulingApiAdyenAccount<ValidationMode>,
+			name: 'onboardingUrl',
+			id: 'ADYEN_ACCOUNT_ONBOARDING_URL',
+			primitiveType: PApiPrimitiveTypes.Url,
+			show: function(this : SchedulingApiAdyenAccount<ValidationMode>) {
+		if(!(( (this.api!.rightsService.canReadAndWriteBookingSystemSettings) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: function(this : SchedulingApiAdyenAccount<ValidationMode>) {
+		if(!((!this.adyenOnboardingButtonDisabled) &&( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiAdyenAccount<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+			vars: {
+				cannotEditHint: () => { return !(this as any as SchedulingApiAdyenAccount).allCheckboxesAccepted ? 'Bevor du weitermachen kannst, musst du die Nutzungsbedingungen akzeptieren und die Checkboxen ankreuzen.' : ((this as any as SchedulingApiAdyenAccount).isClosedOrSuspended ? 'Dein Account ist zurzeit leider gesperrt! Falls du die Online-Zahlung wieder nutzen möchtest, melde dich bitte bei uns.' : 'Du hast leider keine Berechtigung hierfür. Wende dich bitte an deine Admins.');},
+			}
+		});
+	attributeInfoDeadlineDate =  new ApiAttributeInfo<SchedulingApiAdyenAccount<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiAdyenAccount<ValidationMode>,
+			name: 'deadlineDate',
+			id: 'ADYEN_ACCOUNT_DEADLINE_DATE',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoUpcomingDeadlineState =  new ApiAttributeInfo<SchedulingApiAdyenAccount<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiAdyenAccount<ValidationMode>,
+			name: 'upcomingDeadlineState',
+			id: 'ADYEN_ACCOUNT_UPCOMING_DEADLINE_STATE',
+			primitiveType: PApiPrimitiveTypes.string,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoTestingDesiredDeposit =  new ApiAttributeInfo<SchedulingApiAdyenAccount<ValidationMode>, Currency>({
+			apiObjWrapper: this as any as SchedulingApiAdyenAccount<ValidationMode>,
+			name: 'testingDesiredDeposit',
+			id: 'ADYEN_ACCOUNT_TESTING_DESIRED_DEPOSIT',
+			primitiveType: PApiPrimitiveTypes.Currency,
+			show: function(this : SchedulingApiAdyenAccount<ValidationMode>) {
+ 
+		
+				return true;
+			},
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoTestingAccountHolderCode =  new ApiAttributeInfo<SchedulingApiAdyenAccount<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiAdyenAccount<ValidationMode>,
+			name: 'testingAccountHolderCode',
+			id: 'ADYEN_ACCOUNT_TESTING_ACCOUNT_HOLDER_CODE',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiAdyenAccount<ValidationMode>) {
+ 
+		
+				return true;
+			},
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoTestingAccountHolderPaymentAccount =  new ApiAttributeInfo<SchedulingApiAdyenAccount<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiAdyenAccount<ValidationMode>,
+			name: 'testingAccountHolderPaymentAccount',
+			id: 'ADYEN_ACCOUNT_TESTING_ACCOUNT_HOLDER_PAYMENT_ACCOUNT',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiAdyenAccount<ValidationMode>) {
+ 
+		
+				return true;
+			},
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoTestingLiablePaymentAccount =  new ApiAttributeInfo<SchedulingApiAdyenAccount<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiAdyenAccount<ValidationMode>,
+			name: 'testingLiablePaymentAccount',
+			id: 'ADYEN_ACCOUNT_TESTING_LIABLE_PAYMENT_ACCOUNT',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiAdyenAccount<ValidationMode>) {
+ 
+		
+				return true;
+			},
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoOnboardingActionRequiredOrPending =  new ApiAttributeInfo<SchedulingApiAdyenAccount<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiAdyenAccount<ValidationMode>,
+			name: 'onboardingActionRequiredOrPending',
+			id: 'ADYEN_ACCOUNT_ONBOARDING_ACTION_REQUIRED_OR_PENDING',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoPayoutSchedule =  new ApiAttributeInfo<SchedulingApiAdyenAccount<ValidationMode>, SchedulingApiAccountHolderPayoutSchedule>({
+			apiObjWrapper: this as any as SchedulingApiAdyenAccount<ValidationMode>,
+			name: 'payoutSchedule',
+			id: 'ADYEN_ACCOUNT_PAYOUT_SCHEDULE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+			show: function(this : SchedulingApiAdyenAccount<ValidationMode>) {
+		if(!((this.accountHolderState!==SchedulingApiAccountHolderState.NOT_INITIALIZED)))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: function(this : SchedulingApiAdyenAccount<ValidationMode>) {
+		if(!((!this.adyenOnboardingButtonDisabled) &&( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiAdyenAccount<ValidationMode>) {
+						if(!(( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+	attributeInfoNextPayoutDate =  new ApiAttributeInfo<SchedulingApiAdyenAccount<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiAdyenAccount<ValidationMode>,
+			name: 'nextPayoutDate',
+			id: 'ADYEN_ACCOUNT_NEXT_PAYOUT_DATE',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+			show: function(this : SchedulingApiAdyenAccount<ValidationMode>) {
+		if(!((this.accountHolderPayoutState===SchedulingApiAccountHolderPayoutState.PAYOUT_ALLOWED) &&( (this.api!.rightsService.requesterIs(AuthenticatedApiRole.CLIENT_OWNER)) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: () => false,
+			readMode: () => true,
+		});
+
+	/**
+     *  Current online payment account balance.
+	 *
+	 * @type {Currency}
+     */
+	get balance() : NullableInDraftMode<Currency, ValidationMode> {
+		return this.data[1];
+	}
+
+	set balanceTestSetter(v : NullableInDraftMode<Currency, ValidationMode>) {
+        this.setterImpl(1, v, 'balance');
+	}
+
+	/**
+     *  AccountHolder State for Adyen
+	 *
+	 * @type {SchedulingApiAccountHolderState}
+     */
+	get accountHolderState() : NullableInDraftMode<SchedulingApiAccountHolderState, ValidationMode> {
+		return this.data[2];
+	}
+
+	set accountHolderStateTestSetter(v : NullableInDraftMode<SchedulingApiAccountHolderState, ValidationMode>) {
+        this.setterImpl(2, v, 'accountHolderState');
+	}
+
+	/**
+     *  AccountHolder-Payout State for Adyen
+	 *
+	 * @type {SchedulingApiAccountHolderPayoutState}
+     */
+	get accountHolderPayoutState() : NullableInDraftMode<SchedulingApiAccountHolderPayoutState, ValidationMode> {
+		return this.data[3];
+	}
+
+	set accountHolderPayoutStateTestSetter(v : NullableInDraftMode<SchedulingApiAccountHolderPayoutState, ValidationMode>) {
+        this.setterImpl(3, v, 'accountHolderPayoutState');
+	}
+
+	/**
+     *  AccountHolder-Processing State for Adyen
+	 *
+	 * @type {SchedulingApiAccountHolderProcessingState}
+     */
+	get accountHolderProcessingState() : NullableInDraftMode<SchedulingApiAccountHolderProcessingState, ValidationMode> {
+		return this.data[4];
+	}
+
+	set accountHolderProcessingStateTestSetter(v : NullableInDraftMode<SchedulingApiAccountHolderProcessingState, ValidationMode>) {
+        this.setterImpl(4, v, 'accountHolderProcessingState');
+	}
+
+	/**
+     *  Onboarding URL for Adyen, only used as a response. Set "generate" to trigger url generation. Returns "not created" if the AdyenAccount was not yet created.
+	 *
+	 * @type {Url}
+     */
+	get onboardingUrl() : Url | null {
+		return this.data[5];
+	}
+
+	set onboardingUrl(v : Url | null) {
+        this.setterImpl(5, v, 'onboardingUrl');
+	}
+
+	/**
+     *  Deadline Date. The account has time until this date to take actions to prevent his account from getting banned etc.
+	 *
+	 * @type {DateTime}
+     */
+	get deadlineDate() : DateTime | null {
+		return this.data[6];
+	}
+
+	set deadlineDateTestSetter(v : DateTime | null) {
+        this.setterImpl(6, v, 'deadlineDate');
+	}
+
+	/**
+     *  Next state, thats coming, when the deadline passed without action.
+	 *
+	 * @type {string}
+     */
+	get upcomingDeadlineState() : string | null {
+		return this.data[7];
+	}
+
+	set upcomingDeadlineStateTestSetter(v : string | null) {
+        this.setterImpl(7, v, 'upcomingDeadlineState');
+	}
+
+	/**
+     *  What is the current desired deposit? Only send in test environment.
+	 *
+	 * @type {Currency}
+     */
+	get testingDesiredDeposit() : NullableInDraftMode<Currency, ValidationMode> {
+		return this.data[8];
+	}
+
+	set testingDesiredDepositTestSetter(v : NullableInDraftMode<Currency, ValidationMode>) {
+        this.setterImpl(8, v, 'testingDesiredDeposit');
+	}
+
+	/**
+     *  Adyen sub-merchants account-holder-code.
+	 *
+	 * @type {string}
+     */
+	get testingAccountHolderCode() : string | null {
+		return this.data[9];
+	}
+
+	set testingAccountHolderCodeTestSetter(v : string | null) {
+        this.setterImpl(9, v, 'testingAccountHolderCode');
+	}
+
+	/**
+     *  Adyen sub-merchants account-holder payment account.
+	 *
+	 * @type {string}
+     */
+	get testingAccountHolderPaymentAccount() : string | null {
+		return this.data[10];
+	}
+
+	set testingAccountHolderPaymentAccountTestSetter(v : string | null) {
+        this.setterImpl(10, v, 'testingAccountHolderPaymentAccount');
+	}
+
+	/**
+     *  our Adyen Liable-Account's payment account.
+	 *
+	 * @type {string}
+     */
+	get testingLiablePaymentAccount() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[11];
+	}
+
+	set testingLiablePaymentAccountTestSetter(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(11, v, 'testingLiablePaymentAccount');
+	}
+
+	/**
+     *  Indicates whether there is an Action required regarding Onboarding or it is in Pending process
+	 *
+	 * @type {boolean}
+     */
+	get onboardingActionRequiredOrPending() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[12];
+	}
+
+	set onboardingActionRequiredOrPendingTestSetter(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(12, v, 'onboardingActionRequiredOrPending');
+	}
+
+	/**
+     *  AccountHolder-Payout-Schedule for this Adyen Account Holder
+	 *
+	 * @type {SchedulingApiAccountHolderPayoutSchedule}
+     */
+	get payoutSchedule() : NullableInDraftMode<SchedulingApiAccountHolderPayoutSchedule, ValidationMode> {
+		return this.data[13];
+	}
+
+	set payoutSchedule(v : NullableInDraftMode<SchedulingApiAccountHolderPayoutSchedule, ValidationMode>) {
+        this.setterImpl(13, v, 'payoutSchedule');
+	}
+
+	/**
+     *  The next PayoutDate for this Adyen-AccountHolder. If this date would be in the past, return start of current day. May be null when payout is disabled
+	 *
+	 * @type {DateTime}
+     */
+	get nextPayoutDate() : DateTime | null {
+		return this.data[14];
+	}
+
+	set nextPayoutDateTestSetter(v : DateTime | null) {
+        this.setterImpl(14, v, 'nextPayoutDate');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 15);
+
+			data[12] = false;
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '32';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '32', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiAdyenAccount<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+export enum SchedulingApiAccountHolderState {
+	NOT_INITIALIZED = 1,
+	INITIAL_ONBOARDING = 2,
+	INACTIVE = 3,
+	ACTIVE = 4,
+	SUSPENDED = 5,
+	CLOSED = 6,
+}
+export enum SchedulingApiAccountHolderPayoutState {
+	PAYOUT_ALLOWED = 1,
+	PAYOUT_DISABLED = 2,
+}
+export enum SchedulingApiAccountHolderProcessingState {
+	PROCESSING_ALLOWED = 1,
+	PROCESSING_DISABLED = 2,
+}
+export enum SchedulingApiAccountHolderPayoutSchedule {
+	WEEKLY = 1,
+	BIWEEKLY = 2,
+	MONTHLY = 3,
+}
+		 export class SchedulingApiReCaptchaWhiteListedHostNames<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'reCaptchaWhiteListedHostNames');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : Url {
+		return item;
+	}
+
+	protected containsPrimitives() : boolean {
+		return true;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiReCaptchaWhiteListedHostNames<ValidationMode> {
+		return new SchedulingApiReCaptchaWhiteListedHostNames<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '34';
+	}
+
+	override createNewItem() : Url {
+		const newItemRaw = null;
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('reCaptchaWhiteListedHostNames');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiReCaptchaWhiteListedHostNames<ValidationMode>, SchedulingApiReCaptchaWhiteListedHostNames<ValidationMode>> = new ApiAttributeInfo<SchedulingApiReCaptchaWhiteListedHostNames<ValidationMode>, SchedulingApiReCaptchaWhiteListedHostNames<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiReCaptchaWhiteListedHostNames<ValidationMode>,
+			name: 'reCaptchaWhiteListedHostNames',
+			id: 'RE_CAPTCHA_WHITE_LISTED_HOST_NAMES',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			show: function(this : SchedulingApiReCaptchaWhiteListedHostNames<ValidationMode>) {
+ 
+		
+				return true;
+			},
+			canEdit: function(this : SchedulingApiReCaptchaWhiteListedHostNames<ValidationMode>) {
+		if(!(( (this.api!.rightsService.canReadAndWriteBookingSystemSettings) )))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiReCaptchaWhiteListedHostNames<ValidationMode>) {
+						if(!(( (this.api!.rightsService.canReadAndWriteBookingSystemSettings) )))
+		{
+			return true;
+		}
+				return false;
+			},
+		});
+	attributeInfoReCaptchaWhiteListedHostName =  new ApiAttributeInfo<SchedulingApiReCaptchaWhiteListedHostNames<ValidationMode>, Url>({
+			apiObjWrapper: this as any as SchedulingApiReCaptchaWhiteListedHostNames<ValidationMode>,
+			name: 'reCaptchaWhiteListedHostName',
+			id: 'RE_CAPTCHA_WHITE_LISTED_HOST_NAME',
+			primitiveType: PApiPrimitiveTypes.Url,
+		});
+}
+
+				 export class SchedulingApiMailsSentToBookingPerson<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
+		super(api, removeDestroyedItems, 'mailsSentToBookingPerson');
+	}
+
+	override wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiMailSentToBookingPerson<ValidationMode> {
+		const newWrapper = new SchedulingApiMailSentToBookingPerson<ValidationMode>(this.api);
+		newWrapper._updateRawData(item, _generateMissingData);
+		return newWrapper;
+	}
+
+	protected containsPrimitives() : boolean {
+		return false;
+	}
+
+	protected containsIds() : boolean {
+		return false;
+	}
+
+	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiMailsSentToBookingPerson<ValidationMode> {
+		return new SchedulingApiMailsSentToBookingPerson<ValidationMode>(this.api, removeDestroyedItems);
+	}
+
+	protected get dni() : string {
+		return '35';
+	}
+
+	override createNewItem(id : Id | null = null) : SchedulingApiMailSentToBookingPerson<ValidationMode> {
+		const newItemRaw = Meta.createNewObject(false, !!id ? id.rawData : null);
+
+		const newItem = this.wrapItem(newItemRaw, true);
+		this.push(newItem);
+
+		if(this.api)
+			this.api.changed('mailsSentToBookingPerson');
+
+		return newItem;
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiMailsSentToBookingPerson<ValidationMode>, SchedulingApiMailsSentToBookingPerson<ValidationMode>> = new ApiAttributeInfo<SchedulingApiMailsSentToBookingPerson<ValidationMode>, SchedulingApiMailsSentToBookingPerson<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiMailsSentToBookingPerson<ValidationMode>,
+			name: 'mailsSentToBookingPerson',
+			id: 'MAILS_SENT_TO_BOOKING_PERSON',
+			primitiveType: PApiPrimitiveTypes.ApiList,
+			show: function(this : SchedulingApiMailsSentToBookingPerson<ValidationMode>) {
+ 
+		
+				return true;
+			},
+		});
+}
+
+				 
+export class SchedulingApiMailSentToBookingPersonBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiMailSentToBookingPerson as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiMailSentToBookingPerson<ValidationMode>, SchedulingApiMailSentToBookingPerson<ValidationMode>> = new ApiAttributeInfo<SchedulingApiMailSentToBookingPerson<ValidationMode>, SchedulingApiMailSentToBookingPerson<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiMailSentToBookingPerson<ValidationMode>,
+			name: 'mailSentToBookingPerson',
+			id: 'MAIL_SENT_TO_BOOKING_PERSON',
+		});
+	attributeInfoDateTime =  new ApiAttributeInfo<SchedulingApiMailSentToBookingPerson<ValidationMode>, DateTime>({
+			apiObjWrapper: this as any as SchedulingApiMailSentToBookingPerson<ValidationMode>,
+			name: 'dateTime',
+			id: 'MAIL_SENT_TO_BOOKING_PERSON_DATE_TIME',
+			primitiveType: PApiPrimitiveTypes.DateTime,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoEventType =  new ApiAttributeInfo<SchedulingApiMailSentToBookingPerson<ValidationMode>, SchedulingApiCustomBookableMailEventType>({
+			apiObjWrapper: this as any as SchedulingApiMailSentToBookingPerson<ValidationMode>,
+			name: 'eventType',
+			id: 'MAIL_SENT_TO_BOOKING_PERSON_EVENT_TYPE',
+			primitiveType: PApiPrimitiveTypes.Enum,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoRecipientEmail =  new ApiAttributeInfo<SchedulingApiMailSentToBookingPerson<ValidationMode>, Email>({
+			apiObjWrapper: this as any as SchedulingApiMailSentToBookingPerson<ValidationMode>,
+			name: 'recipientEmail',
+			id: 'MAIL_SENT_TO_BOOKING_PERSON_RECIPIENT_EMAIL',
+			primitiveType: PApiPrimitiveTypes.Email,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoSubject =  new ApiAttributeInfo<SchedulingApiMailSentToBookingPerson<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiMailSentToBookingPerson<ValidationMode>,
+			name: 'subject',
+			id: 'MAIL_SENT_TO_BOOKING_PERSON_SUBJECT',
+			primitiveType: PApiPrimitiveTypes.string,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoText =  new ApiAttributeInfo<SchedulingApiMailSentToBookingPerson<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiMailSentToBookingPerson<ValidationMode>,
+			name: 'text',
+			id: 'MAIL_SENT_TO_BOOKING_PERSON_TEXT',
+			primitiveType: PApiPrimitiveTypes.string,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoResendRequesterId =  new ApiAttributeInfo<SchedulingApiMailSentToBookingPerson<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiMailSentToBookingPerson<ValidationMode>,
+			name: 'resendRequesterId',
+			id: 'MAIL_SENT_TO_BOOKING_PERSON_RESEND_REQUESTER_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoResend =  new ApiAttributeInfo<SchedulingApiMailSentToBookingPerson<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiMailSentToBookingPerson<ValidationMode>,
+			name: 'resend',
+			id: 'MAIL_SENT_TO_BOOKING_PERSON_RESEND',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: function(this : SchedulingApiMailSentToBookingPerson<ValidationMode>) {
+		if(!((this.api!.currentlyDetailedLoaded!.attributeInfoThis.canEdit) && (!(this.api!.currentlyDetailedLoaded as SchedulingApiBooking | SchedulingApiVoucher).isAnonymized)))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiMailSentToBookingPerson<ValidationMode>) {
+				 
+		
+				return false;
+			},
+		});
+
+	/**
+     *  When was this mail sent?
+	 *
+	 * @type {DateTime}
+     */
+	get dateTime() : NullableInDraftMode<DateTime, ValidationMode> {
+		return this.data[1];
+	}
+
+	set dateTimeTestSetter(v : NullableInDraftMode<DateTime, ValidationMode>) {
+        this.setterImpl(1, v, 'dateTime');
+	}
+
+	/**
+     *  The event which triggered this mail.
+	 *
+	 * @type {SchedulingApiCustomBookableMailEventType}
+     */
+	get eventType() : NullableInDraftMode<SchedulingApiCustomBookableMailEventType, ValidationMode> {
+		return this.data[2];
+	}
+
+	set eventTypeTestSetter(v : NullableInDraftMode<SchedulingApiCustomBookableMailEventType, ValidationMode>) {
+        this.setterImpl(2, v, 'eventType');
+	}
+
+	/**
+     *  The recipient mail address.
+	 *
+	 * @type {Email}
+     */
+	get recipientEmail() : NullableInDraftMode<Email, ValidationMode> {
+		return this.data[3];
+	}
+
+	set recipientEmailTestSetter(v : NullableInDraftMode<Email, ValidationMode>) {
+        this.setterImpl(3, v, 'recipientEmail');
+	}
+
+	/**
+     *  Subject of the mail.
+	 *
+	 * @type {string}
+     */
+	get subject() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[4];
+	}
+
+	set subjectTestSetter(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(4, v, 'subject');
+	}
+
+	/**
+     *  Text of the mail. Note that this will contain html code as we send html mails.
+	 *
+	 * @type {string}
+     */
+	get text() : NullableInDraftMode<string, ValidationMode> {
+		return this.data[5];
+	}
+
+	set textTestSetter(v : NullableInDraftMode<string, ValidationMode>) {
+        this.setterImpl(5, v, 'text');
+	}
+
+	private resendRequesterIdWrapper : Id | null = null!;
+
+	/**
+     *  If this mail is a manually triggered resend, then this returns the member-id who requester the resend.
+	 *
+	 * @type {Id}
+     */
+	get resendRequesterId() : Id | null {
+		return this.resendRequesterIdWrapper;
+	}
+
+	set resendRequesterIdTestSetter(v : Id | null) {
+        this.setterImpl(6, v, 'resendRequesterId', () => {this.resendRequesterIdWrapper = v;});
+	}
+
+	/**
+     *  Set this to "true" to trigger a resend of the mail. Note that the mail will be send to booking-persons current mail address.
+	 *
+	 * @type {boolean}
+     */
+	get resend() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[7];
+	}
+
+	set resend(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(7, v, 'resend');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.data[6] = Meta.getReplacedId(this.data[6], _idReplacements);
+		this.resendRequesterIdWrapper = Id.create(this.data[6]);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 8);
+
+			data[7] = false;
+		}
+
+		// propagate new raw data to children
+		if(!Meta.isSameId(data ? data[6] : null, this.resendRequesterIdWrapper))
+			this.resendRequesterIdWrapper = data && data[6] ? Id.create(data[6]) : null!;
+	}
+
+	protected get dni() : string {
+		return '567';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '567', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiMailSentToBookingPerson<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 
+export class SchedulingApiMessages<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiMessages as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+		this.customBookableMailsInfoWrapper.parent = this as any as SchedulingApiMessages<ValidationMode>;
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiMessages<ValidationMode>, SchedulingApiMessages<ValidationMode>> = new ApiAttributeInfo<SchedulingApiMessages<ValidationMode>, SchedulingApiMessages<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiMessages<ValidationMode>,
+			name: 'messages',
+			id: 'MESSAGES',
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoRemovedDuplicateReCaptchaWhiteListedHostName =  new ApiAttributeInfo<SchedulingApiMessages<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiMessages<ValidationMode>,
+			name: 'removedDuplicateReCaptchaWhiteListedHostName',
+			id: 'MESSAGES_REMOVED_DUPLICATE_RE_CAPTCHA_WHITE_LISTED_HOST_NAME',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoOnlineRefundInfo =  new ApiAttributeInfo<SchedulingApiMessages<ValidationMode>, SchedulingApiOnlineRefundInfo>({
+			apiObjWrapper: this as any as SchedulingApiMessages<ValidationMode>,
+			name: 'onlineRefundInfo',
+			id: 'MESSAGES_ONLINE_REFUND_INFO',
+			primitiveType: PApiPrimitiveTypes.Enum,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+
+	/**
+     *  When adding a white-listed host-name, has backend automatically removed it again because it was a duplicate value?
+	 *
+	 * @type {boolean}
+     */
+	get removedDuplicateReCaptchaWhiteListedHostName() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[1];
+	}
+
+	set removedDuplicateReCaptchaWhiteListedHostNameTestSetter(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(1, v, 'removedDuplicateReCaptchaWhiteListedHostName');
+	}
+
+	/**
+     *  Tells if an online refund could be executed or not.
+	 *
+	 * @type {SchedulingApiOnlineRefundInfo}
+     */
+	get onlineRefundInfo() : SchedulingApiOnlineRefundInfo | null {
+		return this.data[2];
+	}
+
+	set onlineRefundInfoTestSetter(v : SchedulingApiOnlineRefundInfo | null) {
+        this.setterImpl(2, v, 'onlineRefundInfo');
+	}
+
+	private customBookableMailsInfoWrapper : SchedulingApiMessagesCustomBookableMailsInfo<ValidationMode> = new SchedulingApiMessagesCustomBookableMailsInfo<ValidationMode>(this.api);
+
+	/**
+     *  This object contains information about send custom-bookable-mails.
+     */
+	get customBookableMailsInfo() : SchedulingApiMessagesCustomBookableMailsInfo<ValidationMode> {
+		return this.customBookableMailsInfoWrapper;
+	}
+
+	set customBookableMailsInfoTestSetter(v : SchedulingApiMessagesCustomBookableMailsInfo<ValidationMode>) {
+        this.setterImpl(3, v.rawData, 'customBookableMailsInfo', () => {this.customBookableMailsInfoWrapper = v;});
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.customBookableMailsInfoWrapper._fixIds(_idReplacements);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 4);
+
+			data[1] = false;
+			if(data[3] === null)
+				data[3] = Meta.createNewObject(false);
+		}
+
+		// propagate new raw data to children
+		this.customBookableMailsInfoWrapper._updateRawData(data ? data[3] : null, generateMissingData);
+	}
+
+	protected get dni() : string {
+		return '36';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '36', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiMessages<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+export enum SchedulingApiOnlineRefundInfo {
+	ONLINE_REFUND_FAILED = 1,
+	ONLINE_REFUND_PARTIALLY = 2,
+	ONLINE_REFUND_SUCCESSFUL = 3,
+}
+		 
+export class SchedulingApiMessagesCustomBookableMailsInfo<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiMessagesCustomBookableMailsInfo as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiMessagesCustomBookableMailsInfo<ValidationMode>, SchedulingApiMessagesCustomBookableMailsInfo<ValidationMode>> = new ApiAttributeInfo<SchedulingApiMessagesCustomBookableMailsInfo<ValidationMode>, SchedulingApiMessagesCustomBookableMailsInfo<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiMessagesCustomBookableMailsInfo<ValidationMode>,
+			name: 'customBookableMailsInfo',
+			id: 'MESSAGES_CUSTOM_BOOKABLE_MAILS_INFO',
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoAffectedShiftModelId =  new ApiAttributeInfo<SchedulingApiMessagesCustomBookableMailsInfo<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiMessagesCustomBookableMailsInfo<ValidationMode>,
+			name: 'affectedShiftModelId',
+			id: 'MESSAGES_CUSTOM_BOOKABLE_MAILS_INFO_AFFECTED_SHIFT_MODEL_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoEventTriggered =  new ApiAttributeInfo<SchedulingApiMessagesCustomBookableMailsInfo<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiMessagesCustomBookableMailsInfo<ValidationMode>,
+			name: 'eventTriggered',
+			id: 'MESSAGES_CUSTOM_BOOKABLE_MAILS_INFO_EVENT_TRIGGERED',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoEmailSendToBookingPerson =  new ApiAttributeInfo<SchedulingApiMessagesCustomBookableMailsInfo<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiMessagesCustomBookableMailsInfo<ValidationMode>,
+			name: 'emailSendToBookingPerson',
+			id: 'MESSAGES_CUSTOM_BOOKABLE_MAILS_INFO_EMAIL_SEND_TO_BOOKING_PERSON',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+	attributeInfoEmailSendToParticipants =  new ApiAttributeInfo<SchedulingApiMessagesCustomBookableMailsInfo<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiMessagesCustomBookableMailsInfo<ValidationMode>,
+			name: 'emailSendToParticipants',
+			id: 'MESSAGES_CUSTOM_BOOKABLE_MAILS_INFO_EMAIL_SEND_TO_PARTICIPANTS',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			canEdit: () => false,
+			readMode: () => true,
+		});
+
+	private affectedShiftModelIdWrapper : Id | null = null!;
+
+	/**
+     *  The shift-model for which custom-bookable-mail events were triggered. If events for multiple shift-models have been triggered this returns the last shift-model.
+	 *
+	 * @type {Id}
+     */
+	get affectedShiftModelId() : Id | null {
+		return this.affectedShiftModelIdWrapper;
+	}
+
+	set affectedShiftModelIdTestSetter(v : Id | null) {
+        this.setterImpl(1, v, 'affectedShiftModelId', () => {this.affectedShiftModelIdWrapper = v;});
+	}
+
+	/**
+     *  Was a custom-bookable-mail event triggered?
+	 *
+	 * @type {boolean}
+     */
+	get eventTriggered() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[2];
+	}
+
+	set eventTriggeredTestSetter(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(2, v, 'eventTriggered');
+	}
+
+	/**
+     *  Was an email send to booking person?
+	 *
+	 * @type {boolean}
+     */
+	get emailSendToBookingPerson() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[3];
+	}
+
+	set emailSendToBookingPersonTestSetter(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(3, v, 'emailSendToBookingPerson');
+	}
+
+	/**
+     *  Was an email send to participants?
+	 *
+	 * @type {boolean}
+     */
+	get emailSendToParticipants() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[4];
+	}
+
+	set emailSendToParticipantsTestSetter(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(4, v, 'emailSendToParticipants');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.data[1] = Meta.getReplacedId(this.data[1], _idReplacements);
+		this.affectedShiftModelIdWrapper = Id.create(this.data[1]);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 5);
+
+			data[2] = false;
+			data[3] = false;
+			data[4] = false;
+		}
+
+		// propagate new raw data to children
+		if(!Meta.isSameId(data ? data[1] : null, this.affectedShiftModelIdWrapper))
+			this.affectedShiftModelIdWrapper = data && data[1] ? Id.create(data[1]) : null!;
+	}
+
+	protected get dni() : string {
+		return '561';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '561', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiMessagesCustomBookableMailsInfo<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 
+export class SchedulingApiShiftChangeSelectorBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiShiftChangeSelector as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiShiftChangeSelector<ValidationMode>, SchedulingApiShiftChangeSelector<ValidationMode>> = new ApiAttributeInfo<SchedulingApiShiftChangeSelector<ValidationMode>, SchedulingApiShiftChangeSelector<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiShiftChangeSelector<ValidationMode>,
+			name: 'shiftChangeSelector',
+			id: 'SHIFT_CHANGE_SELECTOR',
+		});
+	attributeInfoShiftModelId =  new ApiAttributeInfo<SchedulingApiShiftChangeSelector<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiShiftChangeSelector<ValidationMode>,
+			name: 'shiftModelId',
+			id: 'SHIFT_CHANGE_SELECTOR_SHIFT_MODEL_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+	attributeInfoShiftsOfShiftModelId =  new ApiAttributeInfo<SchedulingApiShiftChangeSelector<ValidationMode>, Id>({
+			apiObjWrapper: this as any as SchedulingApiShiftChangeSelector<ValidationMode>,
+			name: 'shiftsOfShiftModelId',
+			id: 'SHIFT_CHANGE_SELECTOR_SHIFTS_OF_SHIFT_MODEL_ID',
+			primitiveType: PApiPrimitiveTypes.Id,
+		});
+	attributeInfoShiftsOfShiftModelVersion =  new ApiAttributeInfo<SchedulingApiShiftChangeSelector<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiShiftChangeSelector<ValidationMode>,
+			name: 'shiftsOfShiftModelVersion',
+			id: 'SHIFT_CHANGE_SELECTOR_SHIFTS_OF_SHIFT_MODEL_VERSION',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+	attributeInfoShiftsOfSeriesId =  new ApiAttributeInfo<SchedulingApiShiftChangeSelector<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiShiftChangeSelector<ValidationMode>,
+			name: 'shiftsOfSeriesId',
+			id: 'SHIFT_CHANGE_SELECTOR_SHIFTS_OF_SERIES_ID',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+	attributeInfoShiftsOfPacketIndex =  new ApiAttributeInfo<SchedulingApiShiftChangeSelector<ValidationMode>, Integer>({
+			apiObjWrapper: this as any as SchedulingApiShiftChangeSelector<ValidationMode>,
+			name: 'shiftsOfPacketIndex',
+			id: 'SHIFT_CHANGE_SELECTOR_SHIFTS_OF_PACKET_INDEX',
+			primitiveType: PApiPrimitiveTypes.Integer,
+		});
+	attributeInfoStart =  new ApiAttributeInfo<SchedulingApiShiftChangeSelector<ValidationMode>, Date>({
+			apiObjWrapper: this as any as SchedulingApiShiftChangeSelector<ValidationMode>,
+			name: 'start',
+			id: 'SHIFT_CHANGE_SELECTOR_START',
+			primitiveType: PApiPrimitiveTypes.Date,
+			validations: function(this : SchedulingApiShiftChangeSelector<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.min((this.api!.currentlyDetailedLoaded instanceof SchedulingApiShift) ? +this.api!.pMoment.m(this.api!.currentlyDetailedLoaded.id.start).add(-5, 'months') :
+																							+this.api!.pMoment.monthsFromNow(-5), true, PApiPrimitiveTypes.Date, undefined, undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.max(() => this.end, false, PApiPrimitiveTypes.Date, 'SHIFT_CHANGE_SELECTOR_END', undefined);
+							return null;
+					},
+					() => {
+						return this.api!.validators.notUndefined(PApiPrimitiveTypes.Date, undefined);
+					},
+				];
+			},
+		});
+	attributeInfoEnd =  new ApiAttributeInfo<SchedulingApiShiftChangeSelector<ValidationMode>, DateExclusiveEnd>({
+			apiObjWrapper: this as any as SchedulingApiShiftChangeSelector<ValidationMode>,
+			name: 'end',
+			id: 'SHIFT_CHANGE_SELECTOR_END',
+			primitiveType: PApiPrimitiveTypes.DateExclusiveEnd,
+			validations: function(this : SchedulingApiShiftChangeSelector<ValidationMode>) {
+				return [
+					() => {
+		return this.api!.validators.min(() => this.start, false, PApiPrimitiveTypes.DateExclusiveEnd, 'SHIFT_CHANGE_SELECTOR_START', undefined);
+							return null;
+					},
+					() => {
+		return this.api!.validators.max((this.api!.currentlyDetailedLoaded instanceof SchedulingApiShift) ? +this.api!.pMoment.m(this.api!.currentlyDetailedLoaded.id.start).add(12, 'months') :
+																							+this.api!.pMoment.monthsFromNow(12), true, PApiPrimitiveTypes.DateExclusiveEnd, undefined, undefined);
+							return null;
+					},
+					() => {
+						return this.api!.validators.notUndefined(PApiPrimitiveTypes.DateExclusiveEnd, undefined);
+					},
+				];
+			},
+		});
+
+	private shiftModelIdWrapper : Id | null = null!;
+
+	/**
+     *  The model id to which the changes should be applied.
+	 *
+	 * @type {Id}
+     */
+	get shiftModelId() : Id | null {
+		return this.shiftModelIdWrapper;
+	}
+
+	set shiftModelId(v : Id | null) {
+        this.setterImpl(1, v, 'shiftModelId', () => {this.shiftModelIdWrapper = v;});
+	}
+
+	private shiftsOfShiftModelIdWrapper : Id | null = null!;
+
+	/**
+     *  The model id whose shifts the changes should be applied to.
+	 *
+	 * @type {Id}
+     */
+	get shiftsOfShiftModelId() : Id | null {
+		return this.shiftsOfShiftModelIdWrapper;
+	}
+
+	set shiftsOfShiftModelId(v : Id | null) {
+        this.setterImpl(2, v, 'shiftsOfShiftModelId', () => {this.shiftsOfShiftModelIdWrapper = v;});
+	}
+
+	/**
+     *  The model version whose shifts the changes should be applied to.
+	 *
+	 * @type {Integer}
+     */
+	get shiftsOfShiftModelVersion() : Integer | null {
+		return this.data[3];
+	}
+
+	set shiftsOfShiftModelVersion(v : Integer | null) {
+        this.setterImpl(3, v, 'shiftsOfShiftModelVersion');
+	}
+
+	/**
+     *  The series id whose shifts the changes should be applied to.
+	 *
+	 * @type {Integer}
+     */
+	get shiftsOfSeriesId() : Integer | null {
+		return this.data[4];
+	}
+
+	set shiftsOfSeriesId(v : Integer | null) {
+        this.setterImpl(4, v, 'shiftsOfSeriesId');
+	}
+
+	/**
+     *  The packet index whose shifts the changes should be applied to.
+	 *
+	 * @type {Integer}
+     */
+	get shiftsOfPacketIndex() : Integer | null {
+		return this.data[5];
+	}
+
+	set shiftsOfPacketIndex(v : Integer | null) {
+        this.setterImpl(5, v, 'shiftsOfPacketIndex');
+	}
+
+	/**
+     *  The start of the time interval from where the shifts should be modified. When "null" all shifts into the past will be modified.
+	 *
+	 * @type {Date}
+     */
+	get start() : Date | null {
+		return this.data[6];
+	}
+
+	set start(v : Date | null) {
+        this.setterImpl(6, v, 'start');
+	}
+
+	/**
+     *  The end of the time interval from where the shifts should be modified. When "null" all shifts in the future will be modified.
+	 *
+	 * @type {DateExclusiveEnd}
+     */
+	get end() : DateExclusiveEnd | null {
+		return this.data[7];
+	}
+
+	set end(v : DateExclusiveEnd | null) {
+        this.setterImpl(7, v, 'end');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+		this.data[1] = Meta.getReplacedId(this.data[1], _idReplacements);
+		this.shiftModelIdWrapper = Id.create(this.data[1]);
+		this.data[2] = Meta.getReplacedId(this.data[2], _idReplacements);
+		this.shiftsOfShiftModelIdWrapper = Id.create(this.data[2]);
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 8);
+
+		}
+
+		// propagate new raw data to children
+		if(!Meta.isSameId(data ? data[1] : null, this.shiftModelIdWrapper))
+			this.shiftModelIdWrapper = data && data[1] ? Id.create(data[1]) : null!;
+		if(!Meta.isSameId(data ? data[2] : null, this.shiftsOfShiftModelIdWrapper))
+			this.shiftsOfShiftModelIdWrapper = data && data[2] ? Id.create(data[2]) : null!;
+	}
+
+	protected get dni() : string {
+		return '37';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '37', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiShiftChangeSelector<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+		 
+export class SchedulingApiAutomaticBookingCancellationSettings<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+{
+	override parent : any = null;
+
+	constructor(override readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
+		super(api, SchedulingApiAutomaticBookingCancellationSettings as any);
+
+		this._updateRawData(Meta.createNewObject(false, idRaw), true);
+
+		// set parent attribute
+	}
+
+
+	private _id : Id | null = null;
+	get id() : Id {
+		return this._id !== null ? this._id : Id.create(Meta.getNewItemId(this.rawData) as any);
+	}
+
+	override attributeInfoThis : ApiAttributeInfo<SchedulingApiAutomaticBookingCancellationSettings<ValidationMode>, SchedulingApiAutomaticBookingCancellationSettings<ValidationMode>> = new ApiAttributeInfo<SchedulingApiAutomaticBookingCancellationSettings<ValidationMode>, SchedulingApiAutomaticBookingCancellationSettings<ValidationMode>>({
+			apiObjWrapper: this as any as SchedulingApiAutomaticBookingCancellationSettings<ValidationMode>,
+			name: 'automaticBookingCancellationSettings',
+			id: 'AUTOMATIC_BOOKING_CANCELLATION_SETTINGS',
+			show: function(this : SchedulingApiAutomaticBookingCancellationSettings<ValidationMode>) {
+		if(!((this.api!.currentlyDetailedLoaded instanceof SchedulingApiShift && this.api!.currentlyDetailedLoaded.model.isCourse)))
+		{
+			return false;
+		}
+				return true;
+			},
+		});
+	attributeInfoNoCancellationFees =  new ApiAttributeInfo<SchedulingApiAutomaticBookingCancellationSettings<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiAutomaticBookingCancellationSettings<ValidationMode>,
+			name: 'noCancellationFees',
+			id: 'AUTOMATIC_BOOKING_CANCELLATION_SETTINGS_NO_CANCELLATION_FEES',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			show: function(this : SchedulingApiAutomaticBookingCancellationSettings<ValidationMode>) {
+		if(!((this.api!.affectedShiftsApi.data.bookingsCanceledCount > 0)))
+		{
+			return false;
+		}
+				return true;
+			},
+		});
+	attributeInfoAutomaticOnlineRefund =  new ApiAttributeInfo<SchedulingApiAutomaticBookingCancellationSettings<ValidationMode>, boolean>({
+			apiObjWrapper: this as any as SchedulingApiAutomaticBookingCancellationSettings<ValidationMode>,
+			name: 'automaticOnlineRefund',
+			id: 'AUTOMATIC_BOOKING_CANCELLATION_SETTINGS_AUTOMATIC_ONLINE_REFUND',
+			primitiveType: PApiPrimitiveTypes.boolean,
+			show: function(this : SchedulingApiAutomaticBookingCancellationSettings<ValidationMode>) {
+		if(!((this.parent!.isOnlinePaymentAvailable) && (this.api!.affectedShiftsApi.data.bookingsCanceledCount + this.api!.affectedShiftsApi.data.bookingsDeclinedCount > 0)))
+		{
+			return false;
+		}
+				return true;
+			},
+			canEdit: function(this : SchedulingApiAutomaticBookingCancellationSettings<ValidationMode>) {
+		if(!((this.api!.rightsService.userCanOnlineRefund((this.api!.currentlyDetailedLoaded as SchedulingApiShift).model))))
+		{
+			return false;
+		}
+				return true;
+			},
+			readMode: function(this : SchedulingApiAutomaticBookingCancellationSettings<ValidationMode>) {
+				 
+		
+				return false;
+			},
+			vars: {
+				cannotEditHint: 'Du hast keine Berechtigung, Online-Rückerstattungen an Kunden zu veranlassen. Wende dich bitte an deine Personalleitung, falls das geändert werden soll.',
+			}
+		});
+	attributeInfoTransactionInternalComment =  new ApiAttributeInfo<SchedulingApiAutomaticBookingCancellationSettings<ValidationMode>, string>({
+			apiObjWrapper: this as any as SchedulingApiAutomaticBookingCancellationSettings<ValidationMode>,
+			name: 'transactionInternalComment',
+			id: 'AUTOMATIC_BOOKING_CANCELLATION_SETTINGS_TRANSACTION_INTERNAL_COMMENT',
+			primitiveType: PApiPrimitiveTypes.string,
+			show: function(this : SchedulingApiAutomaticBookingCancellationSettings<ValidationMode>) {
+		if(!((this.automaticOnlineRefund)))
+		{
+			return false;
+		}
+				return true;
+			},
+		});
+
+	/**
+     *  If "true" no cancellation-fees will be set for the automatically cancelled bookings. If "false" then cancellation-fees defined by the bookings cancellation-policy will be added to the booking.
+	 *
+	 * @type {boolean}
+     */
+	get noCancellationFees() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[1];
+	}
+
+	set noCancellationFees(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(1, v, 'noCancellationFees');
+	}
+
+	/**
+     *  Should automatically any online open-amount for the booking be refunded?
+	 *
+	 * @type {boolean}
+     */
+	get automaticOnlineRefund() : NullableInDraftMode<boolean, ValidationMode> {
+		return this.data[2];
+	}
+
+	set automaticOnlineRefund(v : NullableInDraftMode<boolean, ValidationMode>) {
+        this.setterImpl(2, v, 'automaticOnlineRefund');
+	}
+
+	/**
+     *  If automatic online refund should be done then this defines the internal comment to be set for the created transactions.
+	 *
+	 * @type {string}
+     */
+	get transactionInternalComment() : string | null {
+		return this.data[3];
+	}
+
+	set transactionInternalComment(v : string | null) {
+        this.setterImpl(3, v, 'transactionInternalComment');
+	}
+
+
+	_fixIds(_idReplacements : Map<any, number>) : void {
+	}
+
+	override _updateRawData(data : any[] | null, generateMissingData : boolean) : void {
+		super._updateRawData(data, generateMissingData);
+
+		this.data = data;
+
+		// update id wrapper
+		const idRawData = Meta.getId(data);
+		this._id = idRawData === null ? null : Id.create(idRawData as any);
+
+		// create missing/default data
+		if(generateMissingData && data) {
+			this.fillWithDefaultValues(data, 4);
+
+			data[1] = false;
+			data[2] = false;
+		}
+
+		// propagate new raw data to children
+	}
+
+	protected get dni() : string {
+		return '38';
+	}
+
+	static loadDetailed(	api : SchedulingApiServiceBase<any>
+						,	id : Id
+						,	{success = null, error = null, searchParams = null} : ApiLoadArgs = {}) : Promise<HttpResponse<unknown>> {
+		return ApiObjectWrapper.loadDetailedImpl(api, id, '38', { success: success, error: error, searchParams: searchParams});
+	}
+
+	protected assumeValidated() : asserts this is SchedulingApiAutomaticBookingCancellationSettings<'validated'> {
+		// TODO: PLANO-151346
+	}
+}
+
+
+

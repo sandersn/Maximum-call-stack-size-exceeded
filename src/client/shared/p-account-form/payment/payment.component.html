@@ -1,0 +1,89 @@
+<p-section id="scroll-target-id-bank-account" label="Zahlungsinformationen" i18n-label>
+	<p-grid>
+		<div class="col">
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+				[api]="api"
+
+				label="Kontoinhabende Person" i18n-label
+				[attributeInfo]="api.data.billing.attributeInfoBankAccountOwner"
+				[group]="formGroup"
+			></p-form-control-switch>
+		</div>
+	</p-grid>
+	<p-grid>
+		<div class="col">
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+				[api]="api"
+
+				label="IBAN" i18n-label
+				[attributeInfo]="api.data.billing.attributeInfoBankAccountIban"
+				[group]="formGroup"
+			></p-form-control-switch>
+		</div>
+		<div class="col">
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+				[api]="api"
+
+				label="BIC" i18n-label
+				[attributeInfo]="api.data.billing.attributeInfoBankAccountBic"
+				[group]="formGroup"
+			></p-form-control-switch>
+		</div>
+	</p-grid>
+	<p-grid *ngIf="schedulingAPI.isLoaded() && schedulingAPI.data.adyenAccount.accountHolderState===SchedulingApiAccountHolderState.ACTIVE && adyenRelevantDataHasChanged">
+		<div class="col">
+			<p-alert [theme]="PThemeEnum.INFO" i18n>Bitte <a [routerLink]="['/client/plugin','payments']" fragment="activation">aktualisiere deine Daten</a> auch bei unserem Online-Zahlungspartner Adyen.</p-alert>
+		</div>
+	</p-grid>
+
+	<ng-template [ngIf]="api.data.type === AccountApiType.PAID">
+		<ng-container *ngTemplateOutlet="sepaAgreementTemplate; context: {disabled: true}"></ng-container>
+	</ng-template>
+</p-section>
+<p-section id="scroll-target-id-fees-payment" label="Kosten & Bezahlung" i18n-label>
+	<p i18n>Unsere aktuellen Staffelpreise für die Personalplanung & die Gebühren für das Buchungssystem samt Online-Zahlung findest du <a href="#pricing" rel="noopener" target="_blank">hier</a>.</p>
+
+	<h5 id="scroll-target-id-scheduling-fees" class="mt-5" i18n>Personalplanung</h5>
+	<p i18n>Dein persönlicher Staffelpreis wird jeden Monat neu ermittelt. Maßgeblich dafür ist die höchste Anzahl deiner User im abzurechnenden Monat.</p>
+
+	<h5 class="mt-5" i18n>Buchungssystem</h5>
+	<p i18n>Pro Buchung (Gutscheine, Kurse, Events usw.) berechnen wir dir einen variablen Preis (zzgl. MwSt.). So weit die Buchung teilnehmende enthält, fällt des Weiteren ein Festpreis an. Der Festpreis ist pro teilnehmende Person zu zahlen. Der variable Preis ist ein Prozentsatz von dem in einer Buchung angegebenen Bruttobetrag, den dein Endkunde zu zahlen hat. Dabei sind die festen sowie variablen Preise gestaffelt und variieren je nach Gesamtteilnehmerzahl und dem Gesamtbruttovolumen deines Betriebs pro Monat. Die für dich geltenden Preisstaffeln ermitteln wir jeden Monat neu. Falls dein Unternehmen mehrere Standorte hat, werden die Gesamtteilnehmerzahl und das Gesamtbruttovolumen jeweils pro Standort betrachtet und nicht über alle Standorte hinweg summiert. Dementsprechend erfolgt die Ermittlung der jeweils geltenden Preisstaffeln pro Standort, wodurch es also zu unterschiedlichen Preisstaffeln für die unterschiedlichen Standorte kommen kann. Anhand der ermittelten Preisstaffeln berechnen wir deine angefallenen Gebühren. Bei Angeboten wie Kursen geschieht dies immer nach Abschluss eines Kurses (bzw. des ersten Termins) – und zwar auch für stornierte Buchungen.</p>
+	<h5 class="mt-5" i18n>Online-Zahlung</h5>
+	<p i18n>Dr.&nbsp;Plano berechnet dir für jede Online-Zahlung eine Gebühr von <mark class="nowarp">2,39 % + 0,35 €</mark>&nbsp;(zzgl. MwSt.). Die prozentuale Gebühr bezieht sich auf den Bruttozahlungsbetrag. Unter einer »Zahlung« sind sowohl Online-Einzahlungen durch Kunden als auch Online-Rückzahlungen an deine Kunden zu verstehen. Weitere Gebühren können anfallen für beispielsweise Auszahlungen und Aufladungen deines Online-Guthabens, Zahlungsreklamationen (Chargebacks) etc. <a routerLink="/online-payment-pricing" target="_blank" rel="noopener" class="nowrap">Alle Gebühren anzeigen<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.NAV_FORWARD" class="ml-1 small"></fa-icon></a></p><p i18n>Dr.&nbsp;Plano zieht falls möglich die angefallene Gebühr direkt von deinem Online-Guthaben ab, sodass du in der Regel keine monatliche Rechnungsbegleichung vornehmen musst. Das spart Zeit und sorgt für Zahlungssicherheit. Natürlich erhältst du monatlich eine Abrechnung mit der Übersicht, wie viel Gebühr insgesamt im Abrechnungszeitraum angefallenen ist.</p>
+	<p i18n>Mehr zu den Gebühren und der Abrechnung findest du in unserer <a routerLink="/client/plugin/faq-online-payment" fragment="pricing" rel="noopener" target="_blank"><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.AREA_FAQ" class="mr-1"></fa-icon>FAQ zur Online-Zahlung</a></p>
+	<p-alert [theme]="PThemeEnum.LIGHT" class="d-block" i18n>Aktionsrabatte oder dauerhafte Rabatte, die allgemein auf den Rechnungsbetrag von Dr.&nbsp;Plano Anwendung finden, <strong>gelten nicht</strong> für die Gebühren der Online-Zahlung – es sei denn, sie werden explizit auf die Online-Zahlungsgebühren gewährt.</p-alert>
+	<p *ngIf="api.data.paypalAccountEmail">
+		<strong class="nowrap mr-2"><span style="color: #27346a;">Pay</span><span style="color: #2790c3;">Pal</span></strong> Bei Online-Zahlungen über PayPal fallen Gebühren an, die direkt an den Zahlungsanbieter zu entrichten sind. <fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.WARNING" class="ml-1 "></fa-icon> Die Unterstützung von PayPal läuft in Kürze aus. <span class="nowarp"><a routerLink="/client/plugin/paypal" rel="noopener" target="_blank">Mehr Infos zu PayPal<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.NAV_FORWARD" class="ml-1"></fa-icon></a></span>
+	</p>
+	<h5 class="mt-5" i18n>Rechnungsstellung & Bezahlung</h5>
+	<p i18n>Die Rechnungen für einen Monat schicken wir spätestens am 15. des Folgemonats an deine hinterlegte Email-Adresse. Anschließend wird ein offener Rechnungsbetrag per SEPA-Lastschriftverfahren eingezogen.</p>
+</p-section>
+
+<ng-template #sepaAgreementTemplate let-disabled="disabled">
+	<p-form-group
+		[control]="formGroup.controls['sepaAgreement']!"
+	>
+		<div class="card card-body"
+			[class.border-success]="formGroup.controls['sepaAgreement']!.value"
+			[class.border-danger]="!formGroup.controls['sepaAgreement']!.value"
+		>
+			<p-checkbox
+				class="mb-3"
+				[disabled]="disabled"
+				[formControl]="formGroup.controls['sepaAgreement']!"
+				valueText="Ich stimme dem folgenden SEPA-Basislastschrift-Mandat zu" i18n-valueText
+			></p-checkbox>
+			<div>
+				<p i18n>Ich ermächtige die <strong>emscon GmbH, Hilpertstraße 31, 64295 Darmstadt, Deutschland</strong>, Zahlungen von meinem Konto mittels Lastschrift einzuziehen. Zugleich weise ich mein Kreditinstitut an, die von der <strong>emscon GmbH</strong> auf mein Konto gezogenen Lastschriften einzulösen.</p>
+				<label i18n>Gläubiger-Identifikationsnummer</label>
+				<p><code>DE94ZZZ00002420464</code></p>
+				<label i18n>Mandatsreferenz</label>
+				<p i18n>{{ api.data.customerId }}</p>
+				<p class="m-0" i18n>Hinweis: Ich kann innerhalb von 8 Wochen, beginnend mit dem Belastungsdatum, die Erstattung des belasteten Betrages verlangen. Es gelten dabei die mit meinem Kreditinstitut vereinbarten Bedingungen.</p>
+			</div>
+		</div>
+	</p-form-group>
+</ng-template>

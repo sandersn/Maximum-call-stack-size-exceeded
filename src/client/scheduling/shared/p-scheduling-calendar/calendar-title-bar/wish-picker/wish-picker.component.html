@@ -1,0 +1,66 @@
+<div
+	*ngIf="api.isLoaded() && (!!shift || !!shifts)"
+
+	class="d-flex align-items-stretch wish-picker-wrap justify-content-end btn-group p-1"
+	[class.expanded]="!collapsed"
+>
+	<button
+		class="btn btn-outline-secondary btn-sm ml-2 nowrap" type="button"
+		[class.btn-frameless]="CONFIG.IS_MOBILE"
+		[class.border-left]="CONFIG.IS_MOBILE"
+		[disabled]="!api.isLoaded()"
+		(click)="stopMode()"
+		title="Modus beenden" i18n-title
+	><fa-icon [fixedWidth]="true" icon="times"></fa-icon>&nbsp;<ng-container i18n>Beenden</ng-container></button>
+
+	<button type="button" class="wishes clickable btn justify-content-center btn-dark text-white"
+		[class.btn-frameless]="CONFIG.IS_MOBILE"
+		(click)="pop.hide();handleOnPick($event)"
+		style="border-top:none;border-bottom:none;border-right:none;"
+		[class.disabled]="pickerButtonsDisabled"
+
+		[popover]="popoverForREMOVE"
+		placement="bottom"
+		#pop="bs-popover"
+	><fa-icon icon="heart"></fa-icon></button>
+	<button type="button" class="wishes clickable btn justify-content-center btn-success text-white border-0"
+		[class.btn-frameless]="CONFIG.IS_MOBILE"
+		(click)="pop.hide();handleOnPick($event, memberPrefValues.WANT)"
+		style="border-top:none;border-bottom:none;"
+		[class.disabled]="pickerButtonsDisabled"
+
+		[popover]="popoverForWANT"
+		placement="bottom"
+		#pop="bs-popover"
+	><fa-icon [fixedWidth]="true" icon="heart"></fa-icon></button>
+	<button type="button" class="wishes clickable btn justify-content-center btn-warning text-white border-0"
+		[class.btn-frameless]="CONFIG.IS_MOBILE"
+		(click)="pop.hide();handleOnPick($event, memberPrefValues.CAN)"
+		style="border-top:none;border-bottom:none;"
+		[class.disabled]="pickerButtonsDisabled"
+
+		[popover]="popoverForCAN"
+		placement="left"
+		#pop="bs-popover"
+	><fa-icon [fixedWidth]="true" icon="heart"></fa-icon></button>
+	<button type="button" class="wishes clickable btn justify-content-center btn-danger text-white border-0"
+		[class.btn-frameless]="CONFIG.IS_MOBILE"
+		(click)="pop.hide();handleOnPick($event, memberPrefValues.CANNOT)"
+		style="border-top:none;border-bottom:none;"
+		[class.disabled]="pickerButtonsDisabled"
+
+		[popover]="popoverForCANNOT"
+		placement="left"
+		#pop="bs-popover"
+	><fa-icon [fixedWidth]="true" icon="heart"></fa-icon></button>
+</div>
+
+<!-- [@scaleIn]="collapsed" -->
+<a class="wishes clickable shadow text-white"
+	*ngIf="collapsed"
+	[class.bg-dark]="!myPref"
+	[class.btn-warning]="myPref===memberPrefValues.CAN"
+	[class.btn-danger]="myPref===memberPrefValues.CANNOT"
+	[class.btn-success]="myPref===memberPrefValues.WANT"
+	(click)="onUncollapse($event)"
+><fa-icon [fixedWidth]="true" [icon]="!myPref ? 'heart' : 'heart'"></fa-icon></a>

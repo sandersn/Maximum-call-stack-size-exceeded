@@ -1,0 +1,48 @@
+<div class="d-flex mb-4 align-items-center" *ngIf="me.isLoaded() && me.data.isOwner && shiftModel.isNewItem()">
+	<p-alert
+		class="mb-0"
+		[theme]="PThemeEnum.INFO"
+	>
+		<span i18n>Eine Tätigkeit ist eine Vorlage, mit deren Hilfe du im Kalender Schichten anlegen kannst. Die in der Tätigkeit anzugebenden Daten (z.B. die Uhrzeit) können später beim Anlegen von Schichten je nach Bedarf angepasst werden.</span>
+	</p-alert>
+
+	<ng-template [ngIf]="!isCopy && shiftModelsForInput.length">
+		<div class="ml-5" style="min-width: 230px;">
+			<label i18n>Tätigkeit kopieren</label>
+			<p-info-circle i18n>Wenn diese neue Tätigkeit einer der Bestehenden sehr ähnelt, kannst du das Formular mit den Werten der Bestehenden vorausfüllen lassen.</p-info-circle>
+			<p-input-shiftmodel-id-modal
+				[shiftModels]="shiftModelsForInput"
+				[(ngModel)]="shiftModelToCopy"
+			></p-input-shiftmodel-id-modal>
+		</div>
+	</ng-template>
+</div>
+
+<div class="card mt-1 mb-4 o-hidden">
+	<div class="d-flex justify-content-between align-items-center w-100 position-relative p-2">
+		<p-color-marker
+			[hexColor]="shiftModel.color ? '#' + shiftModel.color : null"
+			[title]="shiftModel.name"
+			[isPacket]="!!shiftModel.isPacket"
+		></p-color-marker>
+		<h2 class="m-0 title pl-2"
+			[class.text-muted]="!shiftModel || !shiftModel.name"
+			i18n
+		>{shiftModel.name && !!shiftModel.name.length, select, true {{{shiftModel.name}}} other {Neue Tätigkeit}}</h2>
+		<p-color-marker
+			[item]="shiftModel"
+			[hexColor]="shiftModel.color ? '#' + shiftModel.color : null"
+			[title]="shiftModel.name"
+		></p-color-marker>
+		<!-- <span class="text-monospace" *ngIf="shiftModel?.time.start">{{shiftModel.time.start | date:'shortTime'}} Uhr</span> -->
+	</div>
+</div>
+
+<p-shift-and-shiftmodel-form
+	*ngIf="!!shiftModel"
+	[shiftModel]="shiftModel"
+	(dismiss)="navBack()"
+	(add)="saveItem()"
+></p-shift-and-shiftmodel-form>
+
+<p-alert *ngIf="shiftModel.trashed" class="mb-4" [theme]="PThemeEnum.DANGER" i18n>Diese Schichtvorlage wurde gelöscht.</p-alert>

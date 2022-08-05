@@ -1,0 +1,19 @@
+<button class="d-flex justify-content-between align-items-center clickable btn-outline-secondary"
+	[class.border-0]="collapsed || !hasContent"
+	[class.border-top-0]="!collapsed && hasContent"
+	[class.border-left-0]="!collapsed && hasContent"
+	[class.border-right-0]="!collapsed && hasContent"
+	[class.rounded]="!hasContent"
+	[class.text-danger]="hasDanger"
+	[class.card-header]="size==='lg'"
+	[class.btn-sm]="size==='sm'"
+	(click)="toggle($event)"
+>
+	<ng-content select="[trigger]"></ng-content>
+	<fa-icon class="ml-4" [size]="size" [fixedWidth]="true" [icon]="collapsed ? PlanoFaIconPool.COLLAPSIBLE_CLOSE : PlanoFaIconPool.COLLAPSIBLE_OPEN"></fa-icon>
+</button>
+<div [@slideOpen]="!collapsed" style="height: 0; overflow: hidden;">
+	<ng-container #ngContentContainer>
+		<ng-content select="[content]"></ng-content>
+	</ng-container>
+</div>

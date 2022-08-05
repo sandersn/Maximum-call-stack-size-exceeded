@@ -1,0 +1,58 @@
+<div class="p-0 d-flex flex-shrink-0 flex-column">
+	<button
+		type="button"
+		class="btn btn-lg btn-light rounded-0 nowrap border-top-0 border-left-0 border-right-0"
+		routerLink="/client/member/{{meService.data.id}}"
+		routerLinkActive="active"
+		(click)="clickedAnyButton.emit()"
+	>
+		<p-member-badge
+			[memberId]="meService.data.id"
+			[firstName]="meService.data.firstName"
+			[lastName]="meService.data.lastName"
+			[isMe]="true"
+			class="d-inline"
+			size="normal"
+		></p-member-badge>&nbsp;<ng-container i18n>Mein Profil</ng-container>
+	</button>
+	<button
+		*ngIf="CONFIG.platform !== 'browser'"
+		type="button"
+		class="btn btn-lg btn-light rounded-0 nowrap border-top-0 border-left-0 border-right-0"
+		routerLink="/client/notifications"
+		routerLinkActive="active"
+		(click)="clickedAnyButton.emit()"
+	><fa-icon [fixedWidth]="true" icon="bell"></fa-icon>&nbsp;<ng-container i18n>Benachrichtigungs-Einstellungen</ng-container></button>
+	<button
+		*ngIf="meService.data.isOwner"
+		type="button"
+		class="btn btn-lg btn-light rounded-0 nowrap border-top-0 border-left-0 border-right-0"
+		routerLink="/client/devices"
+		routerLinkActive
+		(click)="clickedAnyButton.emit()"
+	><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.AREA_TIME_STAMP"></fa-icon>&nbsp;<ng-container i18n>Stempeluhr-Einstellungen</ng-container></button>
+	<button
+		*ngIf="meService.data.isOwner"
+		type="button"
+		class="btn btn-lg btn-light rounded-0 nowrap border-top-0 border-left-0 border-right-0"
+		routerLink="/client/plugin"
+		routerLinkActive
+		(click)="clickedAnyButton.emit()"
+	><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.BOOKING_PAYMENT_STATUS"></fa-icon>&nbsp;<ng-container i18n>Buchungssystem-Einstellungen</ng-container></button>
+	<button
+		type="button"
+		class="btn btn-lg btn-light rounded-0 nowrap border-top-0 border-left-0 border-right-0"
+		routerLink="/client/ical"
+		routerLinkActive
+		(click)="clickedAnyButton.emit()"
+	><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.SYNCING"></fa-icon>&nbsp;<ng-container i18n>Kalender-Synchronisation</ng-container></button>
+	<button
+		type="button"
+		class="btn btn-lg btn-light rounded-0 nowrap border-top-0 border-left-0 border-right-0"
+		routerLink="/privacy"
+		routerLinkActive="active"
+		(click)="clickedAnyButton.emit()"
+	><fa-icon [fixedWidth]="true" icon="user-lock"></fa-icon>&nbsp;<ng-container i18n>Datenschutzerklärung</ng-container></button>
+	<div class="text-center p-2 mt-3"><fa-icon [fixedWidth]="true" icon="headset"></fa-icon> <a class="mr-2 external-link" [externalLink]="'mailto:service@dr-plano.com'">service@dr-plano.com</a></div>
+</div>
+<div class="text-center mt-5 mb-3">✌</div>

@@ -1,0 +1,300 @@
+@import "variables";
+@import "~bootstrap/scss/mixins";
+
+@mixin inconspicuousBtnStyles($value) {
+	// background-color: $darken-003;
+	background-color: $light;
+}
+
+@mixin toggle-button-variant(
+	$background,
+	$border,
+	$hover-background: darken($background, 7.5%),
+	$hover-border: darken($border, 10%),
+	$active-background: darken($background, 10%),
+	$active-border: darken($border, 12.5%)
+) {
+	color: color-yiq($background);
+	@include gradient-bg($background);
+	border-color: $border;
+	@include box-shadow($btn-box-shadow);
+
+	@include hover() {
+		color: color-yiq($hover-background);
+		@include gradient-bg($hover-background);
+		border-color: $hover-border;
+	}
+
+	&:focus,
+	&.focus {
+		// background-color: revert;
+		// border-color: revert;
+		@if $enable-shadows {
+			@include box-shadow($btn-box-shadow, 0 0 0 $btn-focus-width rgba(mix(color-yiq($background), $border, 15%), 0.5));
+		} @else {
+			// Avoid using mixin so we can pass custom focus shadow properly
+			box-shadow: 0 0 0 $btn-focus-width rgba(mix(color-yiq($background), $border, 15%), 0.5);
+		}
+	}
+
+	// Disabled comes first so active can properly restyle
+	&.disabled,
+	&:disabled {
+		color: color-yiq($background);
+		background-color: $background;
+		border-color: $border;
+		// Remove CSS gradients if they're enabled
+		@if $enable-gradients {
+			background-image: none;
+		}
+	}
+
+	&:not(:disabled):not(.disabled):active {
+		color: color-yiq(darken($active-background, 10%));
+		background-color: darken($active-background, 10%);
+		// color: revert;
+		// background-color: revert;
+		@if $enable-gradients {
+			background-image: none; // Remove the gradient for the pressed/active state
+		}
+		border-color: revert;
+
+		&:focus {
+			@if $enable-shadows and $btn-active-box-shadow != none {
+				@include box-shadow(
+					$btn-active-box-shadow,
+					0 0 0 $btn-focus-width rgba(mix(color-yiq($background), $border, 15%), 0.5)
+				);
+			} @else {
+				// Avoid using mixin so we can pass custom focus shadow properly
+				box-shadow: 0 0 0 $btn-focus-width rgba(mix(color-yiq($background), $border, 15%), 0.5);
+			}
+		}
+	}
+
+	&:not(:disabled):not(.disabled).active,
+	.show > &.dropdown-toggle {
+		color: color-yiq($active-background);
+		background-color: $active-background;
+		@if $enable-gradients {
+			background-image: none; // Remove the gradient for the pressed/active state
+		}
+		border-color: $active-border;
+
+		&:focus {
+			@if $enable-shadows and $btn-active-box-shadow != none {
+				@include box-shadow(
+					$btn-active-box-shadow,
+					0 0 0 $btn-focus-width rgba(mix(color-yiq($background), $border, 15%), 0.5)
+				);
+			} @else {
+				// Avoid using mixin so we can pass custom focus shadow properly
+				box-shadow: 0 0 0 $btn-focus-width rgba(mix(color-yiq($background), $border, 15%), 0.5);
+			}
+		}
+	}
+}
+
+:host {
+	display: block;
+
+	&.card-option {
+		border-color: $border-color;
+	}
+}
+
+button {
+	transition: border-color 0.3s ease-out, background-color 0.3s ease-out, color 0.3s ease-out;
+}
+
+label {
+	white-space: normal;
+}
+
+@each $color, $value in $theme-colors {
+	.btn-#{$color} {
+
+		@if $color == "secondary" {
+			@include button-variant($gray-100, $gray-400, $value, $value, $value, $value);
+		}
+		@else {
+			@include button-variant($value, $value);
+		}
+
+		@if $color == "primary" {
+			&:not(:disabled):not(.disabled):active,
+			&:not(:disabled):not(.disabled).active,
+			.show > &.dropdown-toggle {
+				color: $white;
+			}
+		}
+
+		@if $color == "secondary" {
+			&.dark-mode {
+				&:not(.active):not(:active):not(:hover) {
+					border-color: $lightBorder;
+					background-color: $lighten-005;
+					color: $white;
+				}
+			}
+		}
+	}
+}
+
+@each $color, $value in $theme-colors {
+	.btn-toggle.btn-#{$color} {
+		@include toggle-button-variant($light, $gray-400, $value, $value, $value, $value);
+		@include inconspicuousBtnStyles($value);
+
+		&.dark-mode {
+			&:not(.active):not(:active):not(:disabled):not(.disabled):not(:hover) {
+				border-color: $lightBorder;
+				background-color: $lighten-005;
+				color: $white;
+			}
+		}
+
+		@if $color == "primary" {
+			@include hover() {
+				&:not(.disabled):not(:disabled) {
+					color: $white;
+				}
+			}
+
+			&:not(:disabled):not(.disabled):active,
+			&:not(:disabled):not(.disabled).active,
+			.show > &.dropdown-toggle {
+				color: $white;
+			}
+		}
+
+		@if $color == "secondary" {
+			// TODO: remove this when equivalent in global-styles.scss has been removed
+			&:not(.active):not(:active):not(:disabled):not(.disabled):not(:hover) {
+				@include inconspicuousBtnStyles($value);
+			}
+		}
+	}
+}
+
+@each $color, $value in $theme-colors {
+	.btn-filter.btn-#{$color} {
+		@include toggle-button-variant($light, $gray-400, $value, $value, $light, $gray-400);
+		@include inconspicuousBtnStyles($value);
+
+		&.dark-mode {
+			&:not(.active):not(:active):not(:disabled):not(.disabled):not(:hover) {
+				border-color: $lightBorder;
+				background-color: $lighten-005;
+				color: $white;
+			}
+		}
+
+		@if $color == "primary" {
+			@include hover() {
+				&:not(.disabled):not(:disabled) {
+					// color: $white;
+				}
+			}
+
+			&:not(:disabled):not(.disabled):active,
+			&:not(:disabled):not(.disabled).active,
+			.show > &.dropdown-toggle {
+				// color: $white;
+			}
+		}
+
+		@if $color == "secondary" {
+			// TODO: remove this when equivalent in global-styles.scss has been removed
+			&:not(.active):not(:active):not(:disabled):not(.disabled):not(:hover) {
+				@include inconspicuousBtnStyles($value);
+			}
+		}
+	}
+}
+
+.btn-outline-secondary {
+	@include inconspicuousBtnStyles($secondary);
+}
+
+@each $color, $value in $theme-colors {
+	.btn-toggle.btn-outline-#{$color} {
+		@include button-outline-variant($value);
+
+		@if $color == "primary" {
+			@include hover() {
+				&:not(.disabled):not(:disabled) {
+					color: $white;
+				}
+			}
+
+			&:not(:disabled):not(.disabled):active,
+			&:not(:disabled):not(.disabled).active,
+			.show > &.dropdown-toggle {
+				color: $white;
+			}
+		}
+	}
+}
+
+@each $color, $value in $theme-colors {
+	.btn-filter.btn-outline-#{$color} {
+		@include button-outline-variant($value);
+
+		@if $color == "primary" {
+			@include hover() {
+				&:not(.disabled):not(:disabled) {
+					color: $white;
+				}
+			}
+
+			&:not(:disabled):not(.disabled):active,
+			&:not(:disabled):not(.disabled).active,
+			.show > &.dropdown-toggle {
+				color: $white;
+			}
+		}
+	}
+}
+
+.btn-outline-secondary {
+	@include button-outline-variant(
+		$secondary,
+		$white,
+		$secondary,
+		$secondary,
+	);
+
+	background-color: $darken-003;
+	border-color: $gray-400;
+
+	&.disabled,
+	&:disabled {
+		background-color: $darken-003;
+	}
+}
+
+// TODO: remove this when equivalent in global-styles.scss has been removed
+.btn-primary {
+	&:not(.active):not(:active):not(:disabled):not(.disabled):not(:hover) {
+		color: $white;
+	}
+}
+// TODO: remove this when equivalent in global-styles.scss has been removed
+.btn-toggle.btn-primary {
+	&:not(.active):not(:active):not(:disabled):not(.disabled):not(:hover) {
+		color: $dark;
+	}
+}
+
+// TODO: remove this when equivalent in global-styles.scss has been removed
+.btn-filter.btn-primary {
+	&:not(.active):not(:active):not(:disabled):not(.disabled):not(:hover) {
+		color: $dark;
+	}
+}
+
+.badge-pill:not(.btn-sm) {
+	padding-right: map-get($spacers, 3);
+	padding-left: map-get($spacers, 3);
+}

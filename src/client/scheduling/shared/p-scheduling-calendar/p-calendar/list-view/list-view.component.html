@@ -1,0 +1,51 @@
+<div style="max-width: 600px; margin: 0 auto;">
+	<ng-template [ngIf]="api.isLoaded()" [ngIfElse]="spinnerTemplate">
+		<ng-template [ngIf]="!!shifts && !!shifts.length" [ngIfElse]="noShiftsTemplate">
+			<ng-template
+				ngFor let-dayData
+				[ngForOf]="daysData"
+				[ngForTrackBy]="trackByDayData"
+			>
+				<div>
+
+				<div *ngIf="showDayHeader" class="row mt-1 sticky-top">
+					<div class="ml-2 mr-2 col-12 w-100 bg-white border-bottom border-primary shadow-sm d-flex justify-content-between text-monospace">
+						<span *ngFor="let label of dayData.labels">{{ label }}</span>
+					</div>
+				</div>
+
+				<ng-template
+					ngFor let-shift
+					[ngForOf]="dayData.shifts"
+				>
+					<p-now-line *ngIf="showNowLine(dayData, shift)" class="d-block mx-1" style="opacity: 0"></p-now-line>
+					<ng-container
+						[ngTemplateOutlet]="shiftTemplate"
+						[ngTemplateOutletContext]="{$implicit: shift}"
+					></ng-container>
+				</ng-template>
+				<p-now-line *ngIf="showNowLineAtBottomOfDay(dayData)" class="d-block mx-1" style="opacity: 0"></p-now-line>
+
+				<p-alert *ngIf="dayData.shifts.length === 0" [theme]="PAlertThemeEnum.PLAIN" class="text-center"><span class="text-muted" i18n>keine Schichten</span></p-alert>
+
+				</div>
+			</ng-template>
+		</ng-template>
+
+		<ng-template #noShiftsTemplate>
+			<div class="p-2 text-center">
+				<ng-template [ngIf]="api.isBackendOperationRunning && !shifts!.length" [ngIfElse]="noItems">
+					<ng-template [ngTemplateOutlet]="spinnerTemplate"></ng-template>
+				</ng-template>
+				<ng-template #noItems>
+					<small class="d-block" style="opacity: 0.5;" i18n>Keine Schichten für diese Zeit</small>
+				</ng-template>
+			</div>
+		</ng-template>
+
+	</ng-template>
+</div>
+
+<ng-template #spinnerTemplate>
+	<p-spinner [size]="BootstrapSize.LG" class="m-3 text-muted"></p-spinner>
+</ng-template>

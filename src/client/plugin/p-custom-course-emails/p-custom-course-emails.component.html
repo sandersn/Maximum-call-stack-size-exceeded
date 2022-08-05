@@ -1,0 +1,61 @@
+<div class="mb-5">
+	<p-form-group
+		[control]="formGroup!.controls['bookableMailsSenderName']!"
+	>
+		<label><span i18n>Absendername der Emails</span> <p-info-circle [class.ml-2]="Config.IS_MOBILE" placement="bottom" i18n>In den Emails, die deine Kunden erhalten, steht dieser Name als Absender. Hierfür bietet sich z.B. eure Firmenbezeichnung an. Die Absenderadresse ist »notification@dr-plano.com«, da wir die Emails nicht über euren Email-Server verschicken können.</p-info-circle></label>
+		<p-input
+			[pEditable]="true"
+			[api]="accountApi"
+			(onDismiss)="initFormGroup()"
+
+			[formControl]="formGroup!.controls['bookableMailsSenderName']!"
+			placeholder="z.B. Kursbüro" i18n-placeholder
+		></p-input>
+	</p-form-group>
+</div>
+
+<div *ngIf="!api.data.customBookableMails.length">
+	<span i18n>Bisher wurden keine Email-Vorlagen definiert.</span>
+</div>
+
+<div>
+	<div
+		id="scroll-target-id-{{customBookableMail?.id?.toString() ?? 'null'}}"
+		class="card"
+		*ngFor="let customBookableMail of api.data.customBookableMails.iterableSortedBy(['sendToBookingPerson', 'sendToParticipants', 'name'])"
+	>
+		<div class="card-header card-options o-hidden border-bottom-0">
+			<label class="p-3 m-0 mr-auto"><ng-container i18n>{customBookableMail.name && !!customBookableMail.name.length, select, true {{{customBookableMail.name}}} other {Neue Email-Vorlage}}</ng-container>&ngsp;➡&ngsp;<ng-container i18n>{customBookableMail.sendToParticipants, select, true {Teilnehmende Person(en)}}</ng-container> {customBookableMail.sendToParticipants && customBookableMail.sendToBookingPerson, select, true {&nbsp;&&nbsp;}} <ng-container i18n>{customBookableMail.sendToBookingPerson, select, true {Buchende Person}}</ng-container></label>
+			<button type="button" class="btn btn-outline-secondary card-option" (click)="showItemDetail(customBookableMail)"><fa-icon [fixedWidth]="true" icon="pen"></fa-icon></button>
+			<p-button
+				[attributeInfo]="null"
+				[pEditable]="true"
+				[valid]="true"
+				[api]="api"
+				[saveChangesHook]="getDeleteModal(deleteWarning)"
+
+				[btnClasses]="'rounded-0'"
+				[theme]="PThemeEnum.DANGER"
+				class="card-option"
+				(triggerClick)="removeItem(customBookableMail)"
+			><fa-icon [fixedWidth]="true" icon="trash"></fa-icon></p-button>
+		</div>
+		<ng-template #deleteWarning let-c="close" let-d="dismiss">
+			<p-modal-content
+				[theme]="PThemeEnum.DANGER"
+				closeBtnLabel="Ja, löschen" i18n-closeBtnLabel
+				(onDismiss)="d('Cross click')"
+				(onClose)="c('Started');"
+			>
+				<p-modal-content-body>
+					<p class="m-0" i18n>Willst du die Email-Vorlage »{{customBookableMail.name}}« wirklich löschen?</p>
+				</p-modal-content-body>
+			</p-modal-content>
+		</ng-template>
+
+	</div>
+</div>
+
+<button type="button" class="btn btn-lg w-100 btn-outline-primary"
+	(click)="showItemDetail()"
+><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon>&nbsp;<ng-container i18n>Email-Vorlage hinzufügen</ng-container></button>

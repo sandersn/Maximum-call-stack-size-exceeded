@@ -1,0 +1,93 @@
+<p class="mt-4" i18n>Hier findest du alle Emails, die {isVoucherDetailPage, select, true {} other {entsprechend der Einstellungen in der Tätigkeit}} automatisch an die buchende Person versendet worden sind. Du kannst sie dir anzeigen lassen und bei Bedarf <strong>erneut versenden</strong>.</p>
+
+<p-no-items
+	class="mb-3"
+	*ngIf="!api.data.mailsSentToBookingPerson.length; else hasItemsTemplate"
+	[handleGlobalFilterService]="false"
+	[hasFilterSettings]="false"
+>Keine Emails versendet bisher.</p-no-items>
+
+<ng-template #hasItemsTemplate>
+	<div
+		*ngFor="let mailSent of api.data.mailsSentToBookingPerson.iterableSortedBy('dateTime', true)"
+		class="card mb-0 mt--1 p-0"
+	>
+		<div class="card-options">
+			<div class="d-flex align-items-start p-2 flex-column flex-md-row">
+				<div>
+					<i class="d-block mr-4">{{ eventTypesService.getTitle(mailSent.eventType) }}</i>
+					<span class="text-muted small">{{ mailSent.dateTime | date: 'short' }}</span>
+				</div>
+				<mark *ngIf="mailSent.resendRequester" class="p-1 text-muted" i18n>erneut versendet im Auftrag vom User {{mailSent.resendRequester.firstName}} {{mailSent.resendRequester.lastName}}</mark>
+			</div>
+			<p-button [btnClasses]="'card-option border-bottom-0'" (triggerClick)="showMailDetails(modalContent)" title="Email anzeigen" i18n>
+				<fa-icon [icon]="PlanoFaIconPool.OPEN_MAIL"></fa-icon>
+			</p-button>
+		</div>
+
+		<!-- detail modal -->
+		<ng-template #modalContent let-d="dismiss">
+			<div class="modal-header align-items-center">
+				<h4 class="modal-title" i18n>{{ eventTypesService.getTitle(mailSent.eventType) }}</h4>
+				<div class="d-flex">
+					<p-button
+						[theme]="PThemeEnum.PRIMARY"
+						class="d-block"
+						(triggerClick)="resendEmail(mailSent)"
+						*ngIf="mailSent.attributeInfoResend.canEdit"
+					>
+						<fa-icon [icon]="PlanoFaIconPool.SEND_EMAIL"></fa-icon>
+						<span class="d-none d-md-inline">&nbsp;<ng-container i18n>Erneut senden</ng-container></span>
+					</p-button>
+					<button
+						type="button"
+						class="btn btn-outline-secondary ml-4 d-block"
+						printSectionId="print-section"
+						ngxPrint
+						styleSheetFile="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.css"
+					>
+						<fa-icon [fixedWidth]="true" icon="print"></fa-icon>
+						<span class="d-none d-md-inline">&nbsp;<ng-container i18n>Drucken</ng-container></span>
+					</button>
+
+					<button type="button" class="close ml-0" aria-label="Close" (click)="d()">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+			</div>
+			<div class="modal-body p-4">
+				<div id="print-section" class="row">
+					<div class="col-12 col-md-5">
+						<p-form-control-showcase
+							label="Versand-Zeitpunkt" label-i18n
+							[attributeInfo]="mailSent.attributeInfoDateTime"
+						></p-form-control-showcase>
+					</div>
+					<div class="col-12 col-md-5">
+						<p-form-control-showcase
+							label="Email wurde verschickt an" label-i18n
+							[attributeInfo]="mailSent.attributeInfoRecipientEmail"
+						></p-form-control-showcase>
+					</div>
+					<div class="col-12">
+						<p-form-control-showcase
+							label="Betreff" label-i18n
+							[attributeInfo]="mailSent.attributeInfoSubject"
+						></p-form-control-showcase>
+					</div>
+					<div class="col-12">
+						<p-form-control-showcase
+							label="Text" label-i18n
+							[attributeInfo]="mailSent.attributeInfoText"
+							[primitiveType]="'longText'"
+						></p-form-control-showcase>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-outline-secondary ml-auto" aria-label="Close" (click)="d()" i18n>Schließen</button>
+			</div>
+
+		</ng-template>
+	</div>
+</ng-template>

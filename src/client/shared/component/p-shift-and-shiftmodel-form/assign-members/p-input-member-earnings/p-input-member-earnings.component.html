@@ -1,0 +1,9 @@
+<p-input
+	*ngIf="!!formGroup"
+	[type]="PApiPrimitiveTypes.Currency"
+	[inputGroupAppendText]="null"
+	[(ngModel)]="earnings"
+	[formControl]="formGroup.controls['hourlyEarnings']!"
+	style="width: 8em"
+	placeholder="-"
+></p-input>

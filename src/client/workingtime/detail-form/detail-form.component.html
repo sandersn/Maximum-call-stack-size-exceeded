@@ -1,0 +1,236 @@
+<ng-template [ngIf]="formGroup && showForm">
+	<form [formGroup]="$any(formGroup)">
+		<div class="mt-3 mb-4">
+			<h2 class="m-0">{{ pageTitle }}</h2>
+		</div>
+		<div class="mb-5 row">
+			<p-form-group
+				class="col-12 col-md-6"
+				label="Eintrag für" i18n-label
+				[control]="formGroup.controls['memberId']!"
+			>
+				<p-input-member-id
+					[pEditable]="!item.isNewItem()"
+					[api]="api"
+					(onLeaveCurrent)="initFormGroup()"
+
+					[readMode]="!userCanWrite"
+					[formControl]="formGroup.controls['memberId']!"
+					[members]="api.data.members"
+				></p-input-member-id>
+			</p-form-group>
+			<div
+				class="form-group col-12 col-md-6"
+			>
+				<label>&nbsp;</label>
+				<p-editable-modal-box
+					[scrollable]="false"
+
+					[pEditable]="!item.isNewItem()"
+					[api]="api"
+					[valid]="!formGroup.controls['hourlyEarnings']!.invalid && !formGroup.controls['shiftModelId']!.invalid"
+					(onDismiss)="initFormGroup()"
+
+					[disabled]="!userCanWrite"
+				>
+					<p-editable-modal-box-header>
+						<div class="ml-2 p-2 w-100">
+							<ng-template [ngIf]="formGroup.controls['hourlyEarnings']!.value !== undefined" [ngIfElse]="defaultTitle">
+								<p-color-marker
+									[item]="relatedShiftModel"
+									[hexColor]="shiftModelColor"
+									[title]="shiftModelName"
+								></p-color-marker>
+								<label class="mb-0 d-flex justify-content-between align-items-center w-100">
+									<span class="mr-2" i18n>{!!shiftModelName, select, true {{{shiftModelName}}} other {Tätigkeit unbekannt}}</span>
+									<span i18n>{formGroup.controls['hourlyEarnings']!.value !== undefined && formGroup.controls['hourlyEarnings']!.value !== null && formGroup.controls['hourlyEarnings']!.valid, select, true {{{formGroup.controls['hourlyEarnings']!.value | currency}}} other {-}} / Std.</span>
+								</label>
+							</ng-template>
+							<ng-template #defaultTitle>
+								<label class="m-0" i18n>Tätigkeit & Lohn</label>
+							</ng-template>
+						</div>
+					</p-editable-modal-box-header>
+					<p-editable-modal-box-form>
+						<p-grid>
+							<div class="col-12 col-md-6">
+								<p-form-group
+									label="Tätigkeit" i18n-label
+									[control]="formGroup.controls['shiftModelId']!"
+								>
+									<p-input-shiftmodel-id
+										class="w-100"
+										[formControl]="formGroup.controls['shiftModelId']!"
+										[items]="shiftModelsForDropdown"
+										[disabled]="!userCanWrite"
+									></p-input-shiftmodel-id>
+
+									<p-validation-hint
+										[control]="formGroup.controls['shiftModelId']!"
+									></p-validation-hint>
+								</p-form-group>
+							</div>
+							<div class="col-12 col-md-6">
+								<div class="form-group" [class.has-danger]="formGroup.controls['hourlyEarnings']!.invalid">
+									<div><label i18n>Stundenlohn</label></div>
+									<p-input
+										[type]="PApiPrimitiveTypes.Currency"
+										[formControl]="formGroup.controls['hourlyEarnings']!"
+										placeholder="z.B. 10" i18n-placeholder
+									></p-input>
+								</div>
+							</div>
+
+						</p-grid>
+					</p-editable-modal-box-form>
+				</p-editable-modal-box>
+			</div>
+		</div>
+		<div class="mb-5">
+			<h4 i18n>Zeiten</h4>
+			<p-grid>
+				<div class="col-12 col-md-6">
+					<p-form-group
+						label="Von" i18n-label
+						[control]="formGroup.controls['start']!"
+					>
+						<div
+							[tooltip]="userCanWrite ? '' : missingWriteAccessTooltipTemplate"
+						>
+							<p-input-date
+								[pEditable]="!item.isNewItem()"
+								[api]="api"
+								[valid]="!formGroup.controls['start']!.invalid"
+								(onDismiss)="initFormGroup()"
+
+								[formControl]="formGroup.controls['start']!"
+								[(ngModel)]="item.time.start"
+								[showTimeInput]="true"
+								[timeIsRequired]="true"
+								[max]="formGroup.controls['end']!.value"
+								[showEraseValueBtn]="item.isNewItem()"
+							></p-input-date>
+						</div>
+						<p-validation-hint
+							[control]="formGroup.controls['start']!"
+							text="Der angegebene Start muss vor dem angegebenen Ende liegen" i18n-text
+							[validationName]="PPossibleErrorNames.MAX"
+						></p-validation-hint>
+					</p-form-group>
+				</div>
+				<div class="col-12 col-md-6">
+					<p-form-group
+						label="Bis" i18n-label
+						[control]="formGroup.controls['end']!"
+					>
+						<div
+							[tooltip]="userCanWrite ? '' : missingWriteAccessTooltipTemplate"
+							#pop="bs-tooltip"
+						>
+							<p-input-date
+								[pEditable]="!item.isNewItem()"
+								[api]="api"
+								[valid]="!formGroup.controls['end']!.invalid"
+								(onDismiss)="initFormGroup()"
+
+								[isExclusiveEnd]="true"
+								[formControl]="formGroup.controls['end']!"
+								[showTimeInput]="true"
+								[timeIsRequired]="true"
+								[min]="formGroup.controls['start']!.value"
+								[showEraseValueBtn]="item.isNewItem()"
+							></p-input-date>
+						</div>
+						<p-validation-hint
+							[control]="formGroup.controls['end']!"
+							text="Das angegebene Ende muss nach dem angegebenen Start liegen" i18n-text
+							[validationName]="PPossibleErrorNames.MIN"
+						></p-validation-hint>
+					</p-form-group>
+				</div>
+				<div class="col-12">
+					<p-form-group
+						label="Dauer der Pause" i18n-label
+						[control]="formGroup.controls['regularPauseDuration']!"
+					>
+						<p-input
+							[pEditable]="!item.isNewItem()"
+							[api]="api"
+							(onLeaveCurrent)="initFormGroup()"
+
+							[type]="PApiPrimitiveTypes.Duration"
+							[durationUIType]="PApiPrimitiveTypes.Minutes"
+							[formControl]="formGroup.controls['regularPauseDuration']!"
+							placeholder="z.B. »30«" i18n-placeholder
+						></p-input>
+
+						<p-alert
+							class="mt-3 d-block"
+							*ngIf="item.automaticPauseDuration && !formGroup.controls['regularPauseDuration']!.dirty"
+							i18n
+						><strong>Hinweis:</strong> Es werden automatisch <strong
+							[innerHTML]="item.automaticPauseDuration | pDurationAsHours: false"
+						></strong> Pause hinzugefügt, da die <strong *ngIf="userCanWrite && memberName">von {{ memberName }} </strong>eingetragene Pause <strong
+							[innerHTML]="item.regularPauseDuration | pDurationAsHours: false"
+						></strong> unter dem gesetzlichen Minimum liegt. Dementsprechend werden auch der Ausstempelzeit <strong
+							[innerHTML]="item.automaticPauseDuration | pDurationAsHours: false"
+						></strong> hinzugefügt.</p-alert>
+						<p-alert
+							class="mt-3 d-block"
+							*ngIf="item.automaticPauseDuration && formGroup.controls['regularPauseDuration']!.dirty"
+							i18n
+						><strong>Hinweis:</strong> Die <strong *ngIf="userCanWrite && memberName">von {{ memberName }} </strong>eingetragene Pause liegt unter dem gesetzlichen Minimum.</p-alert>
+					</p-form-group>
+				</div>
+			</p-grid>
+		</div>
+		<div class="mb-5">
+			<h4 i18n>Kommentar des Mitarbeitenden</h4>
+			<p-alert
+				*ngFor="let message of item.warningMessages"
+			>{{ message | localize }}</p-alert>
+			<div
+				class="form-group"
+				[class.has-danger]="formGroup.controls['comment']!.invalid"
+			>
+				<p-textarea
+					[pEditable]="!item.isNewItem()"
+					[api]="api"
+					[valid]="!formGroup.invalid"
+					(onLeaveCurrent)="initFormGroup()"
+
+					[formControl]="formGroup.controls['comment']!"
+				></p-textarea>
+			</div>
+		</div>
+
+		<div class="pb-0" *ngIf="formGroup.invalid">
+			<p-alert [theme]="PThemeEnum.DANGER" i18n>Hoppla. Deine Eingabe ist unvollständig oder nicht korrekt. Bitte schau nochmal drüber.</p-alert>
+			<!-- <span class="d-none">{{ stringify(formGroup.errors) }}</span> -->
+		</div>
+		<div
+			*ngIf="item.isNewItem()"
+			class="d-flex justify-content-between"
+		>
+			<button
+				[type]="formGroup.invalid ? 'submit' : 'button'"
+				class="btn btn-lg btn-primary ml-auto"
+				[disabled]="!formGroup || formGroup.invalid || api.isBackendOperationRunning"
+				(click)="saveItem()"
+			><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon>&nbsp;<ng-container i18n>Anlegen</ng-container></button>
+		</div>
+
+	</form>
+</ng-template>
+
+
+<ng-template #missingWriteAccessTooltipTemplate>
+	<div class="d-block clickable card m-0 text-left o-hidden">
+		<div class="card-header p-2">
+			<div class="title"><span class="name" i18n>Zeit bearbeiten</span></div>
+		</div>
+		<div class="card-body p-1 pl-2 pr-2">
+			<span i18n>Du hast kein Schreibrecht dafür. Kontaktiere deine Personalleitung, damit sie die Arbeitszeit anpasst.</span>
+		</div>
+	</div>
+</ng-template>

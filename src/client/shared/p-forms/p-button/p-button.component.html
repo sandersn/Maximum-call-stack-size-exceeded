@@ -1,0 +1,95 @@
+<ng-container
+	[pEditable]="pEditable"
+	[api]="api"
+	[valid]="valid"
+	[saveChangesHook]="saveChangesHook"
+	(onSaveStart)="onSaveStart.emit($event)"
+	(onSaveSuccess)="onSaveSuccess.emit($event)"
+	(onDismiss)="onDismiss.emit($event)"
+	(onLeaveCurrent)="onLeaveCurrent.emit($event)"
+	(editMode)="editMode.emit($event)"
+>
+	<button
+		[style.display]="!show ? 'none!important' : undefined"
+		type="button"
+		[class.skeleton-animated]="isLoading"
+		class="btn nowrap d-flex {{alignItemsClass}} {{justifyClass}} flex-grow-1 {{btnClasses}}"
+
+		ngbAutofocus
+
+		(focus)="focus.emit()"
+		(blur)="blur.emit()"
+
+		pEditableInstantSaveButton
+		(triggerClick)="triggerClick.emit($event)"
+
+		[class.required]="required"
+		[class.dark-mode]="darkMode"
+
+		[class.btn-sm]="size === BootstrapSize.SM"
+		[class.btn-lg]="size === BootstrapSize.LG"
+		[class.badge-pill]="hasBadgePillClass"
+		[class.active]="isActiveButton"
+		[class.btn-toggle]="buttonType === PButtonType.TOGGLE"
+		[class.btn-filter]="buttonType === PButtonType.FILTER"
+
+		[class.btn-light]="theme === PThemeEnum.LIGHT"
+		[class.btn-danger]="theme === PThemeEnum.DANGER"
+		[class.btn-success]="theme === PThemeEnum.SUCCESS"
+		[class.btn-info]="theme === PThemeEnum.INFO"
+		[class.btn-warning]="theme === PThemeEnum.WARNING"
+		[class.btn-outline-light]="theme === PBtnThemeEnum.OUTLINE_LIGHT"
+		[class.btn-outline-secondary]="theme === PBtnThemeEnum.OUTLINE_SECONDARY"
+		[class.btn-outline-primary]="theme === PBtnThemeEnum.OUTLINE_PRIMARY"
+		[class.btn-outline-danger]="theme === PBtnThemeEnum.OUTLINE_DANGER"
+		[class.btn-outline-dark]="theme === PBtnThemeEnum.OUTLINE_DARK"
+		[class.btn-primary]="theme === PThemeEnum.PRIMARY"
+		[class.btn-secondary]="theme === PThemeEnum.SECONDARY"
+		[class.btn-dark]="theme === PThemeEnum.DARK"
+		[class.text-muted]="textStyle === PTextColorEnum.MUTED"
+		[class.text-primary]="textStyle === PThemeEnum.PRIMARY"
+		[class.text-secondary]="textStyle === PThemeEnum.SECONDARY"
+		[class.text-success]="textStyle === PThemeEnum.SUCCESS"
+		[class.text-info]="textStyle === PThemeEnum.INFO"
+		[class.text-warning]="textStyle === PThemeEnum.WARNING"
+		[class.text-light]="textStyle === PThemeEnum.LIGHT"
+		[class.text-dark]="textStyle === PThemeEnum.DARK"
+		[class.text-danger]="textStyle === PThemeEnum.DANGER"
+		[class.text-white]="textStyle === PTextColorEnum.WHITE"
+		[class.position-relative]="!!badge"
+		[class.rounded-right]="rounded === BootstrapRounded.RIGHT"
+		[class.rounded-left]="rounded === BootstrapRounded.LEFT"
+		[class.rounded-0]="rounded === BootstrapRounded.NONE"
+
+		[class.disabled]="disabled || !canEdit"
+		[disabled]="disabled || !canEdit"
+	>
+		<ng-template [ngIf]="!!badge">
+			<p-badge
+				[content]="badge"
+				[align]="badgeAlign"
+				[size]="size"
+				class="align-{{badgeAlign}}"
+			></p-badge>
+		</ng-template>
+		<fa-icon *ngIf="!!icon" [theme]="iconTheme" [fixedWidth]="true" [icon]="icon" class="mr-2"></fa-icon><label class="m-0 flex-grow-1" #content [class.d-none]="!showContent"><ng-content></ng-content></label>
+	</button>
+	<div *ngIf="!!cannotEditHint && !!disabled && !isLoading"
+		class="btn flex-grow-0 d-flex align-items-center"
+		[class.btn-light]="theme === PThemeEnum.LIGHT"
+		[class.btn-danger]="theme === PThemeEnum.DANGER"
+		[class.btn-success]="theme === PThemeEnum.SUCCESS"
+		[class.btn-info]="theme === PThemeEnum.INFO"
+		[class.btn-warning]="theme === PThemeEnum.WARNING"
+		[class.btn-outline-light]="theme === PBtnThemeEnum.OUTLINE_LIGHT"
+		[class.btn-outline-secondary]="theme === PBtnThemeEnum.OUTLINE_SECONDARY"
+		[class.btn-outline-primary]="theme === PBtnThemeEnum.OUTLINE_PRIMARY"
+		[class.btn-outline-danger]="theme === PBtnThemeEnum.OUTLINE_DANGER"
+		[class.btn-outline-dark]="theme === PBtnThemeEnum.OUTLINE_DARK"
+		[class.btn-primary]="theme === PThemeEnum.PRIMARY"
+		[class.btn-secondary]="theme === PThemeEnum.SECONDARY"
+		[class.btn-dark]="theme === PThemeEnum.DARK"
+
+		(click)="openCannotEditHint()"
+	><fa-icon [icon]="PlanoFaIconPool.MORE_INFO"></fa-icon></div>
+</ng-container>

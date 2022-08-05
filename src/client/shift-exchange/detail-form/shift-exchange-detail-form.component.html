@@ -1,0 +1,559 @@
+<div
+	*ngIf="formGroup && item; else itemIsLoading"
+	[@slideVertical]
+>
+	<ng-template [ngIf]="item.behavesAsNewItem" [ngIfElse]="existingItemFormTemplate">
+		<ng-template [ngTemplateOutlet]="formTemplate" [ngTemplateOutletContext]="{$implicit : false}"></ng-template>
+	</ng-template>
+	<ng-template #existingItemFormTemplate>
+		<p-editable-modal-box
+			class="mb-5"
+			size="xl"
+
+			[pEditable]="!item.behavesAsNewItem && !item.isClosed"
+			[api]="api"
+			[valid]="!formIsInvalid"
+			(onDismiss)="initFormGroup()"
+			(onSaveSuccess)="initFormGroup()"
+
+			[disabled]="formIsDisabled"
+
+			[btnLabel]="infoBoxEditButtonText!"
+			[btnIcon]="turnToIllnessIsPossible ? 'briefcase-medical' : null"
+			(onModalClosed)="refreshTurnToIllnessIsPossible()"
+		>
+			<p-editable-modal-box-header class="p-2 pl-3 pr-3 p-md-3">
+				<div class="d-inline d-md-flex">
+					<h5 class="m-0 ml-1 mr-2 wrap">
+						<fa-icon class="pr-2" [class.text-danger]="item.isIllness && !item.isBasedOnIllness" [fixedWidth]="true" [icon]="headlineIcon"></fa-icon>
+						<span *ngIf="item.isNewItem()">Neue </span>
+						<ng-template [ngIf]="!item.isIllness || item.isBasedOnIllness" [ngIfElse]="notConfirmedTitleTemplate">
+							<span>
+								<ng-template [ngIf]="!item.responsibleMember"><ng-container i18n>Ersatzsuche</ng-container></ng-template>
+								<ng-template [ngIf]="item.responsibleMember"><ng-container i18n>Ersatzsuche von</ng-container>&ngsp;<span class="nowrap"><p-member-badge
+									class="d-inline"
+									[absenceType]="absenceType"
+									[memberId]="item.responsibleMemberId"
+									[firstName]="item.responsibleMember.firstName"
+									[lastName]="item.responsibleMember.lastName"
+									[isMe]="!!isMe(item.responsibleMemberId)"
+									[size]="Config.IS_MOBILE ? 'small' : 'normal'"
+								></p-member-badge>&nbsp;<span class="title"><strong>{{ item.responsibleMember.firstName }}</strong> {{ item.responsibleMember.lastName }}</span></span>
+							</ng-template>
+						</span>
+						</ng-template>
+						<ng-template #notConfirmedTitleTemplate>
+							<span><ng-container i18n>Krankmeldung von</ng-container>&ngsp;<ng-template [ngIf]="indisposedMember">
+								<span class="nowrap"><p-member-badge
+									class="d-inline"
+									[absenceType]="indisposedMember.trashed ? 'trashed' : null"
+									[memberId]="item.indisposedMemberId"
+									[firstName]="indisposedMember.firstName"
+									[lastName]="indisposedMember.lastName"
+									[isMe]="isMe(item.indisposedMemberId)!"
+									[size]="'normal'"
+								></p-member-badge> {{indisposedMember.firstName}} {{indisposedMember.lastName}}</span>
+							</ng-template>
+							</span>
+						</ng-template>
+						<span *ngIf="isExpired" class="text-danger pl-2"> (<ng-container i18n>Abgelaufen</ng-container>)</span>
+					</h5>
+					<p-deadline
+						*ngIf="item.deadline"
+						[timestamp]="item.deadline"
+					></p-deadline>
+				</div>
+			</p-editable-modal-box-header>
+			<p-editable-modal-box-showroom>
+				<ng-template [ngTemplateOutlet]="formTemplate" [ngTemplateOutletContext]="{$implicit : true}"></ng-template>
+			</p-editable-modal-box-showroom>
+			<p-editable-modal-box-form>
+				<ng-template [ngTemplateOutlet]="formTemplate" [ngTemplateOutletContext]="{$implicit : false}"></ng-template>
+			</p-editable-modal-box-form>
+		</p-editable-modal-box>
+		<!-- cSpell:disable Abwesenheits -->
+		<p-section
+			class="mb-5 border-0"
+			*ngIf="item.relatedAbsences.length"
+			label="Hieraus entstandene Abwesenheits-Einträge" i18n-label
+			[whitespace]="SectionWhitespace.NONE"
+		>
+			<p-shift-exchange-related-absences
+				[absences]="item.relatedAbsences"
+				(onClickAbsence)="navToAbsence($event)"
+			></p-shift-exchange-related-absences>
+		</p-section>
+	</ng-template>
+
+	<div
+		*ngIf="item.behavesAsNewItem"
+		class="d-flex align-items-center justify-content-end"
+	>
+		<ng-template [ngIf]="!!warnings.withSeverityInfoCount">
+			<div hidden><span i18n #translatedSeverityInfoCountTitle>{warnings.withSeverityInfoCount, plural, one {Ein Hinweis} other {{{warnings.withSeverityInfoCount}} Hinweise}} im Formular</span></div>
+			<span class="mr-2" [title]="translatedSeverityInfoCountTitle.textContent!">{{warnings.withSeverityInfoCount}}×<fa-icon class="text-info" [fixedWidth]="true" [icon]="PlanoFaIconPool.MORE_INFO"></fa-icon></span>
+		</ng-template>
+		<ng-template [ngIf]="!!warnings.withSeverityWarningCount">
+			<div hidden><span i18n #translatedSeverityWarningCountTitle>{warnings.withSeverityWarningCount, plural, one {Eine Warnung} other {{{warnings.withSeverityWarningCount}} Warnungen}} im Formular</span></div>
+			<span class="mr-2" [title]="translatedSeverityWarningCountTitle.textContent!">{{warnings.withSeverityWarningCount}}×<fa-icon class="text-warning" [fixedWidth]="true" icon="exclamation-triangle"></fa-icon></span>
+		</ng-template>
+		<ng-template [ngIf]="!!warnings.withSeverityFatalCount">
+			<div hidden><span i18n #translatedSeverityErrorCountTitle>{warnings.withSeverityFatalCount, plural, one {Ein Error} other {{{warnings.withSeverityFatalCount}} Errors}} im Formular</span></div>
+			<span class="mr-2" [title]="translatedSeverityErrorCountTitle.textContent!">{{warnings.withSeverityFatalCount}}×<fa-icon class="text-danger" [fixedWidth]="true" icon="times-circle"></fa-icon></span>
+		</ng-template>
+		<button
+			[type]="formIsInvalid ? 'submit' : 'button'"
+			class="btn btn-lg d-flex align-items-center ml-2"
+			[class.btn-primary]="!(item.behavesAsNewItem && !item.isNewItem())"
+			[class.btn-success]="item.behavesAsNewItem && !item.isNewItem()"
+			[class.progress-bar-striped]="api.isUpdatingWarnings"
+			[class.progress-bar-animated]="api.isUpdatingWarnings"
+			[disabled]="formIsInvalid || api.isBackendOperationRunning"
+			(click)="saveItem()"
+		>
+			<p-spinner *ngIf="api.isUpdatingWarnings" class="d-inline pl-2"></p-spinner>
+			<ng-template [ngIf]="!api.isUpdatingWarnings">
+				<fa-icon class="pr-2" [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon>
+			</ng-template>
+			<span i18n>{item.behavesAsNewItem && !item.isNewItem(), select, true {Erneut }}Anlegen</span>
+		</button>
+	</div>
+
+	<ng-template [ngIf]="!item.behavesAsNewItem">
+		<p-section *ngIf="showCommunicationIllnessResponse" label="Genehmigung der Krankmeldung" i18n-label [whitespace]="SectionWhitespace.NONE">
+			<ng-template
+				ngFor let-communicationIllnessResponseItem
+				[ngForOf]="communicationIllnessResponses"
+			>
+				<ng-template
+					[ngTemplateOutlet]="communicationTemplate"
+					[ngTemplateOutletContext]="{
+						$implicit : communicationIllnessResponseItem
+					}"
+				></ng-template>
+			</ng-template>
+		</p-section>
+
+		<p-section
+			*ngIf="communicationNonConfirmations.length"
+			label="Verhandlungsstatus" i18n-label
+			[whitespace]="SectionWhitespace.NONE"
+		>
+			<p *ngIf="item.isClosed"><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.MORE_INFO"></fa-icon>&nbsp;<ng-container i18n>Diese {item.isIllness && !item.isBasedOnIllness, select, true {Krankmeldung} other {Suche}} ist beendet. Der Status kann nicht mehr geändert werden.</ng-container></p>
+			<ng-template
+				ngFor let-communicationNonConfirmationInputItem
+				[ngForOf]="communicationNonConfirmations"
+			>
+				<ng-template
+					[ngTemplateOutlet]="communicationTemplate"
+					[ngTemplateOutletContext]="{
+						$implicit : communicationNonConfirmationInputItem
+					}"
+				></ng-template>
+			</ng-template>
+		</p-section>
+
+		<ng-template #communicationTemplate let-input let-isMuted="isMuted">
+			<p-shift-exchange-communication
+				[shiftExchange]="item"
+				[input]="input"
+				(onPerformActionModalSuccess)="onPerformActionModalSuccess($event)"
+				(onPerformActionModalDismiss)="onPerformActionModalDismiss()"
+			></p-shift-exchange-communication>
+		</ng-template>
+
+		<div hidden><span i18n #translatedSomeFormSectionLabel>Erneut {item.isIllness && !item.isBasedOnIllness, select, true {krank melden} other {Ersatz suchen}}</span></div>
+		<p-section
+			*ngIf="item.openShiftExchange === false"
+			[@slideVertical]
+			[label]="translatedSomeFormSectionLabel.textContent!"
+			class="border-0 mt-5 mb-5"
+			[whitespace]="SectionWhitespace.NONE"
+		>
+			<div class="d-flex justify-content-between align-items-center">
+				<div>
+					<span *ngIf="item.isIllness && !item.isBasedOnIllness; else noIllnessText" i18n>Die Personalleitung wird automatisch informiert und muss darüber entscheiden.</span>
+					<ng-template #noIllnessText>
+						<span i18n>Bereits gegebene Antworten gehen verloren. Deine Mitarbeitenden werden aufgefordert, erneut zu antworten. Überlege dir gut, ob das nötig ist.</span>
+					</ng-template>
+				</div>
+				<p-button [attributeInfo]="null"
+					class="ml-3"
+					(triggerClick)="reOpenForm()"
+					[disabled]="allShiftRefsAreInThePast"
+					title="Wiederherstellen" i18n-title
+				><span class="nowrap"><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.RESTORE"></fa-icon>&nbsp;<ng-container i18n>Wiederherstellen</ng-container></span></p-button>
+			</div>
+		</p-section>
+
+	</ng-template>
+</div>
+
+<ng-template #itemIsLoading>
+	<p-spinner [size]="BootstrapSize.LG" class="m-5 h-100"></p-spinner>
+</ng-template>
+
+
+<ng-template #formTemplate let-readMode>
+	<form *ngIf="item" [formGroup]="$any(formGroup)" class="row">
+		<p-section class="col-12" [whitespace]="SectionWhitespace.MEDIUM">
+			<p-grid>
+				<p-form-group
+					*ngIf="readMode && !item.behavesAsNewItem"
+					class="col-12"
+				>
+					<p-shift-exchange-state-badge
+						[shiftExchange]="item"
+					></p-shift-exchange-state-badge>
+				</p-form-group>
+				<p-form-group
+					*ngIf="item.isNewItem() && !(item.indisposedMemberId && item.indisposedMemberId===null)"
+					class="col-12"
+					label="Von" i18n-label
+					[control]="formGroup!.controls['indisposedMemberId']!"
+				>
+					<p-input-member-id
+						[formControl]="formGroup!.controls['indisposedMemberId']!"
+						[members]="api.data.members"
+					></p-input-member-id>
+				</p-form-group>
+
+				<div
+					class="col-12"
+					[class.col-md]="!Config.IS_MOBILE"
+				>
+					<div class="d-flex align-items-center">
+						<div class="flex-grow-1 o-hidden">
+							<p-form-group>
+								<label>
+									<span i18n>{item.isIllness, select, true {Betroffene } other {Angebotene }}{item.shiftRefs.length, plural, one {Schicht } other {Schichten }}</span>
+									<span *ngIf="!!indisposedMember && !item.indisposedMemberId.equals(item.responsibleMemberId)"><ng-container i18n="Betroffene Schichten _von_">von</ng-container>&ngsp;<p-member-badge
+										class="d-inline"
+										[memberId]="item.indisposedMemberId"
+										[absenceType]="absenceTypeForBadgeForShiftsOfIndisposedMember"
+										[firstName]="indisposedMember.firstName"
+										[lastName]="indisposedMember.lastName"
+										[isMe]="isMe(item.indisposedMemberId)!"
+										[size]="'small'"
+									></p-member-badge>&ngsp;<span class="title"><strong>{{ indisposedMember.firstName }}</strong> {{ indisposedMember.lastName }}</span></span>
+								</label>
+
+								<p-shift-picker-modal-box
+									[api]="api"
+
+									[readMode]="readMode"
+
+									[loadDetailedItem]="item"
+									[offersRef]="item.shiftRefs"
+
+									[formArray]="formGroup!.controls['shiftRefs']!"
+									(addItem)="onAddShiftRefToFormArray(formGroup!.controls['shiftRefs']!, $event)"
+									(onAddShifts)="onAddShiftsToFormArray(formGroup!.controls['shiftRefs']!, $event)"
+
+									[availableShifts]="shiftsForShiftPicker"
+
+									[shiftTemplate]="!Config.IS_MOBILE ? shiftTemplate : undefined!"
+									(calendarBtnClick)="pShiftExchangeService.onCalendarBtnClick($event)"
+
+									[disabled]="shiftRefsIsDisabled"
+									[showCalendarBtn]="!readMode ? false : undefined!"
+								></p-shift-picker-modal-box>
+								<ng-template #shiftTemplate let-shift let-viewStyle="viewStyle">
+									<ng-template [ngIf]="shiftExchangeExistsForShift(shift.id)" [ngIfElse]="otherShiftTemplate">
+										<p-shifts-info
+											popover="Ist schon in der Tauschbörse" i18n-popover
+											placement="top"
+
+											class="flex-grow-1 muted-item border"
+											[shiftId]="shift.id"
+											[showDate]="false"
+										>
+											<p-shift-info-content-left class="ml-2">
+												<fa-icon [fixedWidth]="true" icon="hands-helping"></fa-icon>
+											</p-shift-info-content-left>
+										</p-shifts-info>
+									</ng-template>
+
+									<ng-template #otherShiftTemplate>
+										<p-shift-item
+											[readMode]="true"
+
+											[popover]="!shiftIsPickable(shift.id) ? 'Ist schon Teil deiner ' + (item.isIllness ? 'Krankmeldung' : 'Ersatzsuche') : undefined!"
+											placement="top"
+
+											[class.border-primary]="!shiftIsPickable(shift.id)"
+											style="margin-top: 0 !important;"
+											[shift]="shift"
+											[emptyMemberSlots]="shift.emptyMemberSlots"
+											[viewStyle]="Config.IS_MOBILE ? ShiftItemViewStyles.SMALL : viewStyle"
+											[selectable]="shiftIsPickable(shift.id)"
+											[class.muted-item]="!shiftIsPickable(shift.id)"
+											[showAsList]="true"
+											[showCourseInfo]="true"
+										></p-shift-item>
+									</ng-template>
+								</ng-template>
+							</p-form-group>
+							<p-warnings
+								class="mb-2"
+								[warnings]="warnings.getByMember(item.indisposedMemberId)"
+							></p-warnings>
+						</div>
+					</div>
+					<div hidden><span i18n #translatedIsIllness>Krankmeldung {!isManagerForTheseShiftRefs, select, true {an Personalleitung}}</span></div>
+					<p-form-group
+						*ngIf="showIsIllnessCheckbox(readMode)"
+						[label]="translatedIsIllness.textContent!"
+						[control]="formGroup!.controls['isIllness']!"
+					>
+						<p-checkbox
+							[readMode]="readMode"
+							class="flex-grow-1"
+							icon="briefcase-medical"
+							[valueText]="isIllnessLabel"
+
+							[formControl]="formGroup!.controls['isIllness']!"
+						></p-checkbox>
+					</p-form-group>
+					<p-form-group
+						*ngIf="!(readMode && formGroup!.controls['indisposedMemberPrefersSwapping']!.value === undefined)"
+						[class.d-none]="formGroup!.controls['isIllness']!.value === undefined || formGroup!.controls['isIllness']!.value === true"
+						[class.d-block]="formGroup!.controls['isIllness']!.value === false"
+						[@slideVertical]
+						[control]="formGroup!.controls['indisposedMemberPrefersSwapping']!"
+					>
+						<label><ng-container i18n>Präferenz</ng-container> <p-info-circle [class.ml-2]="Config.IS_MOBILE" placement="top" i18n>Die Präferenz ist nicht bindend. Weicht jemand davon ab, braucht es eine zusätzliche Bestätigung, damit der Deal zustande kommt.</p-info-circle></label>
+						<p-radios
+							[popover]="!readMode && formGroup!.controls['indisposedMemberPrefersSwapping']!.disabled && iAmTheIndisposedMember ? 'Deine Präferenz legst du beim Starten der Ersatzsuche fest. Sie lässt sich nachträglich nicht ändern.' : undefined!"
+							placement="top"
+
+							[readMode]="readMode"
+
+							[formControl]="formGroup!.controls['indisposedMemberPrefersSwapping']!"
+						>
+							<p-radios-radio
+								icon="exchange-alt"
+								label="Im Gegenzug eine Schicht übernehmen" i18n-label
+								[value]="true"
+							></p-radios-radio>
+							<div hidden><span i18n #translatedLabelForRadioForPrefs>meine {item.shiftRefs.length, plural, one {Schicht} other {Schichten}} nur abgeben</span></div>
+							<p-radios-radio
+								icon="long-arrow-alt-right"
+								[label]="translatedLabelForRadioForPrefs.textContent!"
+								[value]="false"
+							></p-radios-radio>
+						</p-radios>
+					</p-form-group>
+					<p-form-group
+						*ngIf="!readMode"
+						[class.d-none]="!showDeadline"
+						[class.d-block]="showDeadline"
+						[@slideVertical]
+						[control]="formGroup!.controls['deadline']!"
+					>
+						<label><ng-container i18n>Frist für Ersatzsuche</ng-container> <p-info-circle [class.ml-2]="Config.IS_MOBILE" placement="top" i18n>Setzt du keine Frist, läuft die Ersatzsuche, bis die Schicht endet.</p-info-circle></label>
+						<p-input-date
+							[readMode]="readMode"
+
+							[type]="PInputDateTypes.deadline"
+							[isExclusiveEnd]="true"
+
+							[formControl]="formGroup!.controls['deadline']!"
+							[showDaysBeforeInput]="true"
+							[(daysBefore)]="daysBefore"
+
+							[min]="now"
+							[max]="endOfLatestShift(item.shiftRefs)"
+
+							[daysBeforeLabel]="daysBeforeLabel"
+						></p-input-date>
+						<p-validation-hint
+							[control]="formGroup!"
+							text="Wähle zuerst Schichten aus, bevor du eine Frist setzt." i18n-text
+							validationName="noshiftrefs"
+						></p-validation-hint>
+						<p-alert
+							class="mt-2"
+							*ngIf="sortedShiftRefs.length && daysBefore !== undefined"
+							[@slideVertical]
+							[theme]="formGroup!.controls['deadline']!.valid ? PThemeEnum.INFO : PThemeEnum.DANGER"
+						>
+							<span i18n>Sich daraus ergebende Frist: {{ removeDaysFromTimestamp(api.data.shifts.get(sortedShiftRefs[0].id)!.start, daysBefore) - 1 | date:'shortDate' }}</span>
+						</p-alert>
+					</p-form-group>
+					<p-form-group
+						*ngIf="!(readMode && !formGroup!.controls['indisposedMemberComment']!.value)"
+						[class.d-none]="!showIndisposedMemberCommentInMainForm"
+						[class.d-block]="showIndisposedMemberCommentInMainForm"
+						[label]="indisposedMemberCommentLabel"
+						[control]="formGroup!.controls['indisposedMemberComment']!"
+					>
+						<p-textarea
+							[readMode]="readMode"
+
+							[formControl]="formGroup!.controls['indisposedMemberComment']!"
+						></p-textarea>
+					</p-form-group>
+					<p-form-group
+						*ngIf="showIllnessResponderCommentToMembers(readMode)"
+						[class.d-none]="!(iAmTheNewResponsiblePersonForThisIllness || formGroup!.controls['illnessResponderCommentToMembers']!.value)"
+						[class.d-block]="(iAmTheNewResponsiblePersonForThisIllness || formGroup!.controls['illnessResponderCommentToMembers']!.value)"
+						[label]="illnessResponderCommentToMembersLabel"
+						[control]="formGroup!.controls['illnessResponderCommentToMembers']!"
+					>
+						<p-textarea
+							[readMode]="readMode"
+
+							[formControl]="formGroup!.controls['illnessResponderCommentToMembers']!"
+						></p-textarea>
+					</p-form-group>
+
+				</div>
+				<div
+					class="col-12 d-flex align-items-center justify-content-center"
+					[class.col-md-1]="!Config.IS_MOBILE"
+					*ngIf="item.newAssignedMemberId !== null"
+				>
+					<fa-icon class="mt-3 mb-3 fa-rotate-90 fa-rotate-md-0" [fixedWidth]="true" [icon]="item.isSwappedSuccessful ? 'exchange-alt' : 'long-arrow-alt-right'"></fa-icon>
+				</div>
+				<div
+					class="col-12"
+					[class.col-md]="!Config.IS_MOBILE"
+				>
+					<ng-template [ngIf]="item.newAssignedMemberId !== null">
+						<p-form-group *ngIf="item.isSwappedSuccessful; else newAssignedMemberTemplate">
+
+							<label>
+								<span><ng-container i18n>Getauscht mit</ng-container>&ngsp;</span>
+								<span><ng-container i18n>{item.shiftRefs.length, plural, one {Schicht} other {Schichten}} von</ng-container>&ngsp;<p-member-badge
+									class="d-inline"
+									[absenceType]="item.newAssignedMember!.trashed ? 'trashed' : null"
+									[memberId]="item.newAssignedMember!.id"
+									[firstName]="item.newAssignedMember!.firstName"
+									[lastName]="item.newAssignedMember!.lastName"
+									[isMe]="!!isMe(item.newAssignedMember!.id)"
+									[size]="'small'"
+								></p-member-badge> {{item.newAssignedMember!.firstName}} {{item.newAssignedMember!.lastName}}</span>
+							</label>
+							<div class="rounded o-hidden" style="background-color: rgba(0, 0, 0, 0.03) !important;">
+								<p-shifts-info
+									*ngFor="let swappedShiftRef of item.swappedShiftRefs.iterable(); let i = index"
+									[class.border-top]="i!==0"
+									[shiftId]="swappedShiftRef.id"
+								>
+									<p-shift-info-content-left class="ml-2" *ngIf="item.newAssignedMember">
+										<p-member-badge
+											[absenceType]="item.newAssignedMember.trashed ? 'trashed' : null"
+											[memberId]="item.newAssignedMember.id"
+											[firstName]="item.newAssignedMember.firstName"
+											[lastName]="item.newAssignedMember.lastName"
+											[isMe]="isMe(item.newAssignedMember.id)!"
+											[size]="'small'"
+										></p-member-badge>
+									</p-shift-info-content-left>
+									<p-shift-info-content-right class="align-self-stretch">
+										<button
+											type="button"
+											class="btn rounded-0 btn-frameless border-left btn-outline-secondary align-self-stretch card-option"
+											(click)="$event.stopPropagation();pShiftExchangeService.onCalendarBtnClick(swappedShiftRef)"
+											title="Im Kalender ansehen" i18n-title
+										>
+										<!-- *ngIf="showMultiSelectCheckbox" -->
+										<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.CALENDAR_SELECT_RELATED_SHIFTS"></fa-icon></button>
+									</p-shift-info-content-right>
+								</p-shifts-info>
+							</div>
+						</p-form-group>
+						<ng-template #newAssignedMemberTemplate>
+							<p-form-group label="Übernommen von" i18n-label>
+								<p-input-member-id
+									[api]="api"
+									[readMode]="true"
+
+									[ngModel]="item.newAssignedMemberId"
+									[ngModelOptions]="{ standalone: true }"
+									[members]="assignableMembersForShiftRefs"
+								></p-input-member-id>
+							</p-form-group>
+						</ng-template>
+					</ng-template>
+					<p-form-group
+						*ngIf="!(readMode && !(formGroup!.controls['memberIdAddressedTo']!.value !== null))"
+						[class.d-none]="item.isIllness"
+						[class.d-block]="!item.isIllness"
+						[@slideVertical]
+						label="Suche adressiert an" i18n-label
+						[control]="formGroup!.controls['memberIdAddressedTo']!"
+					>
+						<p-input-member-id
+							class="mb-3 d-block"
+							[readMode]="readMode"
+
+							[allMembersIsAllowed]="true"
+							[formControl]="formGroup!.controls['memberIdAddressedTo']!"
+							[members]="assignableMembersForShiftRefs"
+						></p-input-member-id>
+					</p-form-group>
+
+					<p-form-group
+						*ngIf="!readMode && showWillBeSentToManagersHint"
+						[@slideVertical]
+					>
+						<label>&nbsp;</label>
+						<p-alert [theme]="PThemeEnum.INFO" i18n>Deine Krankmeldung wird der Personalleitung zugeschickt. Sobald diese bestätigt wird, wirst du aus deiner Schicht entfernt und bekommst darüber eine Benachrichtigung.</p-alert>
+					</p-form-group>
+
+					<p-warnings
+						class="mb-2"
+						[warnings]="warningsForOfferRecipient"
+					></p-warnings>
+				</div>
+				<ng-template [ngIf]="item.behavesAsNewItem || !readMode && item.isIllness && isManagerForTheseShiftRefs">
+					<ng-template [ngTemplateOutlet]="managerFormControlsTemplate"></ng-template>
+				</ng-template>
+
+			</p-grid>
+
+			<p-warnings
+				class="mt-0 mb-2 mr-3 ml-3 rounded-bottom small shadow-sm"
+				[disableAnimation]="true"
+				[warnings]="nonMemberRelatedWarnings"
+			></p-warnings>
+
+		</p-section>
+
+	</form>
+</ng-template>
+
+
+<ng-template #managerFormControlsTemplate>
+	<div class="col-12"></div>
+	<div class="col-12 col-md-6" *ngIf="item && (generateShiftExchangesIsPossible || (item.isNewItem() && iAmTheResponsiblePersonForThisIllness && !iAmTheIndisposedMember))">
+		<p-alert
+			class="mb-4"
+			*ngIf="item.isNewItem() && iAmTheResponsiblePersonForThisIllness && !iAmTheIndisposedMember"
+			[theme]="PThemeEnum.INFO"
+			[dismissable]="true"
+			i18n
+		>Hiermit entfernst du {!!indisposedMember, select, true {{{ indisposedMember?.firstName ?? 'die Person' }}} other {?}} aus {item.shiftRefs.length, plural, one {der Schicht} other {den Schichten}} und startest die Ersatzsuche. Alle berechtigten Mitarbeitenden werden automatisch gefragt, ob sie die {item.shiftRefs.length, plural, one {Schicht} other {Schichten}} übernehmen können. Über eine positive Antwort wirst du benachrichtigt.</p-alert>
+		<p-generate-shift-exchanges-options
+			*ngIf="generateShiftExchangesIsPossible"
+			[@slideVertical]
+			[formControl]="formGroup!.controls['generateShiftExchangesOptions']!"
+			[shiftExchange]="item"
+		></p-generate-shift-exchanges-options>
+	</div>
+
+	<ng-template [ngIf]="generateShiftExchangesIsPossible && generateAbsencesIsPossible">
+		<div class="col-12 row"><hr class="col-12"></div>
+	</ng-template>
+	<p-generate-absences-options
+		*ngIf="generateAbsencesIsPossible && item"
+		class="col-12"
+		[@slideVertical]
+		[formControl]="formGroup!.controls['generateAbsencesOptions']!"
+		[shiftRefs]="item.shiftRefs"
+		[indisposedMemberId]="item.indisposedMemberId"
+	></p-generate-absences-options>
+
+</ng-template>

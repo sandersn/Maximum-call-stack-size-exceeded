@@ -1,0 +1,217 @@
+<ng-template [ngIf]="!!calendarMode && !!selectedDate">
+	<div class="d-flex align-items-stretch justify-content-between">
+		<h5 class="title mb-0 pt-1 pb-1 pl-3 pr-3 d-flex align-items-center">
+			{{ selectedDate | calendarTitle:calendarMode:config.IS_MOBILE }}
+
+			<p-button [attributeInfo]="null"
+				class="ml-2 h-100 nowrap"
+				[size]="BootstrapSize.SM"
+				(triggerClick)="inputDateClick($event)"
+			>
+				<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.STATE_DATE_PICKED"></fa-icon>
+			</p-button>
+		</h5>
+
+		<p-deselect-btn
+			*ngIf="!config.IS_MOBILE && api.hasSelectedItems"
+			class="flex-grow-1 d-flex align-items-stretch justify-content-center ml-2 mr-2 pt-1 pb-1 pl-2 pr-2"
+			style="max-width: 500px;"
+		></p-deselect-btn>
+		<div
+			*ngIf="config.IS_MOBILE || !schedulingService.wishPickerMode && !schedulingService.earlyBirdMode; else someSpecialMode"
+			class="d-flex justify-content-end align-items-stretch pt-1 pb-1 pr-3"
+		>
+			<ng-template [ngIf]="showMemoOfTodayButton">
+				<button
+					type="button"
+					class="btn btn-sm ml-2 d-flex btn-outline-secondary align-items-center"
+					[class.d-none]="api.isLoaded() && api.hasSelectedItems"
+					[class.d-lg-block]="api.isLoaded() && api.hasSelectedItems"
+					[class.d-block]="!(api.isLoaded() && api.hasSelectedItems)"
+					(click)="onStickyNoteClick(modalContent)"
+				>
+					<!-- [backgroundColor]="dateIsToday(selectedDate) ? PThemeEnum.DARK : null" -->
+					<p-sticky-note
+						height="16"
+						[backgroundColor]="null"
+					></p-sticky-note><span class="ml-2" *ngIf="memoOfTodayButtonText"> {{ memoOfTodayButtonText }}</span>
+				</button>
+			</ng-template>
+			<div class="d-none ml-2 d-lg-flex">
+				<ng-template [ngIf]="rightsService.isOwner || canWriteAnyShiftModel || userCanManageBookings">
+					<p-dropdown
+						[icon]="PlanoFaIconPool.ADD"
+						[btnStyle]="PBtnThemeEnum.OUTLINE_PRIMARY"
+						label="Neuer Eintrag" i18n-label
+						[hideTriggerLabel]="spaceIsRare"
+						[dropdownType]="DropdownTypeEnum.BUTTONS"
+					>
+						<div hidden><span i18n #translatedAddShift>{!!spaceIsRare, select, true {Neue }}Schicht</span></div>
+						<p-dropdown-item
+							*ngIf="canWriteAnyShiftModel"
+							[label]="translatedAddShift.textContent!"
+							(onClick)="showShiftDetails()"
+							[isLoading]="!api.isLoaded()"
+							[attributeInfo]="null"
+						></p-dropdown-item>
+						<div hidden><span i18n #translatedAddAbsence>{!!spaceIsRare, select, true {Neue }}Abwesenheit</span></div>
+						<p-dropdown-item
+							*ngIf="rightsService.isOwner"
+							[label]="translatedAddAbsence.textContent!"
+							(onClick)="showAbsenceDetails()"
+							[isLoading]="!api.isLoaded()"
+							[attributeInfo]="null"
+						></p-dropdown-item>
+						<div hidden><span i18n #translatedAddBooking>{!!spaceIsRare, select, true {Neue }}Buchung</span></div>
+						<p-dropdown-item
+							*ngIf="userCanManageBookings"
+							[label]="translatedAddBooking.textContent!"
+							(onClick)="showBookingDetails()"
+							[isLoading]="!api.isLoaded()"
+							[attributeInfo]="null"
+						></p-dropdown-item>
+					</p-dropdown>
+				</ng-template>
+				<p-button [attributeInfo]="null"
+					*ngIf="rightsService.isOwner"
+					class="ml-2 nowrap title"
+					[size]="BootstrapSize.SM"
+					[disabled]="!api.isLoaded()"
+					(triggerClick)="evaluateShiftPlan()"
+					title="Plan prüfen" i18n-title
+				>
+					<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.EVALUATE_SHIFT_PLAN"></fa-icon>&ngsp;<span
+						class="hidden-xlg-down title"
+						*ngIf="!spaceIsRare"
+						i18n
+					>Plan prüfen</span>
+				</p-button>
+				<p-button [attributeInfo]="null"
+					class="ml-2 nowrap title"
+					[size]="BootstrapSize.SM"
+					[disabled]="isApiLoading"
+					(triggerClick)="exportShifts()"
+					title="Excel-Export der angezeigten Schichten" i18n-title
+				>
+					<fa-icon [fixedWidth]="true" [icon]="exportIsRunning ? PlanoFaIconPool.SYNCING : PlanoFaIconPool.EXPORT" [spin]="exportIsRunning"></fa-icon>
+				</p-button>
+			</div>
+			<ng-container *ngTemplateOutlet="earlyBirdButton"></ng-container>
+			<ng-container *ngTemplateOutlet="freeWishesButton"></ng-container>
+		</div>
+		<ng-template #someSpecialMode>
+			<ng-container *ngTemplateOutlet="wishPickerTemplate"></ng-container>
+		</ng-template>
+	</div>
+	<div *ngIf="showMemoOfTodayBar" class="border-top p-0 d-flex align-items-stretch">
+		<blockquote class="btn-light btn-frameless clickable flex-grow-1 text-style-reset-to-body text-left pl-3 pt-2 pb-2 pr-3 d-flex o-hidden"
+			(click)="editMemo(modalContent)"
+		>
+			<p-sticky-note class="mr-2"></p-sticky-note>
+			<span
+				class="flex-grow-1 title"
+				style="text-overflow: clip;"
+			>{{memoOfToday!.message}}</span>
+			<span class="text-primary nowrap" i18n>…mehr anzeigen</span>
+		</blockquote>
+	</div>
+	<div *ngIf="config.IS_MOBILE && schedulingService.wishPickerMode">
+		<div class="d-flex border-top justify-content-end">
+			<ng-container *ngTemplateOutlet="wishPickerTemplate"></ng-container>
+		</div>
+	</div>
+</ng-template>
+
+<ng-template #wishPickerTemplate>
+	<button
+		*ngIf="!config.IS_MOBILE && schedulingService.earlyBirdMode"
+		class="btn btn-primary btn-sm ml-2 nowrap" type="button"
+		[disabled]="!api.isLoaded()"
+		(click)="stopMode()"
+		title="Modus beenden" i18n-title
+	><p-assignment-process-icon
+		*ngIf="schedulingService.earlyBirdMode"
+		class="nowrap"
+		[class.text-white]="true"
+		[state]="states.EARLY_BIRD_SCHEDULING"
+		[isOwner]="!!rightsService.isOwner"
+	></p-assignment-process-icon>&nbsp;<ng-container i18n>Beenden</ng-container></button>
+	<p-wish-picker
+		*ngIf="schedulingService.wishPickerMode"
+		[shifts]="api.data.shifts.selectedItems"
+		[api]="api"
+	></p-wish-picker>
+</ng-template>
+
+<ng-template #earlyBirdButton>
+	<p-button [attributeInfo]="null"
+		*ngIf="freeEarlyBirdSeatsCount"
+		[badge]="schedulingService.earlyBirdMode ? null : freeEarlyBirdSeatsCount"
+		class="d-flex ml-2"
+		[size]="config.IS_MOBILE ? undefined : BootstrapSize.SM"
+		[theme]="!schedulingService.earlyBirdMode ? PThemeEnum.SECONDARY : PThemeEnum.PRIMARY"
+
+		[disabled]="!api.isLoaded()"
+		(triggerClick)="toggleEarlyBirdMode()"
+	>
+		<p-assignment-process-icon
+			style="position: relative; bottom: 2px;"
+			class="nowrap"
+			[class.infinite-pulse]="!schedulingService.earlyBirdMode && api.isLoaded() && !!freeEarlyBirdSeatsCount"
+			[class.text-white]="schedulingService.earlyBirdMode"
+			[state]="states.EARLY_BIRD_SCHEDULING"
+			[isOwner]="!!rightsService.isOwner"
+		></p-assignment-process-icon><span *ngIf="config.IS_MOBILE && schedulingService.earlyBirdMode">&nbsp;<ng-container i18n>Beenden</ng-container></span>
+		<span
+			*ngIf="!spaceIsRare"
+			class="pl-2 nowrap"
+		><ng-container i18n>Früher Vogel</ng-container> <p-info-circle *ngIf="!config.IS_MOBILE" placement="left" i18n>Es sind Schichten vorhanden, die du sofort übernehmen kannst. Deine Kollegen aber auch. Also beeil dich: Der frühe Vogel fängt den Wurm!</p-info-circle></span>
+	</p-button>
+</ng-template>
+<ng-template #freeWishesButton>
+	<p-button [attributeInfo]="null"
+		*ngIf="freeWishesCount !== undefined"
+		[badge]="freeWishesCount"
+		class="ml-2 d-flex"
+		[size]="config.IS_MOBILE ? undefined : BootstrapSize.SM"
+
+		[disabled]="!api.isLoaded()"
+		(triggerClick)="toggleWishPickerMode()"
+		title="Schichtwunschabgabe" i18n-title
+	>
+		<fa-icon
+			class="nowrap"
+			[fixedWidth]="true" icon="heart"
+			[class.infinite-pulse]="!schedulingService.wishPickerMode && api.isLoaded() && !!freeWishesCount"
+			style="width: 1.5em;"></fa-icon>
+
+		<span
+			*ngIf="!spaceIsRare"
+			class="pl-1 nowrap"
+		><span *ngIf="!!freeWishesCount" i18n>{freeWishesCount, plural, one {Wunsch} other {Wünsche}} offen</span><span *ngIf="!freeWishesCount" i18n>Wünsche bearbeiten</span></span>
+
+	</p-button>
+</ng-template>
+
+<ng-template #modalContent let-c="close" let-d="dismiss">
+	<p-memo-modal-content
+		class="modal-content"
+		[memoModalDay]="selectedDate"
+		[showDateInput]="false"
+		(onClose)="c($event)"
+		(dismiss)="d()"
+		[userCanEditMemos]="api.data.memos.attributeInfoThis.canEdit"
+	></p-memo-modal-content>
+</ng-template>
+
+<p-input-date
+	#inputDateRef
+	class="ml-1"
+	style="display: none !important;"
+	[size]="BootstrapSize.SM"
+	[ngModel]="selectedDate"
+	(ngModelChange)="navTo($event)"
+	[showEraseValueBtn]="false"
+	[showNowButton]="false"
+	[range]="calendarMode"
+></p-input-date>

@@ -1,0 +1,20 @@
+@import "booking-list";
+
+.bookings {
+	.bookings-headline {
+		font-weight: bold;
+	}
+
+	.bookings-item {
+		// background: red;
+	}
+}
+
+.booking-data {
+	font-weight: bold;
+}
+
+.card {
+	/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+	margin-bottom: -1px;
+}

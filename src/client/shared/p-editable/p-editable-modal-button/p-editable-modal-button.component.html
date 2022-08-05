@@ -1,0 +1,95 @@
+<div class="d-flex align-items-center flex-grow-1">
+	<!-- I need to use inline here, because i can not know if a label template is visible or not. So i can not add e.g. .mr-2 to the icon -->
+	<span *ngIf="(!!label || !!btnLabel) && !!showBtnLabel && !!showBtnIcon"><fa-icon *ngIf="icon && showBtnIcon" class="mr-2 d-inline-block" [fixedWidth]="true" [icon]="icon"></fa-icon>{{ btnLabel ? btnLabel : label }}</span>
+	<span *ngIf="(!!label || !!btnLabel) && !showBtnLabel && !!showBtnIcon"><fa-icon *ngIf="icon" class="d-inline-block" [fixedWidth]="true" [icon]="icon"></fa-icon></span>
+	<ng-template [ngIf]="!(!!label || !!btnLabel)">
+		<fa-icon *ngIf="icon" class="d-inline-block ml-2 mr-2" [fixedWidth]="true" [icon]="icon"></fa-icon>
+		<ng-content select="p-editable-modal-button-header"></ng-content>
+	</ng-template>
+</div>
+
+<div
+	#pEditableRef
+	[pEditable]="pEditable"
+	[api]="api"
+	[valid]="valid"
+	[saveChangesHook]="saveChangesHook"
+	(onSaveStart)="onSaveStart.emit($event)"
+	(onSaveSuccess)="onSaveSuccess.emit($event)"
+	(onDismiss)="onDismiss.emit($event)"
+	(onLeaveCurrent)="onLeaveCurrent.emit()"
+	(editMode)="updateEditMode($event)"
+
+>
+<!-- [changeDetection]="!!modalRef" -->
+	<ng-template #formInModal let-c="close" let-d="dismiss">
+		<div class="modal-header" [class.text-danger]="valid===false">
+			<h4 class="m-0 d-flex align-items-center w-100"
+				[class.text-white]="theme==='dark'"
+				[class.text-danger]="valid===false"
+			><ng-template [ngIf]="!!label" [ngIfElse]="noLabel">{{label}}</ng-template><ng-template #noLabel><ng-container i18n>Bearbeiten</ng-container></ng-template></h4>
+			<button type="button" class="close" aria-label="Close"
+				(click)="d()"
+			>
+				<span aria-hidden="true"
+					[class.text-white]="theme==='dark'"
+				>&times;</span>
+			</button>
+		</div>
+		<form class="modal-body" [class.p-0]="modalWhitespace===SectionWhitespace.NONE" [class.p-4]="modalWhitespace===SectionWhitespace.LG">
+			<ng-content select="p-editable-modal-button-form"></ng-content>
+		</form>
+		<div class="modal-footer">
+			<ng-template [ngTemplateOutlet]="footerTemplateRef" [ngTemplateOutletContext]="{ dismiss: d, close: c }"></ng-template>
+		</div>
+	</ng-template>
+</div>
+
+<ng-template #footerTemplateRef let-c="close" let-d="dismiss">
+	<div class="flex-grow-1 row">
+		<ng-template [ngIf]="pEditable" [ngIfElse]="pEditableNotActive">
+			<div class="col">
+				<button
+					type="button"
+
+					class="btn btn-lg btn-outline-secondary"
+					(click)="d()"
+				><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.UNDO"></fa-icon><span class="d-none d-md-inline">&nbsp;<ng-container i18n>Verwerfen</ng-container></span></button>
+			</div>
+			<div class="col d-flex">
+				<button
+					type="button"
+
+					[popover]="saveButtonPopover"
+					placement="top"
+
+					[class.progress-bar-striped]="showSuccessButtonLoadingAnimation"
+					[class.progress-bar-animated]="showSuccessButtonLoadingAnimation"
+
+					class="btn btn-lg ml-auto"
+
+					[class.btn-primary]="closeBtnTheme===PThemeEnum.PRIMARY"
+					[class.btn-danger]="closeBtnTheme===PThemeEnum.DANGER"
+
+					(click)="saveChanges(c)"
+					[disabled]="valid===false || showSuccessButtonLoadingAnimation || closeBtnDisabled"
+					[class.disabled]="valid===false || showSuccessButtonLoadingAnimation || closeBtnDisabled"
+				><fa-icon *ngIf="!showSuccessButtonLoadingAnimation" [fixedWidth]="true" [icon]="PlanoFaIconPool.SUCCESS"></fa-icon><p-spinner *ngIf="showSuccessButtonLoadingAnimation" class="d-inline"></p-spinner>&nbsp;<span class="d-none d-md-inline" i18n>{{closeBtnLabelAsString}}</span></button>
+			</div>
+		</ng-template>
+		<ng-template #pEditableNotActive>
+			<div class="col d-flex">
+				<button
+					type="button"
+					class="btn btn-lg ml-auto"
+					[class.btn-outline-secondary]="valid!==false"
+					[class.btn-outline-danger]="valid===false"
+					(click)="saveChanges(c)"
+					[disabled]="closeBtnDisabled"
+					[class.disabled]="closeBtnDisabled"
+					i18n
+				>OK</button>
+			</div>
+		</ng-template>
+	</div>
+</ng-template>

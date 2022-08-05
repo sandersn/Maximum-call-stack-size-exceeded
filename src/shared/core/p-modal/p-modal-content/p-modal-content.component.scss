@@ -1,0 +1,17 @@
+@import "variables";
+
+// NOTE: 	If you change this, check if this is still fixed:
+// 				https://drplano.atlassian.net/browse/PLANO-99310?focusedCommentId=25117 (see the comment!)
+:host {
+	display: flex;
+	flex-direction: column;
+}
+
+.card-header {
+	padding: 0;
+
+	.card-header-inner,
+	.close {
+		padding: $card-spacer-y $card-spacer-x;
+	}
+}

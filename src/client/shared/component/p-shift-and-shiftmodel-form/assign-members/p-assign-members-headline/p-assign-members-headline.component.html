@@ -1,0 +1,53 @@
+<div class="d-flex justify-content-between align-items-center w-100">
+	<div class="w-100"><div class="p-1"><ng-content></ng-content></div></div>
+	<div class="d-flex justify-content-end align-items-center w-100">
+		<span *ngIf="me.data.isOwner" class="p-1" i18n>Stundenlohn</span>
+		<span class="card-option pt-0 pb-0 d-flex align-items-center justify-content-center pl-1 pr-1 min-w-50"
+			*ngIf="showHearts"
+			[tooltip]="tooltipHeart"
+			placement="bottom"
+		><fa-icon [fixedWidth]="true" icon="heart"></fa-icon></span>
+		<ng-template #tooltipHeart>
+			<div class="d-block clickable card m-0 text-left o-hidden">
+				<div class="card-body p-1 pl-2 pr-2">
+					<div i18n>Schichtwünsche deiner Mitarbeitenden, die von Dr.&nbsp;Plano bei der automatischen Verteilung berücksichtigt werden. Auch du kannst sie nutzen, wenn du jemanden händisch für eine Schicht eintragen möchtest.</div>
+				</div>
+			</div>
+		</ng-template>
+
+		<div class="d-flex justify-content-end" *ngIf="editMode">
+			<span *ngIf="me.data.isOwner" class="card-option pt-0 pb-0 d-flex align-items-center justify-content-center pl-1 pr-1 min-w-50"
+				[tooltip]="tooltipDarf"
+				placement="bottom"
+				#pop="bs-tooltip"
+				i18n
+			>darf</span>
+			<!-- placement="bottom" -->
+			<ng-template #tooltipDarf>
+				<div class="d-block clickable card m-0 text-left o-hidden"
+					(click)="pop.hide()"
+				>
+					<div class="card-body p-1 pl-2 pr-2">
+						<div i18n>Wähle die Personen, die diese Tätigkeit generell ausüben dürfen. Sie werden bei der automatischen Schichtverteilung von Dr.&nbsp;Plano berücksichtigt.</div>
+					</div>
+				</div>
+			</ng-template>
+
+			<span class="card-option pt-0 pb-0 d-flex align-items-center justify-content-center pl-1 pr-1 min-w-50"
+				[tooltip]="tooltipMacht"
+				placement="bottom"
+				#pop="bs-tooltip"
+				i18n
+			>macht</span>
+			<ng-template #tooltipMacht>
+				<div class="d-block clickable card m-0 text-left o-hidden"
+					(click)="pop.hide()"
+				>
+					<div class="card-body p-1 pl-2 pr-2">
+						<div i18n>Bestimme, ob diese Tätigkeit immer von einer bestimmten Person ausgeführt werden soll. Dr.&nbsp;Plano berücksichtigt das bei der automatischen Schichtverteilung.</div>
+					</div>
+				</div>
+			</ng-template>
+		</div>
+	</div>
+</div>

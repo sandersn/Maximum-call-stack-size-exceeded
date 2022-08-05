@@ -1,0 +1,181 @@
+<div class="d-flex flex-grow-1 align-items-center title" [class.detailed]="detailed" [class.not-detailed]="!detailed">
+	<div class="col-shiftRefs rounded-left o-hidden">
+		<p-shifts-info
+			class="align-self-stretch"
+			[shiftRefs]="shiftExchange.shiftRefs"
+			[showEndTime]="true"
+		>
+			<p-shift-info-content-inside-basic-info
+				*ngIf="showDeadline && !detailed"
+			>
+				<p-deadline
+					[timestamp]="shiftExchange.deadline"
+				></p-deadline>
+			</p-shift-info-content-inside-basic-info>
+		</p-shifts-info>
+		<div *ngIf="!!indisposedMember" class="d-flex mr-2 align-items-center ml-2">
+			<ng-template [ngTemplateOutlet]="memberBadgeTemplate" [ngTemplateOutletContext]="{
+				$implicit: indisposedMember,
+				alwaysShowMemberInitials: true,
+				absenceType: indisposedMember.trashed ? 'trashed' : (shiftExchange.isBasedOnIllness ? SchedulingApiAbsenceType.ILLNESS : null)
+			}"></ng-template>
+			<span *ngIf="detailed" class="ml-2 small title"><span class="title"><strong>{{ indisposedMember.firstName }}</strong> {{ indisposedMember.lastName }}</span></span>
+		</div>
+	</div>
+
+	<div class="col-result" *ngIf="detailed">
+		<div class="col-deadline"
+			*ngIf="showDeadline"
+		>
+			<p-deadline
+				[timestamp]="shiftExchange.deadline"
+			></p-deadline>
+		</div>
+		<ng-template
+			[ngIf]="shiftExchange.newAssignedMemberId !== null"
+			[ngIfElse]="addressedUserTemplate"
+		>
+			<div hidden><span i18n #translatedIconTitle>{shiftExchange.shiftRefs.length, plural, one {Schicht} other {Schichten}} {shiftExchange.isSwappedSuccessful, select, true {getauscht} other {übernommen}}</span></div>
+			<fa-icon
+				class="mr-2"
+				[fixedWidth]="true"
+				[title]="translatedIconTitle.textContent!"
+				[icon]="shiftExchange.isSwappedSuccessful ? 'exchange-alt' : 'long-arrow-alt-right'"
+			></fa-icon>
+			<p-shifts-info
+				class="align-self-stretch title"
+				*ngIf="shiftExchange.isSwappedSuccessful"
+				[shiftRefs]="shiftExchange.swappedShiftRefs"
+			></p-shifts-info>
+			<div *ngIf="!!shiftExchange.newAssignedMember" class="d-flex mr-2 align-items-center ml-2 title">
+				<ng-template [ngTemplateOutlet]="memberBadgeTemplate" [ngTemplateOutletContext]="{
+					$implicit: shiftExchange.newAssignedMember,
+					alwaysShowMemberInitials: null,
+					absenceType: shiftExchange.newAssignedMember.trashed ? 'trashed' : null
+				}"></ng-template>
+				<span class="ml-2 small title"><span class="title"><strong>{{ shiftExchange.newAssignedMember.firstName }}</strong> {{ shiftExchange.newAssignedMember.lastName }}</span></span>
+			</div>
+		</ng-template>
+		<ng-template #addressedUserTemplate>
+			<div *ngIf="!!memberAddressedTo" class="d-flex mr-2 align-items-center title">
+				<span class="mr-2 small title"><ng-container i18n>Adressat</ng-container>:</span>
+				<ng-template [ngTemplateOutlet]="memberBadgeTemplate" [ngTemplateOutletContext]="{
+					$implicit: memberAddressedTo,
+					alwaysShowMemberInitials: null,
+					absenceType: memberAddressedTo.trashed ? 'trashed' : null
+				}"></ng-template>
+				<span class="ml-2 small title"><span class="title"><strong>{{ memberAddressedTo.firstName }}</strong> {{ memberAddressedTo.lastName }}</span></span>
+			</div>
+		</ng-template>
+
+	</div>
+
+	<div *ngIf="detailed" class="col-state">
+		<p-shift-exchange-state-badge
+			*ngIf="!shiftExchange.isNewItem()"
+			[shiftExchange]="shiftExchange"
+		></p-shift-exchange-state-badge>
+	</div>
+
+	<div *ngIf="detailed" class="col-lastUpdate small"><span *ngIf="isStandaloneItem"><ng-container i18n>Update</ng-container>: </span>{{shiftExchange.lastUpdate | pTimeAgo: true}}</div>
+</div>
+
+<ng-template [ngIf]="showInCalendarBtnExists">
+	<div class="show-in-calendar-btn-wrap align-items-stretch"
+		[class.show-on-hover]="!CONFIG.IS_MOBILE && !detailed && !isSelectedShiftRef(shiftRefsForCalendarButtons[0])"
+	>
+		<ng-template [ngIf]="(shiftRefsForCalendarButtons.length + shiftExchange.swappedShiftRefs.length) === 1" [ngIfElse]="showInCalendarDropDownTemplate">
+			<button
+				style="min-width: 48px;"
+				type="button"
+				class="btn rounded-0 btn-frameless border-left align-self-stretch card-option"
+				[class.btn-primary]="isSelectedShiftRef(shiftRefsForCalendarButtons[0])"
+				[class.btn-light]="!isSelectedShiftRef(shiftRefsForCalendarButtons[0])"
+				[class.btn-outline-secondary]="!isSelectedShiftRef(shiftRefsForCalendarButtons[0])"
+				(click)="$event.stopPropagation();onCalendarClick(shiftRefsForCalendarButtons[0])"
+				title="Im Kalender ansehen" i18n-title
+			><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.CALENDAR_SELECT_RELATED_SHIFTS"></fa-icon></button>
+		</ng-template>
+
+		<ng-template #showInCalendarDropDownTemplate>
+			<ng-template #pDropdownItemTemplate let-item>
+				<ng-template
+					[ngTemplateOutlet]="dropdownItemTemplate"
+					[ngTemplateOutletContext]="{$implicit: item.value}"
+				></ng-template>
+			</ng-template>
+
+			<p-dropdown
+				style="min-width: 48px;"
+				class="d-flex"
+				[icon]="PlanoFaIconPool.CALENDAR_SELECT_RELATED_SHIFTS"
+				[dropdownType]="DropdownTypeEnum.MULTI_SELECT"
+				[btnStyle]="PBtnThemeEnum.OUTLINE_SECONDARY"
+				borderStyle="secondary"
+
+				label="Im Kalender ansehen" i18n-label
+
+				[triggerIsCardOption]="true"
+				[hideTriggerLabel]="true"
+				[dropdownItemTemplate]="pDropdownItemTemplate"
+				[hideDropdownToggleTriangle]="true"
+				[rounded]="BootstrapRounded.NONE"
+			>
+				<p-dropdown-item
+					*ngFor="let shiftRef of shiftRefsForCalendarButtons"
+					[value]="shiftRef"
+					[active]="isSelectedShiftRef(shiftRef)"
+					(onClick)="onCalendarClick(shiftRef)"
+				></p-dropdown-item>
+				<ng-template [ngIf]="!!shiftExchange.swappedShiftRefs.length">
+					<p-dropdown-item
+						*ngFor="let shiftRef of shiftExchange.swappedShiftRefs.iterable()"
+						[value]="shiftRef"
+						[active]="isSelectedShiftRef(shiftRef)"
+						(onClick)="onCalendarClick(shiftRef)"
+					></p-dropdown-item>
+				</ng-template>
+			</p-dropdown>
+		</ng-template>
+	</div>
+</ng-template>
+
+<ng-template #dropdownItemTemplate let-shiftRef>
+	<ng-template [ngIf]="shiftExchange.swappedShiftRefs && shiftExchange.swappedShiftRefs.get(0) && shiftExchange.swappedShiftRefs.get(0)!.id.equals(shiftRef.id)">
+		<div class="bg-dark text-center small">
+			<fa-icon class="text-white" [fixedWidth]="true" icon="exchange-alt"></fa-icon>
+		</div>
+	</ng-template>
+	<div class="card-options">
+		<p-shifts-info class="flex-grow-1" [shiftId]="shiftRef.id">
+		</p-shifts-info>
+		<button
+			type="button"
+			class="btn rounded-0 btn-frameless border-left align-self-stretch card-option"
+			[class.btn-primary]="isSelectedShiftRef(shiftRef)"
+			[class.btn-light]="!isSelectedShiftRef(shiftRef)"
+			[class.btn-outline-secondary]="!isSelectedShiftRef(shiftRef)"
+			title="Im Kalender ansehen" i18n-title
+			style="min-width: 48px;"
+			(click)="$event.stopPropagation();onCalendarClick(shiftRef)"
+		><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.CALENDAR_SELECT_RELATED_SHIFTS"></fa-icon></button>
+	</div>
+</ng-template>
+
+<p-shift-exchange-btn
+	class="ml-auto align-self-stretch d-flex"
+	[shiftExchange]="shiftExchange"
+	[hideNonCounterBadges]="detailed"
+></p-shift-exchange-btn>
+
+<ng-template #memberBadgeTemplate let-member let-alwaysShowMemberInitials="alwaysShowMemberInitials" let-absenceType="absenceType">
+	<p-member-badge
+		[alwaysShowMemberInitials]="alwaysShowMemberInitials"
+		[memberId]="member.id"
+		[firstName]="member.firstName"
+		[lastName]="member.lastName"
+		[isMe]="isMe(member)"
+		[absenceType]="absenceType"
+		size="small"
+	></p-member-badge>
+</ng-template>

@@ -1,0 +1,259 @@
+<form *ngIf="!!formGroup" [formGroup]="$any(formGroup)">
+	<div class="mt-3 mb-4">
+		<h2 class="m-0" i18n>Abwesenheit {item.isNewItem(), select, true {eintragen} other {bearbeiten}}</h2>
+	</div>
+	<div class="mb-5">
+		<p-form-group
+			*ngIf="showRelatedShiftExchange"
+			label="Dieser Eintrag wurde aus folgender Krankmeldung generiert" i18n-label
+		>
+			<p-shift-exchange-list-item
+				*ngIf="!!relatedShiftExchange; else noItemTemplate"
+				class="card"
+				[shiftExchange]="relatedShiftExchange"
+				[isStandaloneItem]="true"
+			></p-shift-exchange-list-item>
+			<ng-template #noItemTemplate>
+				<p-no-item [size]="BootstrapSize.SM" class="border-danger"></p-no-item>
+			</ng-template>
+		</p-form-group>
+		<p-form-group
+			label="Für Person" i18n-label
+			[control]="formGroup.controls['memberId']!"
+		>
+			<p-input-member-id
+				[pEditable]="!item.isNewItem()"
+				[api]="api"
+				(onDismiss)="initFormGroup()"
+
+				[formControl]="formGroup.controls['memberId']!"
+				[members]="api.data.members"
+			></p-input-member-id>
+		</p-form-group>
+		<p-form-control-switch
+			label="Grund" i18n-label
+
+			[pEditable]="!item.isNewItem()"
+			[api]="api"
+			[valid]="!formGroup.invalid"
+			(onDismiss)="initFormGroup()"
+
+			[group]="formGroup"
+			[attributeInfo]="item.attributeInfoType"
+		>
+			<p-form-control-switch-item
+				label="Krankheit" i18n-label
+				[value]="SchedulingApiAbsenceType.ILLNESS"
+			></p-form-control-switch-item>
+			<p-form-control-switch-item
+				label="Urlaub" i18n-label
+				[value]="SchedulingApiAbsenceType.VACATION"
+			></p-form-control-switch-item>
+			<p-form-control-switch-item
+				label="Sonstiges" i18n-label
+				[value]="SchedulingApiAbsenceType.OTHER"
+			></p-form-control-switch-item>
+		</p-form-control-switch>
+		<p-editable-modal-box
+			[pEditable]="!item.isNewItem()"
+			[api]="api"
+			[valid]="!formGroup.controls['paid']!.invalid && !formGroup.controls['hourlyEarnings']!.invalid"
+			(onDismiss)="initFormGroup()"
+
+			label="Bezahlung" i18n-label
+		>
+			<p-editable-modal-box-header></p-editable-modal-box-header>
+			<p-editable-modal-box-showroom>
+				<p class="m-0"><ng-container i18n>Bezahlte Abwesenheit</ng-container>: <code><ng-container i18n>{!!formGroup.controls['paid']!.value, select, true {Ja {!!formGroup.controls['hourlyEarnings']!.valid, select, true {({{ formGroup.controls['hourlyEarnings']!.value | currency }}/Std)}}} other {Nein}}</ng-container></code></p>
+			</p-editable-modal-box-showroom>
+			<p-editable-modal-box-form>
+				<p-grid>
+					<div class="col-12 col-md-6">
+						<p-form-group
+							label="Status" i18n-label
+							[control]="formGroup.controls['paid']!"
+						>
+							<p-checkbox
+								[formControl]="formGroup.controls['paid']!"
+								valueText="Bezahlt" i18n-valueText
+							></p-checkbox>
+						</p-form-group>
+					</div>
+					<div class="col-12 col-md-6">
+						<p-form-group
+							label="Stundenlohn" i18n-label
+							[control]="formGroup.controls['hourlyEarnings']!"
+						>
+							<p-input
+								[type]="PApiPrimitiveTypes.Currency"
+								[formControl]="formGroup.controls['hourlyEarnings']!"
+							></p-input>
+						</p-form-group>
+					</div>
+				</p-grid>
+			</p-editable-modal-box-form>
+		</p-editable-modal-box>
+		<p-editable-modal-box
+			[pEditable]="!item.isNewItem()"
+			[api]="api"
+			[valid]="!formGroup.controls['start']!.invalid && !formGroup.controls['end']!.invalid && !formGroup.controls['workingTimePerDay']!.invalid"
+			(onLeaveCurrent)="initFormGroup()"
+
+			label="Zeiten" i18n-label
+		>
+			<p-editable-modal-box-showroom>
+				<div *ngIf="!(!formGroup.controls['start']!.invalid && !formGroup.controls['end']!.invalid && !formGroup.controls['workingTimePerDay']!.invalid)" class="text-muted text-center">
+					<span i18n>Noch keine Zeiten eingetragen.</span>
+				</div>
+				<div *ngIf="(!formGroup.controls['start']!.invalid && !formGroup.controls['end']!.invalid && !formGroup.controls['workingTimePerDay']!.invalid)">
+					<ng-template
+						[ngIf]="formGroup.controls['fullday']!.value"
+						[ngIfElse]="noFullDayTitleTemplate"
+					>
+						<p class="m-0" i18n="@@absenceDetailFormTimesSettings"><code>{{ formattedWorkingTimePerDay }}</code> Stunden pro Tag vom <code *ngIf="formGroup.controls['start']!.value">{{ formGroup.controls['start']!.value | date:'shortDate' }}</code><code *ngIf="!formGroup.controls['start']!.value">{{ formGroup.controls['start']!.value | date:'shortDate' }}</code> bis zum <code>{!!displayedEnd, select, true {{{ displayedEnd | date:'shortDate' }}} other {?}}</code></p>
+					</ng-template>
+					<ng-template #noFullDayTitleTemplate>
+						<p class="m-0" i18n>Von <code>{!!formGroup.controls['start']!.value, select, true {{{ formGroup.controls['start']!.value | date:'shortDate' }}} other {?}}</code> um <code>{!!formGroup.controls['start']!.value, select, true {{{ formGroup.controls['start']!.value | date:'shortTime' }}} other {?}}</code> bis <code>{!!displayedEnd, select, true {{{ displayedEnd | date:'shortDate' }}} other {?}}</code> um <code>{!!displayedEnd, select, true {{{ displayedEnd | date:'shortTime' }}} other {?}}</code></p>
+					</ng-template>
+				</div>
+			</p-editable-modal-box-showroom>
+			<p-editable-modal-box-form>
+				<form class="row">
+					<div class="col-12 col-md-6">
+						<p-form-group
+							label="Ganztägig" i18n-label
+							[control]="formGroup.controls['fullday']!"
+						>
+							<p-radios
+								[formControl]="formGroup.controls['fullday']!"
+							>
+								<p-radios-radio
+									[value]="false"
+									label="Nein" i18n-label
+								></p-radios-radio>
+								<p-radios-radio
+									[value]="true"
+									label="Ja" i18n-label
+								></p-radios-radio>
+							</p-radios>
+						</p-form-group>
+					</div>
+					<div class="col-12 col-md-6">
+						<p-form-group
+							label="Stunden pro Tag" i18n-label
+							[control]="formGroup.controls['workingTimePerDay']!"
+						>
+							<p-input
+								[type]="PApiPrimitiveTypes.Duration"
+								[durationUIType]="PApiPrimitiveTypes.Hours"
+								[formControl]="formGroup.controls['workingTimePerDay']!"
+								placeholder="-"
+								[readMode]="false"
+							></p-input>
+						</p-form-group>
+					</div>
+					<div class="col-12 col-md-6">
+						<div hidden><span i18n #translatedStartLabel>Von {!!formGroup.controls['fullday']!.value, select, true {einschließlich}}</span></div>
+						<p-form-group
+							[label]="translatedStartLabel.textContent!"
+							[control]="formGroup.controls['start']!"
+						>
+							<p-input-date
+								[formControl]="formGroup.controls['start']!"
+								[showTimeInput]="!formGroup.controls['fullday']!.value"
+								[timeIsRequired]="!formGroup.controls['fullday']!.value"
+								[max]="formGroup.controls['end']!.value"
+								[showEraseValueBtn]="item.isNewItem()"
+							></p-input-date>
+							<p-validation-hint
+								[control]="formGroup.controls['start']!"
+								text="Der angegebene Start muss vor dem angegebenen Ende liegen" i18n-text
+								validationName="max"
+								[checkTouched]="false"
+							></p-validation-hint>
+						</p-form-group>
+					</div>
+					<div class="col-12 col-md-6">
+						<div hidden><span i18n #translatedFullDayLabel>Bis {!!formGroup.controls['fullday']!.value, select, true {einschließlich}}</span></div>
+						<p-form-group
+							[label]="translatedFullDayLabel.textContent!"
+							[control]="formGroup.controls['end']!"
+						>
+							<p-input-date
+								[formControl]="formGroup.controls['end']!"
+								[showTimeInput]="!formGroup.controls['fullday']!.value"
+								[timeIsRequired]="!formGroup.controls['fullday']!.value"
+								[min]="formGroup.controls['start']!.value"
+								[showEraseValueBtn]="item.isNewItem()"
+								[isExclusiveEnd]="true"
+							></p-input-date>
+							<p-validation-hint
+								[control]="formGroup.controls['end']!"
+								validationName="min"
+								[checkTouched]="false"
+							></p-validation-hint>
+						</p-form-group>
+					</div>
+				</form>
+			</p-editable-modal-box-form>
+		</p-editable-modal-box>
+	</div>
+
+	<div class="mb-5">
+		<p-form-group
+			label="Sichtbarkeit des Abwesenheitseintrags" i18n-label
+			[control]="formGroup.controls['visibleToTeamMembers']!"
+		>
+			<p-info-circle placement="top">
+				<div style="max-width: 200px;" class="ml-2" i18n>Zur <strong>Leitung</strong> gehören User, die für eine oder mehrere Tätigkeiten, die die abwesende Person machen darf, Schreibrecht haben, sowie Admins. Zu <strong>»anderen Team-Mitgliedern«</strong> gehören alle User ohne Schreibrecht, die in mindestens einer Tätigkeit mit der abwesenden Person zusammenarbeiten dürfen oder in mindestens einer der Tätigkeiten, die die abwesende Person machen darf, ein Leserecht haben.</div>
+			</p-info-circle>
+			<p-radios
+				[pEditable]="!item.isNewItem()"
+				[api]="api"
+				[valid]="!formGroup.invalid"
+				(onDismiss)="initFormGroup()"
+
+				[formControl]="formGroup.controls['visibleToTeamMembers']!"
+				[(ngModel)]="item.visibleToTeamMembers"
+			>
+				<p-radios-radio
+					[value]="false"
+					label="Nur für die Leitung sichtbar" i18n-label
+				></p-radios-radio>
+				<p-radios-radio
+					[value]="true"
+					label="Für Leitung & andere Team-Mitglieder sichtbar" i18n-label
+				></p-radios-radio>
+			</p-radios>
+		</p-form-group>
+	</div>
+	<div class="mb-5">
+		<h4 i18n>Kommentar an betroffene Person</h4>
+		<p-form-group [control]="formGroup.controls['ownerComment']!">
+			<p-textarea
+				[pEditable]="!item.isNewItem()"
+				[api]="api"
+				[valid]="!formGroup.invalid"
+				(onDismiss)="initFormGroup()"
+
+				[formControl]="formGroup.controls['ownerComment']!"
+			></p-textarea>
+			<div><span class="text-muted" i18n>Die betroffene Person wird deinen Kommentar lesen, aber nicht verändern können.</span></div>
+		</p-form-group>
+	</div>
+
+	<p-alert *ngIf="formGroup.invalid" [theme]="PThemeEnum.DANGER" class="d-block" i18n>Hoppla. Deine Eingabe ist unvollständig oder nicht korrekt. Bitte schau nochmal drüber.</p-alert>
+
+	<div
+		*ngIf="item.isNewItem()"
+		class="d-flex align-items-center justify-content-between"
+	>
+		<button
+			[type]="formGroup.invalid ? 'submit' : 'button'"
+			class="btn btn-lg btn-primary ml-auto"
+			[disabled]="!formGroup || formGroup.invalid || api.isBackendOperationRunning"
+			(click)="saveItem()"
+		><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon> Anlegen</button>
+	</div>
+
+</form>

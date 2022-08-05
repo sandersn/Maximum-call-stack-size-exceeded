@@ -1,0 +1,45 @@
+<p-card [class.border-primary]="isCurrentDevice">
+	<div class="card-header card-options">
+		<ng-template [ngIf]="editMode" [ngIfElse]="showName">
+			<div class="flex-grow-1 d-flex align-items-center">
+				<fa-icon *ngIf="device.iconName" class="ml-2 mr-2" [fixedWidth]="true" [icon]="device.iconName"></fa-icon>
+				<span *ngIf="!device.iconName" class="ml-2 mr-2">({{ device.browserName }})</span>
+				<p-input
+					#pInputRef
+					[pEditable]="true"
+					[api]="api"
+					[valid]="!!device.name && !!device.name.length"
+					(editMode)="!$event ? onToggleEditMode() : undefined"
+
+					class="flex-grow-1"
+					[(ngModel)]="device.name"
+					(keyup.enter)="onEnter()"
+				></p-input>
+			</div>
+		</ng-template>
+		<ng-template #showName>
+			<div class="mr-auto p-2 pl-3 pr-3">
+				<fa-icon *ngIf="device.iconName" class="mr-1" [size]="BootstrapSize.LG" [fixedWidth]="true" [icon]="device.iconName"></fa-icon>
+				<span *ngIf="!device.iconName" class="mr-1 small">({{ device.browserName }})</span>
+				<span>{{ device.name }}</span>
+			</div>
+		</ng-template>
+
+		<button type="button"
+			*ngIf="!editMode"
+			class="card-option btn btn-outline-secondary"
+			(click)="onToggleEditMode()"
+		><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.EDIT"></fa-icon></button>
+
+		<div class="d-flex align-items-stretch card-option"
+			*ngIf="!editMode"
+		>
+			<p-delete-button
+				class="border-0 border-light d-flex flex-grow-1 btn-frameless rounded-right"
+				modalText="Willst du das Gerät aus der Liste der freigeschalteten Geräte löschen?" i18n-modalText
+				(onModalSuccess)="onRemoveDevice()"
+				[disabled]="false"
+			></p-delete-button>
+		</div>
+	</div>
+</p-card>

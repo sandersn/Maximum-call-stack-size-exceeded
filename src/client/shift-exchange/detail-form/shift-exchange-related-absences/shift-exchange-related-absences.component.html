@@ -1,0 +1,7 @@
+<div class="bg-light">
+	<p-shift-exchange-related-absence
+		*ngFor="let absence of absencesForList.iterable()"
+		[absence]="absence"
+		(onClick)="onClickAbsence.emit($event)"
+	></p-shift-exchange-related-absence>
+</div>

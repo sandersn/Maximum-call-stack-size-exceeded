@@ -1,0 +1,169 @@
+<div class="line flex-grow-1 d-flex justify-content-between align-items-stretch pl-3 position-relative title"
+	[class.clickable]="me.data.isOwner && hasOnClickBinding"
+	[class.ruler]="ruler"
+	(click)="onClick.emit()"
+>
+	<div class="title d-flex align-items-center justify-content-start flex-grow-1" style="min-width: 100px;">
+		<ng-content select="[report-row-title]"></ng-content>
+	</div>
+	<div class="text-monospace d-flex align-items-center justify-content-end">
+		<ng-content select="[report-row-badges]"></ng-content>
+	</div>
+	<div class="min-w-md-90 d-none d-lg-flex text-monospace align-items-center justify-content-end">
+		<ng-template [ngIf]="regularPauseDuration !== null || automaticPauseDuration !== null" [ngIfElse]="reportRowDurationTemplate">
+			<p-pause-duration
+				[duration]="regularPauseDuration"
+				[automaticPauseDuration]="automaticPauseDuration"
+				[merged]="mergePauseDurations"
+				[memberName]="memberName"
+				[isForecast]="workingTime?.isExpectedWorkingTime ?? false"
+			></p-pause-duration>
+		</ng-template>
+		<ng-template #reportRowDurationTemplate>
+			<ng-content select="[report-row-duration]"></ng-content>
+		</ng-template>
+	</div>
+	<div class="d-none d-sm-flex min-w-lg-140 text-monospace align-items-center justify-content-end">
+		<ng-template [ngIf]="!absence">
+			<div [innerHTML]="duration | pDurationAsHours: false"></div>
+		</ng-template>
+		<ng-template [ngIf]="absence">
+			<span *ngIf="absence.workingTimePerDay !== null">{hasManyDays, select, true {{{absence.totalDaysBetween(min!, max!) | number:'1.0-2'}} × }}<span [innerHTML]="(absence.workingTimePerDay !== null ? absence.workingTimePerDay : absence.durationBetween(min!, max!)) | pDurationTime: null"></span></span>
+			<span *ngIf="absence.workingTimePerDay === null"><span [innerHTML]="absence.durationBetween(min!, max!) | pDurationTime: null"></span></span>
+		</ng-template>
+	</div>
+	<div class="d-flex align-items-stretch justify-content-center pr-3"
+		[class.flex-column]="CONFIG.IS_MOBILE"
+	>
+		<div class="min-w-md-120 text-monospace d-flex align-items-center justify-content-end">
+			<ng-content select="[report-row-earnings]"></ng-content>
+		</div>
+		<div class="min-w-md-140 d-flex flex-column align-items-stretch p-0">
+			<ng-container *ngTemplateOutlet="commentBtn"></ng-container>
+		</div>
+	</div>
+	<ng-template [ngIf]="!(hasOnEditBinding && !hideEditBtn)">
+		<div class="d-none d-lg-flex min-w-50 align-items-center justify-content-end">
+			<ng-content select="[report-row-button]"></ng-content>
+		</div>
+	</ng-template>
+	<ng-template [ngIf]="showEditBtn">
+		<a
+			class="d-flex min-w-50 clickable modal-trigger align-items-center justify-content-center"
+			(click)="onEdit.emit()"
+		>
+			<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.EDIT"></fa-icon>
+		</a>
+	</ng-template>
+
+</div>
+
+<ng-template #commentBtn>
+	<ng-template [ngIf]="showCommentIcons" [ngIfElse]="isWorkingTimes">
+		<a
+			class="d-flex align-items-center flex-grow-1"
+			[class.pr-2]="!CONFIG.IS_MOBILE"
+			[class.clickable]="!CONFIG.IS_MOBILE"
+			[class.modal-trigger]="!CONFIG.IS_MOBILE"
+			(click)="!CONFIG.IS_MOBILE ? open(modalContent) : undefined"
+		>
+			<div class="text-right ml-auto">
+				<ng-template [ngTemplateOutlet]="warningIconTemplate"></ng-template>
+			</div>
+			<div class="min-w-lg-60 text-right">
+				<fa-icon
+					*ngIf="!!comment"
+					class="pl-2"
+					[class.text-muted]="!comment"
+					[fixedWidth]="true" icon="comment"
+				></fa-icon>
+			</div>
+		</a>
+	</ng-template>
+	<ng-template #isWorkingTimes>
+		<ng-template [ngIf]="commentAmount || warningAmount">
+			<div class="d-flex align-items-center flex-grow-1"
+				[class.pr-2]="!CONFIG.IS_MOBILE"
+			>
+				<div class="text-right ml-auto">
+					<span
+						[tooltip]="tooltipWarningAmount"
+						#pop="bs-tooltip"
+						placement="bottom"
+					>
+						<ng-template [ngTemplateOutlet]="warningIconTemplate"></ng-template>
+					</span>
+					<ng-template #tooltipWarningAmount>
+						<div class="d-block clickable card m-0 text-left o-hidden"
+							(click)="pop.hide()"
+						>
+							<div class="card-body p-1 pl-2 pr-2">
+								<div i18n>{warningAmount, plural, one {Warnung} other {{{warningAmount}} Warnungen}} für gestempelte Zeiten</div>
+							</div>
+						</div>
+					</ng-template>
+				</div>
+				<div class="min-w-lg-60 text-right">
+					<span
+						class="pl-2"
+						[tooltip]="tooltipCommentHint"
+						#pop="bs-tooltip"
+						placement="bottom"
+					><span
+						*ngIf="commentAmount! > 1"
+					>{{ commentAmount }} × </span><fa-icon
+						*ngIf="!!commentAmount"
+						[fixedWidth]="true" icon="comment"
+					></fa-icon></span>
+
+					<ng-template #tooltipCommentHint>
+						<div class="d-block clickable card m-0 text-left o-hidden"
+							(click)="pop.hide()"
+						>
+							<div class="card-body p-1 pl-2 pr-2" i18n>{commentAmount, plural, one {Kommentare} other {{{commentAmount}} Kommentare}}</div>
+						</div>
+					</ng-template>
+
+				</div>
+			</div>
+		</ng-template>
+	</ng-template>
+</ng-template>
+
+<ng-template #modalContent let-c="close" let-d="dismiss">
+	<p-modal-header
+		[title]="'Kommentar'"
+		(onClose)="d('Cross click')"
+	></p-modal-header>
+	<div class="modal-body">
+		<ng-template [ngIf]="workingTime">
+			<p-alert
+				*ngFor="let message of workingTime.warningMessages"
+			>{{ message | localize }}</p-alert>
+		</ng-template>
+		<div>
+			<label for="comment"><fa-icon
+				class="pr-1"
+				[fixedWidth]="true" [icon]="comment ? 'comment' : ['far','comment']"
+			></fa-icon>&nbsp;<ng-container i18n>Kommentar an {!!absence, select, true {Mitarbeitende} other {die Personalleitung}}</ng-container></label>
+		</div>
+		<p-textarea
+			[pEditable]="true"
+			[api]="api"
+
+			[(ngModel)]="comment"
+
+			[disabled]="true"
+		></p-textarea>
+	</div>
+	<div class="modal-footer">
+		<button type="button" class="btn btn-outline-secondary ml-auto" (click)="c('Close click')">OK</button>
+	</div>
+</ng-template>
+
+<ng-template #warningIconTemplate>
+	<span *ngIf="warningAmount && warningAmount > 1">{{ warningAmount }} × </span><fa-icon
+		*ngIf="warningAmount && warningAmount > 0"
+		[fixedWidth]="true" icon="exclamation-triangle"
+	></fa-icon>
+</ng-template>

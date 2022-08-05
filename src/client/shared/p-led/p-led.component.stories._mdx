@@ -1,0 +1,38 @@
+import { storiesOf, moduleMetadata } from '@storybook/angular';
+import { PLedComponent } from './p-led.component';
+import { PThemeEnum } from '../../shared/bootstrap-styles.enum';
+
+<Meta title='Client/ClientSharedComponents/p-led MDX' decorators={[
+  moduleMetadata({
+    declarations: [PLedComponent]
+  })
+]} />
+
+# Basic Checkbox
+
+# component: PLedComponent,
+<Story name='basic' height='400px'>{{
+  template: `
+    	<p-led [off]="false"></p-led>
+			<p-led [off]="true"></p-led>
+			<hr>
+			<p-led [off]="false" [theme]="${PThemeEnum.PRIMARY}"></p-led>
+			<p-led [off]="true" [theme]=${PThemeEnum.PRIMARY}></p-led>
+			<hr>
+			<p-led [off]="false" theme="warning"></p-led>
+			<p-led [off]="true" theme="warning"></p-led>
+			<hr>
+			<p-led [off]="false" theme="danger"></p-led>
+			<p-led [off]="true" theme="danger"></p-led>
+			<hr>
+			<p-led [off]="false" [size]="BootstrapSize.SM"></p-led>
+			<p-led [off]="true" [size]="BootstrapSize.SM"></p-led>
+  `,
+  props: {
+    checked: true
+  }
+}}</Story>
+
+## ArgsTable
+
+<ArgsTable of={PLedComponent} />

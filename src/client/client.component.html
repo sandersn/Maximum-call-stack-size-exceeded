@@ -1,0 +1,15 @@
+<ng-progress #progressBar id="page-load-progress"></ng-progress>
+
+<p-header [showSalesBtn]="api.data.bookings.attributeInfoThis.show || api.data.vouchers.attributeInfoThis.show"></p-header>
+
+<ng-template [ngIf]="meService.isLoaded()">
+	<router-outlet></router-outlet>
+</ng-template>
+
+<div class="toast-container">
+	<p-toast
+		*ngFor="let toast of toasts.iterable(); let i=index;"
+		[@slideRtl]
+		[toast]="toast"
+	></p-toast>
+</div>

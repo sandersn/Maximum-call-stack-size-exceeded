@@ -1,0 +1,11 @@
+@import "variables";
+
+:host {
+	display: flex;
+	margin-right: map-get($spacers, 4);
+	margin-left: map-get($spacers, 1);
+}
+
+p-member-badge {
+	margin-right: -(map-get($spacers, 4));
+}

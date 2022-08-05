@@ -1,0 +1,57 @@
+<div
+	*ngIf="showList"
+	class="position-relative"
+	[style.height.px]="height"
+>
+	<ng-template
+		ngFor let-absence
+		[ngForOf]="absences.iterable()"
+	>
+		<p-all-day-item
+			*ngIf="showItem(absence)"
+			class="position-absolute"
+			[style.left.px]="0"
+			[style.right.px]="0"
+			[style.top.px]="distanceAboveItem(absence)"
+			[startOfDay]="startOfDay"
+			[popperPlacement]="popperPlacement"
+			[item]="absence"
+			[items]="absences"
+			[readMode]="readMode"
+		></p-all-day-item>
+	</ng-template>
+	<ng-template
+		ngFor let-holiday
+		[ngForOf]="holidays.iterable()"
+	>
+		<p-all-day-item
+			*ngIf="showItem(holiday)"
+			class="position-absolute"
+			[style.left.px]="0"
+			[style.right.px]="0"
+			[style.top.px]="distanceAboveItem(holiday)"
+			[startOfDay]="startOfDay"
+			[popperPlacement]="popperPlacement"
+			[item]="holiday"
+			[items]="holidays"
+			[readMode]="readMode"
+		></p-all-day-item>
+	</ng-template>
+	<ng-template
+		ngFor let-birthday
+		[ngForOf]="birthdays.iterable()"
+	>
+		<p-all-day-item
+			*ngIf="showItem(birthday)"
+			class="position-absolute"
+			[style.left.px]="0"
+			[style.right.px]="0"
+			[style.top.px]="distanceAboveItem(birthday)"
+			[startOfDay]="startOfDay"
+			[popperPlacement]="popperPlacement"
+			[item]="birthday"
+			[items]="birthdays"
+			[readMode]="readMode"
+		></p-all-day-item>
+	</ng-template>
+</div>

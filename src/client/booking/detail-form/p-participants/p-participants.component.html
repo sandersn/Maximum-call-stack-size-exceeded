@@ -1,0 +1,234 @@
+<div class="card" [class.border-danger]="array && array.invalid">
+	<div class="card-header"><label class="mb-0"><fa-icon [icon]="PlanoFaIconPool.ITEMS_PARTICIPANTS"></fa-icon>&nbsp;Teilnehmende</label></div>
+	<div class="card-body">
+		<p-grid>
+
+			<ng-template
+				ngFor let-formGroup
+				[ngForOf]="pFormsService.getIterableFormGroups(array)"
+				let-i="index"
+			>
+				<ng-template [ngIf]="formGroup.controls['isBookingPerson'].value">
+					<ng-container *ngTemplateOutlet="personEditableTemplate; context: {$implicit: formGroup, i: i}"></ng-container>
+				</ng-template>
+			</ng-template>
+			<ng-template
+				ngFor let-formGroup
+				[ngForOf]="pFormsService.getIterableFormGroups(array)"
+				let-i="index"
+			>
+				<ng-template [ngIf]="!formGroup.controls['isBookingPerson'].value">
+					<ng-container *ngTemplateOutlet="personEditableTemplate; context: {$implicit: formGroup, i: i}"></ng-container>
+				</ng-template>
+			</ng-template>
+
+		</p-grid>
+
+		<button
+			type="button"
+
+			pEditableModalButton
+
+			class="w-100 btn btn-outline-primary"
+
+			[pEditable]="isActiveEditable"
+			[api]="api"
+			[valid]="booking.isNewItem() || array.valid"
+			[waitForEditableCompleteBeforeClose]="true"
+
+			(click)="addParticipant()"
+
+			(onModalClosed)="onModalClosed.emit()"
+			(onModalDismissed)="dismissParticipant(latestFormGroup)"
+
+			label="Teilnehmende hinzufügen" i18n-label
+
+			[disabled]="(array && array.disabled) || api.isBackendOperationRunning"
+			icon="user-plus"
+		>
+			<p-editable-modal-button-form>
+				<ng-container *ngTemplateOutlet="formTemplate; context: {$implicit: latestFormGroup}"></ng-container>
+			</p-editable-modal-button-form>
+		</button>
+
+	</div>
+</div>
+
+<ng-template #personEditableTemplate let-formGroup let-i="i">
+	<div class="col-12 col-md-6">
+		<div hidden><span i18n #translatedRemoveModalText>Willst du diesen Teilnehmenden wirklich löschen? {!booking.isNewItem(), select, true {Wenn ja, werden buchende & teilnehmende Personen informiert, falls du automatische Emails aktiviert hast.}}</span></div>
+		<p-editable-modal-box
+			[pEditable]="isActiveEditable && !formGroup.controls['isBookingPerson'].value"
+			[api]="api"
+			[valid]="formGroup.valid"
+			[waitForEditableCompleteBeforeClose]="true"
+
+			(onModalClosed)="onModalClosed.emit()"
+
+			[borderStyle]="formGroup.controls['isBookingPerson'].value ? 'primary' : null"
+			[disabled]="array && array.disabled || formGroup.controls['isBookingPerson'].value"
+
+			removeModalButtonLabel="Löschen" i18n-removeModalButtonLabel
+			[removeModalText]="translatedRemoveModalText.textContent!"
+			(onRemoveItemClick)="removeParticipant(i, formGroup.controls['id'].value)"
+			[removeButtonDisabled]="deleteParticipantDisabled(formGroup)"
+		>
+			<p-editable-modal-box-header class="pl-3 pt-2 pr-3 pb-2">
+				<div class="flex-grow-1 d-flex justify-content-between align-items-center title">
+					<label class="title w-100 d-flex align-items-center justify-content-between mb-0 flex-column flex-md-row"><span>{!!firstName(formGroup) || !!lastName(formGroup), select, true {{{firstName(formGroup)}} {{lastName(formGroup)}}} other {?}}</span><small class="text-primary" *ngIf="formGroup.controls['isBookingPerson'].value">(<ng-container i18n>zugleich buchende Person</ng-container>)</small></label>
+				</div>
+			</p-editable-modal-box-header>
+
+			<p-editable-modal-box-showroom
+				*ngIf="array && array.length"
+				size="frameless"
+			>
+				<ng-template [ngIf]="!firstName(formGroup) || !lastName(formGroup) || !email(formGroup)" [ngIfElse]="hasData">
+					<div class="card-body text-danger" i18n>Noch keine Daten eingetragen.</div>
+				</ng-template>
+				<ng-template #hasData>
+					<div class="card-body">
+
+						<ng-template [ngIf]="formGroup.controls['isBookingPerson'].value">
+							<div *ngIf="booking.company">{{ booking.company }}</div>
+						</ng-template>
+
+						<div *ngIf="formGroup.controls['dateOfBirth'].value" i18n>Geburtsdatum: {{ formGroup.controls['dateOfBirth'].value | date:'mediumDate' }} <ng-template [ngIf]="ageLimitWarning(formGroup.controls['dateOfBirth'].value)"><ng-container *ngTemplateOutlet="birthDateLimitWarningTemplate; context: {$implicit: ageLimitWarning(formGroup.controls['dateOfBirth'].value)}"></ng-container></ng-template></div>
+
+						<ng-template [ngIf]="formGroup.controls['isBookingPerson'].value">
+							<div *ngIf="booking.phoneMobile" i18n>Mobil: {{ booking.phoneMobile }}</div>
+							<div *ngIf="booking.phoneLandline" i18n>Festnetz: {{ booking.phoneLandline }}</div>
+						</ng-template>
+
+						<div *ngIf="email(formGroup)" i18n>Email: <a [href]="'mailto:' + email(formGroup)">{{ email(formGroup) }}</a></div>
+						<ng-template [ngIf]="tariffName(formGroup.controls['tariffId'].value)">
+							<span>Tarif: {{ tariffName(formGroup.controls['tariffId'].value) }}</span>&nbsp;<code *ngIf="formGroup.controls['tariffId'].valid">{{ tariffFee(formGroup.controls['tariffId'].value) | currency }}</code>&nbsp;
+							<p-info-circle
+								*ngIf="tariffNotAvailableThatTime(formGroup.controls['reference'].value)"
+								icon="exclamation-triangle"
+								[theme]="PThemeEnum.WARNING"
+								i18n
+							>Dieser Tarif gilt nicht zum gewählten Angebotsdatum.</p-info-circle>
+						</ng-template>
+
+						<div *ngIf="!!formGroup.controls['additionalFieldValue'].value">{{ getAdditionalFieldLabel(formGroup.controls['tariffId'].value) }}: <code style="user-select: all;">{{ formGroup.controls['additionalFieldValue'].value }}</code></div>
+					</div>
+
+					<div
+						*ngIf="formGroup.valid && !booking.isNewItem()"
+						class="card-footer p-0 d-flex justify-content-between"
+					>
+						<p-checkbox
+							class="w-100 btn-outline-secondary form-control rounded-0 border-0"
+							[class.pl-2]="CONFIG.IS_MOBILE"
+
+							[disabled]="bookingsService.attendedCheckboxDisabled(booking)"
+							[popover]="bookingsService.attendedCheckboxTooltipContent(booking)"
+
+							[pEditable]="!booking.isNewItem()"
+							[api]="api"
+							[pEditableDisableOnDestroy]="true"
+
+							[hasButtonStyle]="false"
+							[readMode]="false"
+							[formControl]="formGroup.controls['attended']!"
+							[icon]="booking.attendedSetByPos ? 'plug' : null"
+							valueText="Teilgenommen" i18n-valueText
+						></p-checkbox>
+					</div>
+				</ng-template>
+
+			</p-editable-modal-box-showroom>
+			<p-editable-modal-box-form>
+				<ng-container *ngTemplateOutlet="formTemplate; context: {$implicit: formGroup}"></ng-container>
+			</p-editable-modal-box-form>
+		</p-editable-modal-box>
+	</div>
+</ng-template>
+
+<ng-template #formTemplate let-formGroup>
+	<p-alert *ngIf="!formGroup" i18n>Bitte erst Buchende Person eintragen.</p-alert>
+	<form *ngIf="formGroup" [formGroup]="$any(formGroup)">
+		<p-grid>
+			<p-form-group
+				class="col-12 col-md-6"
+				label="Vorname" i18n-label
+				[control]="formGroup.controls['firstName']!"
+			>
+				<p-input
+					placeholder="Peter" i18n-placeholder
+					[formControl]="formGroup.controls['firstName']!"
+				></p-input>
+			</p-form-group>
+			<p-form-group
+				class="col-12 col-md-6"
+				label="Nachname" i18n-label
+				[control]="formGroup.controls['lastName']!"
+			>
+				<p-input
+					placeholder="Plano" i18n-placeholder
+					[formControl]="formGroup.controls['lastName']!"
+				></p-input>
+			</p-form-group>
+			<p-form-group
+				class="col-12 col-md-6"
+				label="Geburtsdatum" i18n-label
+				[control]="formGroup.controls['dateOfBirth']!"
+			>
+				<p-input-date
+					[formControl]="formGroup.controls['dateOfBirth']!"
+					[icon]="PlanoFaIconPool.BIRTHDAY"
+				></p-input-date>
+				<p-validation-hint
+					text="Die Person sollte mindestens {{booking.model?.participantMinAge}} Jahre alt sein (zum Datum des gebuchten Angebots)." i18n-text
+					[isInvalid]="showParticipantMinAgeLimitWarning(formGroup.controls['dateOfBirth'].value)"
+					[theme]="PThemeEnum.WARNING"
+				></p-validation-hint>
+				<p-validation-hint
+					text="Die Person sollte höchstes {{booking.model?.participantMaxAge}} Jahre alt sein (zum Datum des gebuchten Angebots)." i18n-text
+					[isInvalid]="showParticipantMaxAgeLimitWarning(formGroup.controls['dateOfBirth'].value)"
+					[theme]="PThemeEnum.WARNING"
+				></p-validation-hint>
+			</p-form-group>
+			<p-form-group
+				class="col-12 col-md-6"
+				label="Email" i18n-label
+				[control]="formGroup.controls['email']!"
+			>
+				<p-input
+					[formControl]="formGroup.controls['email']!"
+				></p-input>
+			</p-form-group>
+		</p-grid>
+		<p-form-group
+			*ngIf="!!pParticipantsService.courseTariffsForList(booking, formGroup.controls['tariffId'].value).length"
+			label="Tarif" i18n-label
+			[control]="formGroup.controls['tariffId']!"
+		>
+			<p-tariff-input
+				[participant]="formGroup.controls['reference'].value"
+				[formControl]="formGroup.controls['tariffId']!"
+				[booking]="booking"
+				[formArray]="formGroup.controls['courseTariffs']"
+			></p-tariff-input>
+		</p-form-group>
+		<p-form-group
+			*ngIf="getAdditionalFieldLabel(formGroup.controls['tariffId'].value)"
+			label="{{ getAdditionalFieldLabel(formGroup.controls['tariffId'].value) }}"
+			[control]="formGroup.controls['additionalFieldValue']!"
+		>
+			<p-input
+				[formControl]="formGroup.controls['additionalFieldValue']!"
+			></p-input>
+		</p-form-group>
+	</form>
+</ng-template>
+
+<ng-template #popTemplate><div class="p-2" i18n><strong>Speicherst du das,</strong> werden buchende & teilnehmende Personen informiert, <strong>falls</strong> du automatische Emails aktiviert hast.</div> </ng-template>
+
+<ng-template #birthDateLimitWarningTemplate let-text>
+	<p-info-circle
+		icon="exclamation-triangle"
+		[theme]="PThemeEnum.WARNING"
+	>{{text}}</p-info-circle>
+</ng-template>

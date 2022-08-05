@@ -1,0 +1,15 @@
+<div class="d-flex">
+	<div style="width: 3em;height: 2em"><span>&nbsp;</span></div>
+
+	<div class="position-relative flex-grow-1">
+		<p-calendar-absences-week-bar-item
+			*ngFor="let weekday of weekdays"
+			[weekday]="weekday"
+			[heightOfLine]="heightOfLine"
+			[absences]="absences"
+			[holidays]="holidays"
+			[birthdays]="birthdays"
+			[readMode]="readMode"
+		></p-calendar-absences-week-bar-item>
+	</div>
+</div>

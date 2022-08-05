@@ -1,0 +1,4 @@
+// fr-view should both be in edit and non-edit mode "display: block" to have same layouting.
+:host {
+	display: block;
+}

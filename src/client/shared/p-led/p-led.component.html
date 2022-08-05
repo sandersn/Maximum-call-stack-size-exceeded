@@ -1,0 +1,10 @@
+<div
+	class="led-wrap"
+	[class.led-is-on]="!off"
+	[class.led-theme-success]="theme===PThemeEnum.SUCCESS"
+	[class.led-theme-primary]="theme===PThemeEnum.PRIMARY"
+	[class.led-theme-warning]="theme===PThemeEnum.WARNING"
+	[class.led-theme-danger]="theme===PThemeEnum.DANGER"
+>
+	<div class="led"></div>
+</div>

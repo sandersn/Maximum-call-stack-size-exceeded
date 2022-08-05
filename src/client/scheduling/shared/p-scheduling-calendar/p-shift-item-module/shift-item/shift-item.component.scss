@@ -1,0 +1,42 @@
+@import "variables";
+
+:host {
+	display: block;
+	/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+	margin-top: -1px !important;
+
+	&.card {
+		// &.showAsList {
+		// 	// unset border-radius for performance reasons
+		// 	// border-radius: unset;
+		// 	// overflow: hidden;
+		// }
+
+		&.showAsTimeline {
+			position: absolute;
+			box-shadow: 0.2rem 0.2rem 0.5rem rgba(0, 0, 0, 0.075);
+			min-height: 0;
+			transition: min-height 0.2s;
+
+			&.highlighted,
+			&:hover {
+				min-height: 150px;
+			}
+		}
+	}
+
+	&.max-width-600 {
+		max-width: 600px;
+		margin-left: auto;
+		margin-right: auto;
+	}
+
+	&.highlighted {
+		transform: translateY(-1px);
+	}
+
+	&.is-in-the-past-bg {
+		background-color: $gray-100;
+		color: $body-color;
+	}
+}

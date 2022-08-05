@@ -1,0 +1,259 @@
+<div
+	[pEditable]="pEditable"
+	[api]="api"
+	[valid]="isValid"
+	[saveChangesHook]="saveChangesHook"
+	(onSaveStart)="onSaveStart.emit($event)"
+	(onSaveSuccess)="onSaveSuccess.emit($event)"
+	(onDismiss)="onDismiss.emit($event)"
+	(onLeaveCurrent)="onLeaveCurrent.emit($event)"
+	(editMode)="editMode.emit($event)"
+
+	[class.has-danger]="hasDanger"
+	class="input-group pulse"
+	[class.disabled]="readMode"
+	[class.input-group-sm]="size === 'sm'"
+	[class.input-group-lg]="size === 'lg'"
+	[class.pulse-success]="isValid"
+	[class.clicked]="pEditable && clicked"
+>
+	<div class="input-group-prepend" *ngIf="type !== 'deadline'"
+		(click)="!(readMode || disabled) ? editDate($event) : undefined"
+	>
+		<span class="input-group-text"><fa-icon
+			[fixedWidth]="true"
+			[icon]="prependIcon"
+		></fa-icon></span>
+	</div>
+
+	<ng-template [ngIf]="readMode" [ngIfElse]="realModeTemplate">
+		<div class="form-control-read-mode">{{ formattedDateTime ? formattedDateTime : placeholder }}</div>
+	</ng-template>
+	<ng-template #realModeTemplate>
+		<ng-template [ngIf]="type === 'deadline' && !disabled && showDaysBeforeInput" [ngIfElse]="notADeadlineTemplate">
+			<input
+				*ngIf="formGroup"
+				[class.border-danger]="formGroup.controls['daysBefore']!.touched && formGroup.controls['daysBefore']!.invalid"
+				class="form-control"
+				[formControl]="formGroup.controls['daysBefore']!"
+				[required]="required"
+				[class.required]="required"
+			/>
+
+			<div class="input-group-append"
+				pVisibleInEditMode
+			>
+				<button
+					type="reset"
+					class="btn btn-outline-secondary"
+					pEditableDismissButton
+				><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.UNDO"></fa-icon></button>
+				<button
+					type="submit"
+					class="btn btn-outline-secondary"
+					pEditableSuccessButton
+				><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.SUCCESS"></fa-icon></button>
+			</div>
+		</ng-template>
+
+		<ng-template #notADeadlineTemplate>
+			<button
+				(click)="editDate($event)"
+				type="button"
+				class="form-control formatted clickable btn pl-2 pr-2 d-flex align-items-center {{btnStyles}}"
+				[class.p-0]="!CONFIG.IS_MOBILE"
+				[class.btn-secondary]="!btnStyles"
+				[class.show-time]="showTimeInput"
+				[disabled]="disabled || formControl?.disabled"
+				[class.required]="required"
+			><span [class.text-skeleton-animated]="isLoading" [style.font-size.rem]="size === 'sm' ? undefined : 1">{{ label ? label : (formattedDateTime ? formattedDateTime : placeholder) }}</span></button>
+		</ng-template>
+
+		<div class="input-group-append" *ngIf="type === 'deadline' && !disabled" dropdown>
+			<span class="input-group-text">{{ daysBeforeDropdownLabel }}</span>
+		</div>
+	</ng-template>
+
+	<ng-template #modalContent let-c="close" let-d="dismiss">
+		<div hidden><span i18n #translatedModalTitle>Datum {!!showTimeInput, select, true {& Uhrzeit}}</span></div>
+		<p-modal-header
+			[title]="translatedModalTitle.textContent!"
+			i18n-title
+			(onClose)="d($event)"
+			[hasDanger]="formGroup?.invalid!"
+		></p-modal-header>
+		<div class="modal-body">
+			<ng-content></ng-content>
+			<form [formGroup]="$any(formGroup)">
+				<div class="form-group">
+					<div class="d-flex justify-content-end mb-3">
+						<button
+							*ngIf="showEraseValueBtn"
+							class="btn btn-outline-secondary mr-auto"
+							pEditableInstantSaveButton
+							(triggerClick)="unsetData()"
+							type="button" (click)="d($event)"
+						><ng-template [ngIf]="showEraseValueBtnIcon"><fa-icon icon="trash"></fa-icon>&nbsp;</ng-template>{{ eraseValueBtnLabel }}</button>
+						<button
+							*ngIf="!!suggestionTimestamp && !suggestionBtnIsDisabled"
+							type="button"
+							[class.btn-primary]="selectedDateTime === suggestionTimestamp"
+							[class.btn-outline-secondary]="selectedDateTime !== suggestionTimestamp"
+							class="btn px-3 badge-pill mr-auto"
+							[disabled]="suggestionBtnIsDisabled"
+							(click)="suggestionBtnIsDisabled ? undefined : onClickSuggestion();datepickerRef.navigateTo(formGroup!.controls['date']!.value)"
+							i18n
+						>{{suggestionLabel}}</button>
+						<button
+							*ngIf="showNowButton && !nowButtonIsDisabled"
+							type="button"
+							[class.btn-primary]="isCurrentDateTime && !nowButtonIsDisabled"
+							[class.btn-outline-secondary]="!isCurrentDateTime || nowButtonIsDisabled"
+							[class.btn-outline-primary]="!isCurrentDateTime && !nowButtonIsDisabled"
+							class="btn px-3 badge-pill ml-auto"
+							[disabled]="nowButtonIsDisabled"
+							(click)="onClickNow();datepickerRef.navigateTo(formGroup!.controls['date']!.value)"
+							i18n
+						>{!!showTimeInput, select, true {Jetzt} other {Heute}}</button>
+					</div>
+					<div class="d-flex justify-content-center align-items-center">
+
+						<ngb-datepicker
+							#datepickerRef
+							[class.ngb-dp-range-day]="range === 'day'"
+							[class.ngb-dp-range-week]="range === 'week'"
+							[class.ngb-dp-range-month]="range === 'month'"
+							[class.border-danger]="formGroup!.controls['date']!.invalid"
+							formControlName="date"
+							[startDate]="startDate === '-' ? undefined! : startDate!"
+							[maxDate]="ngbMaxDate === '-' ? undefined! : ngbMaxDate"
+							[minDate]="ngbMinDate === '-' ? undefined! : ngbMinDate"
+							[dayTemplate]="dayTemplate"
+						></ngb-datepicker>
+
+						<ng-template
+							#dayTemplate
+							let-date="date"
+							let-currentMonth="currentMonth"
+							let-selected="selected"
+							let-disabled="disabled"
+							let-focused="focused"
+						>
+							<div
+								ngbDatepickerDayView
+								class="rounded-0 day-btn"
+								[class.focused]="focused"
+								[class.btn-primary]="isHighlighted(date)"
+								[class.bg-primary]="isHighlighted(date)"
+								[class.text-white]="isHighlighted(date)"
+								[class.text-muted]="disabled"
+								[class.muted-item]="date.month !== currentMonth"
+								[class.outside-current-month]="date.month !== currentMonth"
+							>{{ date.day }}</div>
+						</ng-template>
+					</div>
+					<p-validation-hint
+						*ngIf="!!formControl"
+						[control]="formGroup!.controls['date']!"
+						[checkTouched]="false"
+					></p-validation-hint>
+				</div>
+				<p-form-group
+					*ngIf="showTimeInput"
+					label="Uhrzeit" i18n-label
+					[hasDanger]="formGroup!.controls['time']!.invalid"
+				>
+					<p-input
+						[type]="PApiPrimitiveTypes.LocalTime"
+						[formControl]="formGroup!.controls['time']!"
+						autocomplete="off"
+						[required]="timeIsRequired"
+					></p-input>
+				</p-form-group>
+			</form>
+		</div>
+		<div class="modal-footer" *ngIf="showTimeInput && pEditable">
+			<button
+				*ngIf="showEraseValueBtn"
+				pEditableInstantSaveButton
+				(triggerClick)="unsetData()"
+				type="button" class="btn btn-outline-secondary" (click)="d($event)" i18n>Abbrechen</button>
+			<button
+				pEditableInstantSaveButton
+				(triggerClick)="setControlValue();c('ok btn click')"
+				type="button"
+				class="btn ml-auto"
+				[class.btn-outline-secondary]="!successButtonIsHighlighted"
+				[class.btn-primary]="successButtonIsHighlighted"
+				[disabled]="formGroup!.invalid"
+				i18n
+			>Ok</button>
+		</div>
+		<div class="modal-footer" *ngIf="showTimeInput && !pEditable">
+			<button
+				*ngIf="showEraseValueBtn"
+				type="button"
+				class="btn btn-outline-secondary"
+				(click)="unsetData();d($event)"
+			><fa-icon icon="trash"></fa-icon>&nbsp;<ng-container i18n>{!!value, select, true { {{eraseValueBtnLabel}} } other {Abbrechen}}</ng-container></button>
+			<button
+				(click)="setControlValue();c('ok btn click')"
+				type="button"
+				class="btn ml-auto"
+				[class.btn-outline-secondary]="!successButtonIsHighlighted"
+				[class.btn-primary]="successButtonIsHighlighted"
+				[disabled]="formGroup!.invalid"
+				i18n
+			>Ok</button>
+		</div>
+	</ng-template>
+</div>
+
+<ng-template [ngIf]="type !== 'deadline'" [ngIfElse]="deadlineWarningsTemplate">
+	<p-validation-hint
+		[control]="formControl"
+		validationName="max"
+		text="Wähle einen früheren Zeitpunkt" i18n-text
+		[checkTouched]="true"
+	></p-validation-hint>
+	<p-validation-hint
+		[control]="formControl"
+		validationName="min"
+		text="Wähle einen späteren Zeitpunkt" i18n-text
+		[checkTouched]="true"
+	></p-validation-hint>
+</ng-template>
+<ng-template #deadlineWarningsTemplate>
+	<p-validation-hint
+		[control]="formControl"
+		validationName="max"
+		text="Wähle eine längere Frist" i18n-text
+		[checkTouched]="true"
+	></p-validation-hint>
+	<p-validation-hint
+		[control]="formControl"
+		validationName="min"
+		text="Wähle eine kürzere Frist" i18n-text
+		[checkTouched]="true"
+	></p-validation-hint>
+</ng-template>
+<p-validation-hint
+	[control]="formControl"
+	[checkTouched]="true"
+></p-validation-hint>
+
+
+<ng-template [ngIf]="!!formControl">
+	<ng-template
+		ngFor let-error
+		[ngForOf]="visibleErrors"
+	>
+		<p-validation-hint
+			[control]="formControl"
+			[isInvalid]="true"
+			[validationName]="error.key"
+			[errorValue]="error.value"
+			[checkTouched]="checkTouched"
+		></p-validation-hint>
+	</ng-template>
+</ng-template>

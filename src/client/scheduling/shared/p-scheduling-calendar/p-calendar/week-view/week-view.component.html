@@ -1,0 +1,23 @@
+<div class="d-flex cal-cell-row h-100" #startOfWorkday>
+	<ng-template
+		ngFor let-weekday
+		[ngForOf]="weekdays"
+	>
+		<div
+			[class.cal-past]="isBeforeToday(weekday)"
+			class="cal-cell cal-day-cell pt-1"
+		>
+			<p-week-cell
+				[weekday]="weekday"
+				[shifts]="shifts.getByDay(weekday)"
+				[absences]="absencesOfDay(weekday)"
+				[holidays]="holidaysOfDay(weekday)"
+				[birthdays]="birthdaysOfDay(weekday)"
+				(onShiftClick)="onShiftClick.observers.length ? onShiftClick.emit($event) : undefined"
+				[shiftTemplate]="shiftTemplate"
+				[readMode]="readMode"
+				[isLoading]="api.isBackendOperationRunning && !shifts.getByDay(weekday).length"
+			></p-week-cell>
+		</div>
+	</ng-template>
+</div>

@@ -1,0 +1,659 @@
+<div class="flex-grow-1 d-flex position-relative">
+	<scroll-shadow-box class="flex-grow-1">
+		<div class="container pb-tawk">
+			<h2 i18n>Buchungssystem-Einstellungen</h2>
+			<p-tabs (onChange)="refreshShowPlugin($event)" class="mb-4">
+				<p-tab
+					label="Grunddaten" i18n-label
+					[urlName]="PluginComponentTabs.BASIS"
+					[size]="PTabSizeEnum.FRAMELESS"
+				>
+					<ng-template [ngIf]="accountApi.isLoaded()">
+						<p-plugin-settings
+							*ngIf="!!formGroup"
+							(initFormGroup)="initFormGroup()"
+							[group]="formGroup"
+						></p-plugin-settings>
+					</ng-template>
+				</p-tab>
+
+				<p-tab
+					[attributeInfo]="api.data.adyenAccount.attributeInfoThis"
+					[show]="(!accountApi.isLoaded() || !api.isLoaded()) ? null : api.data.adyenAccount.attributeInfoThis.canEdit"
+					label="Online-Zahlung" i18n-label
+					[urlName]="PluginComponentTabs.PAYMENTS"
+					[hasDanger]="canDoOnboarding && api.data.adyenAccount.onboardingActionRequiredOrPending"
+					[size]="PTabSizeEnum.FRAMELESS"
+					class="payments"
+				>
+				<div class="container p-0">
+					<ng-template [ngIf]="!adyenIsSupported" [ngIfElse]="onlinePaymentTemplate">
+						<p-alert [theme]="PThemeEnum.INFO" class="m-5" i18n>Online-Zahlung steht für deine Landeswährung noch nicht zur Verfügung. Falls du die Online-Zahlung nutzen möchtest, melde dich gerne bei uns im Chat oder per <a href="mailto:service@dr-plano.com">Email</a>.</p-alert>
+					</ng-template>
+					<ng-template #onlinePaymentTemplate>
+						<p-section class="pt-5">
+							<p-alert *ngIf="showPaypalShutdownAlert" i18n>Achtung: PayPal wird am <mark>{{Config.PAYPAL_SHUTDOWN_DATE | date:'short'}}</mark> endgültig abgeschaltet. Bitte aktiviere bis dahin über diese Seite die neue Online-Zahlung, um für einen nahtlosen Übergang der Zahlungsfunktion zu sorgen. Schau dir bitte vor der Aktivierung unsere <a href="https://extras.dr-plano.com/new-online-payment" target="_blank" rel="noopener">Info-Seite zur Umstellung</a> an.<br>Wir empfehlen dir, die Aktivierung der neuen Zahlungsfunktion früh genug durchzuführen, da sie eine Prüfung deiner Daten beinhaltet und einige Tage in Anspruch nehmen kann.</p-alert>
+							<p i18n>Die Online-Zahlung ist ein enormer Effizienzschub für das Online-Buchungssystem. Sie sichert dir schnelle und bequeme Zahlungen, erhöht erfahrungsgemäß deinen Umsatz, verringert Zahlungsausfälle und sorgt zugleich für zufriedenere Kunden.</p><p i18n>Auf dieser Seite kannst du die Online-Zahlung aktivieren und danach deine Daten für die Online-Zahlung verwalten. Außerdem findest du hier wichtige Infos rund um das Thema Online-Zahlung. Die häufigsten Fragen beantworten wir dir in unserer <a routerLink="/client/plugin/faq-online-payment" rel="noopener" target="_blank"><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.AREA_FAQ" class="mr-1"></fa-icon>FAQ zur Online-Zahlung</a>.</p>
+						</p-section>
+						<p-section [background]="'light-cold'">
+							<h4 *ngIf="api.data.adyenAccount.accountHolderState!==SchedulingApiAccountHolderState.NOT_INITIALIZED" i18n>Status deiner Online-Zahlung</h4>
+							<ng-container *ngIf="api.isLoaded(); else spinnerTemplate">
+								<p-grid class="d-flex align-items-end">
+									<ng-container *ngIf="api.data.adyenAccount.accountHolderState!==SchedulingApiAccountHolderState.NOT_INITIALIZED">
+										<div class="col-12 col-md-6">
+											<p-card class="card-body shadow-sm mb-4" [radiusSize]="BootstrapSize.LG">
+												<h6>Zahlungen durch Kunden & Rückerstattungen</h6>
+												<div class="d-flex">
+													<p-led class="mr-2" [off]="false" [theme]="api.data.adyenAccount.accountHolderProcessingState === SchedulingApiAccountHolderProcessingState.PROCESSING_ALLOWED ? PThemeEnum.SUCCESS : PThemeEnum.DANGER"></p-led>
+													<ng-container i18n *ngIf="api.data.adyenAccount.accountHolderProcessingState === SchedulingApiAccountHolderProcessingState.PROCESSING_ALLOWED">Aktiv</ng-container>
+													<ng-container i18n *ngIf="api.data.adyenAccount.accountHolderProcessingState !== SchedulingApiAccountHolderProcessingState.PROCESSING_ALLOWED">Inaktiv</ng-container>
+												</div>
+											</p-card>
+										</div>
+										<div class="col-12 col-md-6">
+											<p-card class="card-body shadow-sm mb-4" [radiusSize]="BootstrapSize.LG">
+												<h6>Auszahlung deines Online-Guthabens</h6>
+												<div class="d-flex">
+													<p-led class="mr-2" [off]="false" [theme]="api.data.adyenAccount.accountHolderPayoutState === SchedulingApiAccountHolderPayoutState.PAYOUT_ALLOWED ? PThemeEnum.SUCCESS : PThemeEnum.DANGER"></p-led>
+													<ng-container i18n *ngIf="api.data.adyenAccount.accountHolderPayoutState === SchedulingApiAccountHolderPayoutState.PAYOUT_ALLOWED">Aktiv</ng-container>
+													<ng-container i18n *ngIf="api.data.adyenAccount.accountHolderPayoutState !== SchedulingApiAccountHolderPayoutState.PAYOUT_ALLOWED">Inaktiv</ng-container>
+												</div>
+											</p-card>
+										</div>
+										<div class="col-12" *ngIf="accountApi.isLoaded() && api.data.adyenAccount.attributeInfoPayoutSchedule.show && accountApi.data.attributeInfoPayoutNotificationExportPassword.show">
+											<p-card class="card-body shadow-sm mb-4" [radiusSize]="BootstrapSize.LG">
+												<p-grid>
+													<div class="col-12 col-md-6">
+														<p-form-control-switch
+															*ngIf="formGroup; else spinnerTemplate"
+															label="Rhythmus der Guthaben-Auszahlung" i18n-label
+															description="Mehr über die Auszahlungsmodalitäten erfährst du in unserer FAQ zur Online-Zahlung." i18n-description
+															[group]="formGroup"
+															[attributeInfo]="api.data.adyenAccount.attributeInfoPayoutSchedule"
+															[type]="FormControlSwitchType.DROPDOWN"
+															[saveChangesHook]="savePayoutScheduleChangesHook"
+														>
+															<p-form-control-switch-item
+																label="Wöchentlich" i18n-label
+																[value]="SchedulingApiAccountHolderPayoutSchedule.WEEKLY"
+															></p-form-control-switch-item>
+															<p-form-control-switch-item
+																label="Alle 14 Tage" i18n-label
+																[value]="SchedulingApiAccountHolderPayoutSchedule.BIWEEKLY"
+															></p-form-control-switch-item>
+															<p-form-control-switch-item
+																label="Monatlich" i18n-label
+																[value]="SchedulingApiAccountHolderPayoutSchedule.MONTHLY"
+															></p-form-control-switch-item>
+														</p-form-control-switch>
+													</div>
+													<div
+														class="col-12 col-md-6"
+														*ngIf="accountApi.data.attributeInfoPayoutNotificationExportPassword.show"
+													>
+														<p-form-group
+															label="Passwort für den Auszahlungsexport" i18n-label
+															description="Dr.&nbsp;Plano zahlt dir dein durch die Online-Zahlung entstandenes Guthaben regelmäßig auf dein Bankkonto aus. Nach jeder Guthaben-Auszahlung erhalten alle Admins eine Email über die Auszahlungshöhe, in der ein Export aller für die Auszahlung relevanten Transaktionen angehängt sein wird. Um den Export zu öffnen, benötigst du dieses Passwort." i18n-description
+														>
+															<p-input-copy-string
+																[type]="PApiPrimitiveTypes.Password"
+																[valueToCopy]="accountApi.data.payoutNotificationExportPassword"
+															></p-input-copy-string>
+														</p-form-group>
+													</div>
+													<div class="col-12" *ngIf="this.api.data.adyenAccount.attributeInfoNextPayoutDate.show" i18n>Nächste Auszahlungsanweisung voraussichtlich am: <strong>{{ this.api.data.adyenAccount.nextPayoutDate | date:'shortDate' }}</strong> (Abweichung von wenigen Tagen möglich)</div>
+
+												</p-grid>
+											</p-card>
+										</div>
+									</ng-container>
+									<div class="col-12 mb-4 mt-2 mb-md-3 d-flex flex-column align-items-start">
+										<!-- TODO: replace with ICU - wasn't able to get it to work with enums-->
+										<div class="mb-3">
+											<ng-container *ngIf="api.isLoaded()">
+												<strong *ngIf="api.data.adyenAccount.accountHolderState===SchedulingApiAccountHolderState.NOT_INITIALIZED" i18n>Die Online-Zahlung ist noch nicht aktiviert.</strong>
+												<strong *ngIf="api.data.adyenAccount.accountHolderState===SchedulingApiAccountHolderState.INITIAL_ONBOARDING" i18n>Das Onboarding wurde begonnen, ist aber noch nicht abgeschlossen. Daher kann die Online-Zahlung noch nicht aktiviert werden. Updates zum Onboarding-Status erhältst du per Email und auf der Onboarding-Seite von Adyen (<a class="link" (click)="scrollToAdyenChangeData()">siehe unten</a>).</strong>
+												<strong *ngIf="api.data.adyenAccount.accountHolderState===SchedulingApiAccountHolderState.ACTIVE && !api.data.adyenAccount.onboardingActionRequiredOrPending" i18n>Alle Funktionen der Online-Zahlung sind aktiv. Falls du dein hinterlegtes Bankkonto oder andere Daten ändern möchtest, scrolle bitte ganz nach unten zur Datenänderung.</strong>
+												<strong *ngIf="(api.data.adyenAccount.accountHolderState===SchedulingApiAccountHolderState.ACTIVE || api.data.adyenAccount.accountHolderState===SchedulingApiAccountHolderState.INACTIVE) && api.data.adyenAccount.onboardingActionRequiredOrPending" i18n>Adyen benötigt weitere Daten oder Unterlagen, um den vollen Funktionsumfang der Online-Zahlung anbieten zu können. Mehr Infos dazu erhältst du per Email und auf der Onboarding-Seite von Adyen (<a class="link" (click)="scrollToAdyenChangeData()">siehe unten</a>).</strong>
+												<strong *ngIf="api.data.adyenAccount.accountHolderState===SchedulingApiAccountHolderState.CLOSED" i18n>Dein Buchungskonto ist geschlossen! Melde dich bei uns, wenn du die Online-Zahlung wieder nutzen möchtest.</strong>
+												<strong *ngIf="api.data.adyenAccount.accountHolderState===SchedulingApiAccountHolderState.SUSPENDED" i18n>Dein Buchungskonto ist gesperrt! Melde dich bei uns, wenn du die Online-Zahlung wieder nutzen möchtest.</strong>
+												&nbsp;
+											</ng-container>
+											<p-deadline
+												*ngIf="api.isLoaded() && !!api.data.adyenAccount.deadlineDate"
+												[theme]="PThemeEnum.WARNING"
+												[timestamp]="1+api.data.adyenAccount.deadlineDate"
+												[tooltipContent]="api.data.adyenAccount.upcomingDeadlineState"
+												[dateFormat]="AngularDatePipeFormat.SHORT"
+												label="Frist für die Bearbeitung ist" i18n-label
+											></p-deadline>
+									</div>
+									<p-button
+										[isLoading]="!api.isLoaded()"
+										[attributeInfo]="null"
+										title="Direkt runter scrollen" i18n-title
+										[badge]="canDoOnboarding && api.data.adyenAccount.onboardingActionRequiredOrPending"
+										(triggerClick)="api.data.adyenAccount.accountHolderState===SchedulingApiAccountHolderState.NOT_INITIALIZED ? scrollToAdyenActivation() : scrollToAdyenChangeData()"
+									><fa-icon icon="arrow-down"></fa-icon>&ngsp;<ng-container i18n>{api.data.adyenAccount.accountHolderState===SchedulingApiAccountHolderState.NOT_INITIALIZED,select, true {Direkt zur Aktivierung scrollen} other {Direkt zur Datenänderung scrollen}}</ng-container></p-button>
+									</div>
+								</p-grid>
+							</ng-container>
+						</p-section>
+						<p-section>
+							<p-grid>
+								<div class="col-12 col-md-6 d-flex flex-column align-items-stretch justify-content-center">
+									<h4 id="ein-zuverlaessiger-partner" i18n>Ein Zuverlässiger Partner</h4>
+									<p i18n>Die Online-Zahlung realisieren wir in Zusammenarbeit mit unserem Partner <a href="https://www.adyen.com/" rel="noopener" target="_blank">Adyen N.V.</a>, dem renommierten niederländischen Zahlungsdienstleister. Die Firma verfügt über eine europäische Banklizenz und zählt international agierende Unternehmen wie eBay, Spotify, booking.com und LinkedIn zu eigenen Kunden. Auch wir sind von der Qualität überzeugt und freuen uns gemeinsam mit Adyen <a routerLink="/client/plugin/faq-online-payment" fragment="adyen-privacy" rel="noopener" target="_blank">sichere</a> und benutzerfreundliche Online-Zahlungsfunktionen anbieten zu können.</p>
+								</div>
+								<div class="col-12 col-md-6 d-flex flex-column align-items-stretch justify-content-center">
+									<div class="position-relative">
+										<div class="info-card mb-90">
+											<img src="./images/plano-logo/logo.svg" alt="Dr.&nbsp;Plano Logo" height="100px"/>
+										</div>
+										<div class="info-card" style="position: absolute; right: 0; bottom: 0;">
+											<img src="./images/adyen/adyen_logo.svg" alt="Adyen Logo" height="100px"/>
+										</div>
+									</div>
+								</div>
+							</p-grid>
+						</p-section>
+						<p-section [background]="'light-cold'">
+								<p-grid>
+									<div class="p-0 col-12 col-md-7 d-flex flex-column align-items-stretch justify-content-center">
+										<img src="./images/adyen/drplano_payment_methods_4x3.png" alt="Online-Zahlungsarten (Sofort, SEPA, Mastercard, Visa, Google Pay)" i18n-alt/>
+									</div>
+									<div id="payment-methods" class="col-12 col-md-5 d-flex flex-column align-items-stretch justify-content-center">
+										<h4 i18n>Viele Zahlungsarten</h4>
+										<p i18n>Gerade bei der Online-Zahlung ist es zentral, dass Kunden die Zahlungsart ihres Vertrauens nutzen können. Wir stellen je nach Land ein differenziertes Repertoire an Zahlungsarten zur Verfügung, sodass für alle das Passende dabei ist. Melde dich gerne bei uns, wenn die Zahlungsart deiner Wahl dennoch fehlen sollte.</p>
+									</div>
+								</p-grid>
+						</p-section>
+						<p-section>
+							<p-grid>
+								<div id="pricing" class="col-12 col-md-5 d-flex flex-column align-items-stretch justify-content-center">
+									<h4 i18n>Faire Preise</h4>
+									<p i18n>Gemeinsam mit unserem Partner Adyen können wir ein einfaches und faires Preismodell gewährleisten. Die Online-Zahlung und die vielen Funktionen, die dadurch erst ermöglicht werden, sparen alltäglich Zeit und Geld.</p>
+									<p i18n>Auch die Abrechnung mit Dr.&nbsp;Plano läuft vollkommen automatisiert ab und kostet dich keine Zeit. Mehr zu den Preisen und zur Abrechnung findest du <a routerLink="/client/plugin/faq-online-payment" fragment="pricing" rel="noopener" target="_blank">hier</a>.</p>
+								</div>
+								<div class="col-12 col-md-7 d-flex flex-column align-items-stretch justify-content-center">
+									<div class="m-0 m-md-3 info-card p-3 p-md-5">
+										<ul class="fa-ul pricing-card-list">
+											<li class="pb-3" i18n><span class="fa-li color-primary"><i class="fas fa-lg fa-plus-circle"></i></span>Einfach: viele Zahlungsarten, ein Preis</li>
+											<li class="pb-3" i18n><span class="fa-li color-primary"><i class="fas fa-lg fa-plus-circle"></i></span>Keine Fix-Kosten, sondern eine Gebühr pro Transaktion</li>
+											<li class="pb-3" i18n><span class="fa-li color-primary"><i class="fas fa-lg fa-plus-circle"></i></span>Transparente Anzeige der angefallenen Gebühr pro Transaktion</li>
+										</ul>
+										<div class="col-12" style="text-align: center;">
+											<span class="adyen-fee"><h5 style="display: inline-block;">2,39% + 0,35€</h5></span>
+											<p class="adyen-fee-hint" i18n>je Einzahlung oder Rückerstattung<br><small>* Netto-Preise zzgl. USt.</small></p>
+										</div>
+									</div>
+								</div>
+							</p-grid>
+						</p-section>
+
+						<p-section [background]="'light-cold'">
+							<p-grid>
+								<div class="col-12 col-md-6 d-flex flex-column align-items-stretch justify-content-center">
+									<!-- cspell:ignore youtube -->
+									<p-youtube class="py-3" [key]="Config.getLanguageCode() === PSupportedLanguageCodes.de ? 'OXTnJkf9anw' : 'a91W4WiiAo8'" quality="maxresdefault"></p-youtube>
+								</div>
+								<div class="col-12 col-md-6 d-flex flex-column align-items-stretch justify-content-center">
+									<h4 i18n>Funktionen in Kombination</h4>
+									<p i18n>Die Online-Zahlung ermöglicht weitere Kombi-Funktionen. Als besonders zeitsparend sticht hier die Funktion hervor, direkt aus Dr.&nbsp;Plano heraus Rückzahlungen an Kunden vornehmen zu können. Oder du setzt gleich auf komplette Automatisierung, indem du einerseits deinen Kunden erlaubst, ihre Buchungen selbst online zu stornieren und andererseits die Funktion der automatischen Rückerstattung aktivierst. Schau dir dazu gerne das Tutorial-Video an.</p>
+									<p i18n>Mehr darüber auch in unserer <a routerLink="/client/plugin/faq-online-payment" fragment="refund" rel="noopener" target="_blank"><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.AREA_FAQ" class="mr-1"></fa-icon>FAQ zur Online-Zahlung</a></p>
+									<p *ngIf="showPaypalShutdownAlert" i18n>Wenn du bislang bei Dr.&nbsp;Plano PayPal benutzt hast, dann schau dir bitte zusätzlich die <a href="https://extras.dr-plano.com/new-online-payment" rel="noopener" target="_blank">FAQ zur Umstellung</a> von PayPal auf die neue Online-Zahlung an.</p>
+								</div>
+							</p-grid>
+						</p-section>
+						<p-section id="adyen-activation">
+							<p-grid>
+								<div class="col-12">
+									<h4 i18n style="text-align: center;">Aktivierung der Online-Zahlung</h4>
+									<p i18n>Um die Online-Zahlung zu aktivieren, durchläufst du das so genannte Onboarding unseres Partners Adyen. Dabei wird zuerst ein <strong>Buchungskonto</strong> für dich erstellt. Anschließend fragt Adyen nach einigen Angaben zu dir und deinem Betrieb und prüft diese. Diese Prüfung ist unter der Bezeichnung <strong>»Know Your Customer«</strong>-Erfordernis für Finanzinstitute gesetzlich vorgeschrieben (siehe §§ 10 bis 17 des Geldwäschegesetzes und Artikel 10 bis 29 der 4. EU-Anti-Geldwäsche-Richtlinie).</p>
+									<p i18n><strong>Deine nächsten Schritte:</strong> Lies dir bitte gründlich die Bedingungen unten durch. Sobald du sie akzeptiert hast, kannst du ganz unten auf den Button klicken. Anschließend wird im Hintergrund ein Buchungskonto für dich erstellt und du wirst zu Adyen weitergeleitet, wo du die gesetzlich vorgeschriebenen Angaben zu dir und deinem Geschäft machen musst. Danach wird Adyen deine Daten auf Korrektheit prüfen, was je nach Fall ein paar Tage dauern kann. Über das Ergebnis der Prüfung wirst du automatisch per Email benachrichtigt werden. Bei einer positiven Prüfung kannst du direkt die Online-Zahlungsfunktionen nutzen 🎉</p>
+									<div class="p-0 p-md-4" *ngIf="api.isLoaded()">
+										<p-alert *ngIf="me.isTestAccount" [theme]="PThemeEnum.INFO" i18n>Die Online-Zahlung steht im Test&#8209;Account nicht zur Verfügung. <a href="./client/testaccount">Hole dir jetzt einen Echt&#8209;Account</a></p-alert>
+										<div class="col-12 info-card p-4">
+											<h5 i18n>Nutzung im eigenen Namen und nur für zugelassene Produkte</h5>
+											<div class="d-flex align-items-start justify-content-center">
+												<p-checkbox
+													[(ngModel)]="api.data.adyenAccount.attributeInfoAdyenTermsOfServiceAccepted.value"
+													[attributeInfo]="api.data.adyenAccount.attributeInfoAdyenTermsOfServiceAccepted"
+													[hasButtonStyle]="false"
+													[readMode]="false"
+												></p-checkbox>
+												<div class="flex-grow-1 py-2 adyen-agreement-checkbox-description" i18n>Hiermit versichere ich, dass ich die Zahlungsdienste nur für Verkäufe im eigenen Namen nutzen werde. Ich werde die Zahlungsdienste nicht weiterverkaufen, vermieten oder auf andere Art und Weise Dritten zur Nutzung überlassen, damit diese für ihre Dienste bezahlt werden können. Außerdem werde ich die Zahlungsdienste nur für die Produkt- und Dienstleistungsarten nutzen, die ich beim Onboarding angegeben habe. Insbesondere bestätige ich, dass ich die Zahlungsdienste nicht für Produkt- oder Dienstleistungsarten nutzen werde, die Adyen N.V. (nachfolgend Adyen) auf der <a href="https://www.adyen.com/dam/jcr:47f292a9-c9e2-4a69-8592-2e15ffdc7e61/List-of-prohibited-and-restricted-products-and-services-June-2017.pdf" rel="noopener" target="_blank">Liste der untersagten Produkte und Dienste</a> aufgeführt hat. Falls Dr.&nbsp;Plano oder Adyen zu irgendeinem Zeitpunkt feststellen, dass die von mir beim Onboarding angegebenen Unternehmensdaten falsch sind oder sie sich geändert haben, ohne Dr.&nbsp;Plano oder Adyen darüber informiert zu haben, oder wenn ich gegen eine der soeben aufgelisteten Bedingungen verstoße, können die Zahlungsdienste mit sofortiger Wirkung ausgesetzt und / oder beendet werden und es können von den Kreditkarten-Organisationen und / oder den Behörden Geldstrafen für die nicht registrierte oder unangemessene Nutzung von Zahlungsdienstleistungen verhängt werden, die in diesem Fall von mir zu tragen wären.</div>
+											</div>
+											<h5 class="mt-3" i18n>Vertragsschluss mit Adyen & Dr.&nbsp;Plano</h5>
+											<div class="d-flex align-items-start justify-content-center">
+												<p-checkbox
+													[(ngModel)]="api.data.adyenAccount.attributeInfoAdyenContractAccepted.value"
+													[attributeInfo]="api.data.adyenAccount.attributeInfoAdyenContractAccepted"
+													[hasButtonStyle]="false"
+													[readMode]="false"
+												></p-checkbox>
+												<div class="flex-grow-1 py-2 adyen-agreement-checkbox-description" i18n>Mir ist bewusst, dass die Zahlungsdienste in Zusammenarbeit mit dem Auftragsverarbeiter Adyen N.V. (nachfolgend Adyen) zur Verfügung gestellt werden und ich mit der Durchführung des Onboardings einen direkten Vertrag mit Adyen abschließe. Damit akzeptiere ich auch die <a href="https://www.adyen.com/dam/jcr:5d08ffb5-9130-4380-a0be-3c3952b9f58a/Adyen%2520NV%2520Terms%2520and%2520Conditions%2520-5%2520December%25202017.pdf" rel="noopener" target="_blank">AGB</a> von Adyen. Dr.&nbsp;Plano wird mir die Verbindung zu den Systemen von Adyen und damit die Nutzung der Zahlungsdienste ermöglichen und mich bei der Nutzung der von Adyen zu erbringenden Leistungen unterstützen. Zu diesem Zweck beauftrage ich Adyen Dr.&nbsp;Plano Zugang zu meinen bei Adyen hinterlegten Daten und Einstellungen zu gewähren und autorisiere Dr.&nbsp;Plano diese in meinem Namen zu verwalten.</div>
+											</div>
+											<div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center">
+												<div class="my-3 mr-lg-3 flex-shrink-0">
+													<p-button
+														id="adyen-change-data"
+														[attributeInfo]="api.data.adyenAccount.attributeInfoOnboardingUrl"
+														[theme]="PThemeEnum.PRIMARY"
+														[badge]="canDoOnboarding && api.data.adyenAccount.onboardingActionRequiredOrPending"
+														(triggerClick)="openAdyenOnboardingUrl()"
+														[isLoading]="api.isBackendOperationRunning"
+													>
+														<fa-icon
+															[fixedWidth]="true" [icon]="onboardingRequestRunning ? PlanoFaIconPool.SYNCING : 'sign-in-alt'" [spin]="onboardingRequestRunning"
+														></fa-icon>&ngsp;<ng-container i18n>{api.data.adyenAccount.accountHolderState===SchedulingApiAccountHolderState.NOT_INITIALIZED,select, true {Onboarding bei Adyen starten} other {Daten bei Adyen bearbeiten}}</ng-container>
+													</p-button>
+												</div>
+											</div>
+											<div class="col-12 p-0">
+												<div
+													*ngIf="onboardingRequestRunning"
+													class="mt-0 form-text"
+												>
+													<fa-icon
+													[fixedWidth]="true" [icon]="onboardingRequestRunning ? PlanoFaIconPool.SYNCING : PlanoFaIconPool.SYNCING" [spin]="onboardingRequestRunning"
+													></fa-icon>&ngsp;
+													<ng-container i18n>{api.data.adyenAccount.accountHolderState===SchedulingApiAccountHolderState.NOT_INITIALIZED, select, true {Dein Buchungskonto bei Adyen wird soeben erstellt. Das kann einen Moment dauern. Du wirst gleich automatisch zur Onboarding-Seite weitergeleitet.} other {Du wirst gleich automatisch zur Onboarding-Seite weitergeleitet.}}</ng-container>
+												</div>
+												<p-validation-hint
+													[isInvalid]="generateOnboardingFailed"
+													[text]="'Leider ist etwas schief gelaufen! Bitte versuche es später noch einmal.'" i18n-valueText
+												></p-validation-hint>
+											</div>
+										</div>
+									</div>
+								</div>
+							</p-grid>
+						</p-section>
+					</ng-template>
+				</div>
+				</p-tab>
+
+				<p-tab
+					label="Gutscheinverkauf" i18n-label
+					[urlName]="PluginComponentTabs.GIFT_CARDS"
+					[size]="PTabSizeEnum.FRAMELESS"
+				>
+					<p-section class="pt-5">
+						<p-alert [theme]="PThemeEnum.INFO" i18n class="m-0">Verkaufte Gutscheine können aktuell nur vor Ort an der Kasse eingelöst werden. Dazu müssen sie exportiert und in der Kasse importiert werden. Eine Synchronisation findet <strong>nicht</strong> statt. Wir arbeiten daran und melden uns bei dir, sobald es möglich ist.</p-alert>
+					</p-section>
+					<ng-template [ngIf]="api.isLoaded()" [ngIfElse]="spinnerTemplate">
+						<p-section
+							*ngIf="!api.data.isPaypalAvailable && !api.data.isOnlinePaymentAvailable; else settingsTemplate"
+						>
+						<p-alert
+							[theme]="PThemeEnum.WARNING"
+							i18n
+						>Um Gutscheine online verkaufen & bezahlen lassen zu können, aktiviere bitte erst die <a routerLink="/client/plugin/payments">Online-Zahlung</a>.</p-alert>
+						</p-section>
+						<ng-template #settingsTemplate>
+							<p-section label="Gutschein-Einstellungen" i18n-label>
+								<p-voucher-settings *ngIf="!!api.data.voucherSettings.rawData"></p-voucher-settings>
+							</p-section>
+						</ng-template>
+					</ng-template>
+					<p-section id="scroll-target-id-voucher-faq" label="Fragen & Antworten" i18n-label>
+						<p-collapsible>
+							<span trigger i18n>Wie richte ich bei Dr.&nbsp;Plano den Gutscheinverkauf ein?</span>
+							<div content class="card-body" i18n>Voraussetzung für den Gutscheinverkauf ist die Aktivierung der <a routerLink="/client/plugin/payments">Online-Zahlung</a>, denn Gutscheine können nur online direkt bei der Bestellung bezahlt werden. Nach der Aktivierung der Online-Zahlung kannst du auf dieser Seite das Häkchen bei »Gutscheine online verkaufen« setzen und die dazugehörigen Felder ausfüllen. Hinterlegst du unter dem Tab <a routerLink="/client/plugin/basis">Grunddaten</a> die Link zu eurer AGB, Datenschutzerklärung und Stornobedingungen, dann müssen diese beim Gutscheinkauf vom Kunden akzeptiert werden. Als letzter Schritt muss das Homepage-Plugin auf deiner Webseite eingebunden werden. Infos zur Einbindung findest du unter dem Tab <a routerLink="/client/plugin/setup">Homepage-Plugin</a>. Danach kannst du dich entspannt zurücklehnen und über die verkauften Gutscheine freuen, die du auf der Seite <a routerLink="/client/sales/gift-cards">Verkäufe</a> einsehen kannst 🎉</div>
+						</p-collapsible>
+						<p-collapsible>
+							<span trigger i18n>Wie sieht der Gutschein aus?</span>
+							<div content class="card-body" i18n>Der Gutschein wird als PDF-Anhang mit einer Email an den Käufer verschickt. Aktuell kannst du noch keine eigenen Vorlagen für den Gutschein erstellen. Sobald wir diese Funktionalität umgesetzt haben, sagen wir dir Bescheid.<br>Wenn du dir die jetzige Vorlage anschauen möchtest, dann klicke bitte <a class="external-link" [externalLink]="'static/gift_card_example.pdf' | pLocalizeFile" rel="noopener">hier.</a></div>
+						</p-collapsible>
+						<p-collapsible>
+							<span trigger i18n>Wie können meine Kunden die Gutscheine einlösen?</span>
+							<div content class="card-body" i18n>Zurzeit können Gutscheine nur vor Ort an der Kasse eingelöst werden. In der nächsten Version werden wir die Online-Einlösung von Gutscheinen sowie eine Synchronisation mit Kassen einführen. Bis dahin musst du die verkauften Gutscheine in deiner Kasse importieren. Entweder manuell oder mithilfe des Exports, den du an dieser Stelle machen kannst. <strong>Achtung:</strong> Zu deiner eigenen Sicherheit frag bitte bei deinem Anbieter der Kassensoftware nach, ob Gutscheine überschrieben werden, falls du sie ungewollt mehrfach importierst.</div>
+						</p-collapsible>
+						<p-collapsible>
+							<span trigger i18n>Enthält der verkaufte Gutschein Steuern?</span>
+							<div content class="card-body" i18n>Beim verkauften Gutschein handelt es sich um einen so genannten »Mehrzweckgutschein« - früher »Wertgutschein« genannt. Dieser Gutschein ist nicht für einen bestimmten Zweck gedacht und deshalb kein »Einzweckgutschein« - früher »Sachgutschein« genannt. Aus diesem Grund erfolgt die Besteuerung erst mit der der tatsächlichen Lieferung bzw. Leistung - also erst bei der Einlösung des Gutscheins. Bitte stimme dies mit deiner Buchhaltung ab.</div>
+						</p-collapsible>
+					</p-section>
+				</p-tab>
+
+				<p-tab
+					label="Email-Vorlagen" i18n-label
+					urlName="emails"
+				>
+					<div *ngIf="api.isLoaded() && accountApi.isLoaded(); else spinnerTemplate">
+						<div class="mb-5" i18n>Hier erstellst und editierst du Email-Vorlagen für die automatisierte Kunden-Kommunikation. Eine Vorlage kann für mehrere buchbare Angebote verwendet werden. Du kannst aber auch für einzelne Angebote individuelle Vorlagen erstellen. Welche der hier vorhandenen Vorlagen letztendlich verwendet werden, legst du in jeder Tätigkeit unter dem Reiter »Buchungseinstellungen« fest.</div>
+						<p-custom-course-emails></p-custom-course-emails>
+					</div>
+				</p-tab>
+
+				<p-tab
+					label="Homepage-Plugin" i18n-label
+					urlName="setup"
+					[size]="PTabSizeEnum.FRAMELESS"
+				>
+					<div [class.p-5]="!Config.IS_MOBILE" [class.p-4]="Config.IS_MOBILE">
+						<div i18n>Auf dieser Seite erfährst du, wie du in nur wenigen Schritten deine Homepage in eine Buchungsplattform verwandelst. Außerdem bekommst du eine Vorschau, wie unser Buchungsplugin ungefähr auf deiner Homepage aussehen wird. <strong>Beachte:</strong> Unser Plugin wird sich im Design an deine Seite anpassen, sobald du es einbindest. Außerdem kannst du es über CSS selbst gestalten.</div>
+					</div>
+					<div class="voda-bg-light">
+						<div class="iframe-settings">
+							<div [class.p-5]="!Config.IS_MOBILE" [class.p-4]="Config.IS_MOBILE">
+								<h5 class="text-white" i18n>Einstellung der Plugin-Breite</h5>
+								<p-radio
+									class="mb-3"
+									(checkedChange)="iframeFixedWidth=false"
+									[checked]="iframeFixedWidth===false"
+									[card]="true"
+									i18n
+								>Dynamische Breite (passt sich eurer Homepage an)</p-radio>
+								<p-grid>
+									<div class="col-6">
+										<p-radio
+											(checkedChange)="iframeFixedWidth=true"
+											[checked]="iframeFixedWidth===true"
+											[card]="true"
+											i18n
+										>Feste Breite</p-radio>
+									</div>
+									<div class="col-6">
+										<div class="input-group">
+											<input class="form-control"
+												type="number"
+												autocomplete="off"
+												step="10"
+												min="280"
+												max="800"
+												[disabled]="!iframeFixedWidth"
+												[(ngModel)]="iframeWidth"
+											/>
+											<div class="input-group-append">
+												<span class="input-group-text" i18n>Pixel</span>
+											</div>
+										</div>
+									</div>
+								</p-grid>
+							</div>
+						</div>
+						<div class="p-4">
+							<div
+								class="d-block ml-auto mr-auto"
+								height="500px"
+								[style.width]="iframeFixedWidth ? (iframeWidth + 'px') : '100%'"
+							>
+								<p-booking-plugin-preview *ngIf="showPlugin"></p-booking-plugin-preview>
+							</div>
+						</div>
+					</div>
+					<div [class.p-5]="!Config.IS_MOBILE" [class.p-4]="Config.IS_MOBILE">
+						<h3 id="scroll-target-id-integration" class="text-center my-5" i18n>Plugin auf deiner Homepage einbinden</h3>
+						<p i18n>Das Plugin lässt sich entweder mit einem Menü einbinden, das alle deine buchbaren Angebote beinhaltet – wie oben in der Vorschau zu sehen ist. Oder du bindest deine buchbaren Angebote / den Gutscheinverkauf einzeln & ohne das Menü ein – diese Methode ist sinnvoll, wenn du schon eine Menü-Navigation auf deiner Homepage hast.</p>
+						<div class="mb-6">
+							<p id="host-name-required-hint"><fa-icon [icon]="PlanoFaIconPool.LINK" class="text-primary mr-3"></fa-icon><ng-container i18n>Bitte gib erst die Domain der Homepage an, wo du das Plugin einbinden möchtest. Das ist aus Sicherheitsgründen notwendig:</ng-container></p>
+							<p-multi-value-input
+								[pEditable]="true"
+								#pEditableRef="pEditable"
+								[api]="api"
+
+								class="mb-3"
+								[ngModel]="api.data.reCaptchaWhiteListedHostNames.iterable()"
+								(itemAdded)="reCaptchaWhiteListedHostNameAdded($event, pEditableRef)"
+								(itemRemoved)="reCaptchaWhiteListedHostNameRemoved($event, pEditableRef)"
+								type="Domain"
+							></p-multi-value-input>
+						</div>
+						<div class="mb-6">
+							<h5 class="text-center mb-4"><fa-icon [icon]="PlanoFaIconPool.GRID_MENU" class="text-primary mr-3"></fa-icon><ng-container i18n>Plugin mit einem Menü</ng-container></h5>
+							<ol>
+								<li i18n>Füge folgenden Code-Schnipsel per Copy & Paste auf deiner Homepage kurz vor dem HTML-Tag <code>{{ '<\/body>' }}</code> ein.</li>
+							</ol>
+
+							<ng-template [ngTemplateOutlet]="snippetPreviewTemplate" [ngTemplateOutletContext]="{$implicit: scriptSnippet}"></ng-template>
+							<button
+								type="button"
+								class="btn btn-primary d-block ml-auto mb-3"
+								[disabled]="!scriptSnippet"
+								(click)="copyString(scriptSnippet!)"
+							><fa-icon [fixedWidth]="true" icon="clipboard"></fa-icon>&nbsp;<ng-container i18n>HTML-Code in die Zwischenablage kopieren</ng-container></button>
+
+							<ol start="2">
+								<li i18n>Öffne den HTML-Code derjenigen Seite, wo das Plugin angezeigt werden soll.</li>
+								<li i18n>Füge den folgenden Code-Schnipsel per Copy & Paste an der Stelle deiner Homepage ein, wo du deine buchbaren Angebote und ggf. den Gutscheinverkauf als Menü angezeigt haben möchtest. Das war's ✌</li>
+							</ol>
+							<ng-template [ngTemplateOutlet]="snippetPreviewTemplate" [ngTemplateOutletContext]="{$implicit: getSnippet(null)}"></ng-template>
+							<button
+								type="button"
+								class="btn btn-primary d-block ml-auto mb-3"
+								[disabled]="!getSnippet(null)"
+								(click)="copyString(getSnippet(null)!)"
+							><fa-icon [fixedWidth]="true" icon="clipboard"></fa-icon>&nbsp;<ng-container i18n>HTML-Code in die Zwischenablage kopieren</ng-container></button>
+
+						</div>
+						<div class="mb-6">
+							<h5 class="text-center mb-4"><fa-icon [icon]="PlanoFaIconPool.TEXT_LEFT" class="text-primary mr-3"></fa-icon><ng-container i18n>Plugin ohne das Menü</ng-container></h5>
+							<p i18n>Wenn du die Angebote und den <strong>Gutscheinverkauf</strong> nicht als Menü dargestellt haben möchtest, dann lasse den obigen Schritt Nr. 3 aus und wähle stattdessen hier den spezifischen Code-Schnipsel zum jeweiligen Angebot oder zum Gutscheinverkauf. Füge den Link per Copy & Paste an der Stelle deiner Homepage ein, wo du das jeweilige Angebot bzw. den Gutscheinverkauf angezeigt haben möchtest.</p>
+
+							<p-grid>
+
+								<div class="col-12 col-md-6 mb-3">
+									<div *ngIf="api.isLoaded(); else spinnerTemplate" class="d-flex">
+										<div class="w-100">
+											<p-input-shiftmodel-id
+												style="min-height: 38px;"
+												class="w-100"
+												[ngModel]="selectedShiftModel ? selectedShiftModel.id : undefined"
+												(ngModelChange)="selectedShiftModel = api.data.shiftModels.get($event)"
+												[items]="coursesForDropdown"
+												(focus)="$event ? selectedShiftModel=null : !undefined"
+											></p-input-shiftmodel-id>
+										</div>
+										<!-- <button class="btn btn-danger ml-2"
+											(click)="selectedShiftModel=undefined"
+										><fa-icon [fixedWidth]="true" icon="trash"></fa-icon></button> -->
+									</div>
+								</div>
+								<div class="col-12 col-md-6 mb-3 d-flex align-items-center">
+									<label class="m-0 p-0"><strong i18n>Gutscheinverkauf</strong>&nbsp;<span *ngIf="api.data.voucherSettings.rawData && !api.data.voucherSettings.isVoucherSaleEnabled" class="text-warning" i18n>(Noch nicht aktiviert)</span></label>
+								</div>
+
+								<div class="col-12 col-md-6">
+									<ng-template [ngTemplateOutlet]="snippetPreviewTemplate" [ngTemplateOutletContext]="{$implicit: getSnippet(selectedShiftModel)}"></ng-template>
+									<button
+										type="button"
+										class="btn btn-primary d-block ml-auto mb-3"
+										[disabled]="!selectedShiftModel || !getSnippet(selectedShiftModel)"
+										(click)="copyString(getSnippet(selectedShiftModel)!)"
+									>
+										<fa-icon [fixedWidth]="true" icon="clipboard"></fa-icon>&nbsp;<ng-container i18n>HTML-Code in die Zwischenablage kopieren</ng-container>
+									</button>
+
+								</div>
+
+								<div class="col-12 col-md-6">
+
+									<ng-template [ngTemplateOutlet]="snippetPreviewTemplate" [ngTemplateOutletContext]="{$implicit: getSnippet(true)}"></ng-template>
+									<button
+										*ngIf="api.data.voucherSettings.rawData && !!api.data.voucherSettings.isVoucherSaleEnabled"
+										type="button"
+										class="btn btn-primary d-block ml-auto mb-3"
+										[disabled]="!getSnippet(true)"
+										(click)="copyString(getSnippet(true)!)"
+									>
+										<fa-icon [fixedWidth]="true" icon="clipboard"></fa-icon>&nbsp;<ng-container i18n>HTML-Code in die Zwischenablage kopieren</ng-container>
+									</button>
+								</div>
+							</p-grid>
+
+						</div>
+						<div id="scroll-target-id-faq">
+							<span><h3 class="text-center" i18n>Anpassung des Plugins durch CSS</h3></span>
+							<p-collapsible id="basic">
+								<span trigger i18n>Plugin individuell anpassen</span>
+								<div content class="card-body" i18n>Unser Plugin wird sich im Design an deine Seite anpassen, sobald du es einbindest. Dafür greift das Plugin auf die CSS-Styles deiner Homepage zurück. Zusätzlich kannst du per CSS das Plugin gestalten. Alle Elemente des Plugins haben CSS-Klassen, die du selektieren und gestalten kannst. Um die gewünschte Klasse herauszufinden, nutzt du am besten den Inspektor deiner Browser-Developer-Tools. Damit du die Klassen besser erkennen kannst, beginnen alle Dr.&nbsp;Plano-Klassennamen folgendermaßen: <mark class="text-monospace">.drp-…</mark></div>
+							</p-collapsible>
+							<p-collapsible id="hide-sections">
+								<span trigger i18n>Teile des Plugins ausblenden</span>
+								<div content class="card-body">
+									<p i18n>Per CSS lassen sich bestimmte Elemente des Plugins selektieren und ausblenden. Nehmen wir beispielhaft an, du möchtest die Checkbox mit der Frage ausblenden, ob der Kunde deinen Newsletter empfangen möchte. Das kannst du mit folgendem CSS-Code erreichen:</p>
+									<pre>.drp-course-booking-wants-newsletter {{ '{' }}<br> display: none;<br>{{ '}' }}</pre>
+									<p i18n>Auf diese weise würdest du die Frage nach dem Newsletter für <strong>alle</strong> buchbaren Angebote im Buchungsplugin ausblenden. Möchtest du das aber <strong>nur für ein bestimmtes Angebot</strong> tun, dann musst du zusätzlich die individuelle Klasse des jeweiligen Angebots selektieren, die folgendermaßen aussieht: <mark class="text-monospace">.drp-course-id-&lt;id&gt;</mark> Um die richtige Klasse herauszufinden, nutzt du am besten die Developer-Konsole deines Browsers. Der CSS-Code, um die Newsletter-Abfrage bei einem Angebot mit der beispielhaften ID <mark class="text-monospace">1234</mark> auszublenden, sieht dann folgendermaßen aus:</p>
+									<pre>.drp-course-id-1234 .drp-course-booking-wants-newsletter {{ '{' }}<br> display: none;<br>{{ '}' }}</pre>
+								</div>
+							</p-collapsible>
+							<p-collapsible id="hide-required-inputs">
+								<span trigger i18n>Pflichtangaben der buchenden Person im Plugin weglassen (z.B. die Adresse oder Telefonnummer)</span>
+								<div content class="card-body">
+									<p-alert i18n [theme]="PThemeEnum.INFO">Das Weglassen von Pflichtfeldern reduziert die Aussagekraft deiner <a routerLink="/client/sales/bookings" rel="noopener" target="_blank">Statistik</a>, die du zur Analyse & Optimierung deiner Buchungen nutzen kannst. Wenn du z.B. die Adresse der buchenden Person nicht mehr abfragst, kann dir keine Statistik über die Regionen angezeigt werden, aus denen deine Zielgruppe stammt.</p-alert>
+									<p-alert i18n [theme]="PThemeEnum.INFO">Das Weglassen von Pflichtfeldern wie der Anschrift führt bei Online-Zahlungen zu einem erhöhten 3-D Secure-Verfahren und die Zahlenden müssen eine weitere TAN eingeben. Denn die Anschrift hilft den Kreditkartenorganisationen, die Zahlungspflichtigen zu verifizieren.</p-alert>
+									<p i18n><strong>So geht's nicht:</strong> Pflichtfelder, die die buchende Person ausfüllen muss, sollten nicht über die CSS-Eigenschaft <mark class="text-monospace">display: none</mark> ausgeblendet werden. Denn obwohl sie so ausgeblendet werden, erwartet der Browser trotzdem eine Angabe durch deinen Kunden; dein Kunde hat aber keine Möglichkeit, die Felder auszufüllen, da sie ausgeblendet sind. Auf diese Weise bleibt das Formular ungültig und die Buchung kann nicht durchgeführt werden.</p>
+									<p i18n><strong>Der richtige Weg:</strong> Um Pflichtfelder wegzubekommen, musst du das <mark class="text-monospace">&lt;div&gt;</mark> Element anpassen, womit du das Plugin auf deiner Seite eingebunden hast. Im folgenden Beispiel siehst du, wie man das <mark class="text-monospace">&lt;div&gt;</mark> Element eines Angebots mit der ID <mark class="text-monospace">1234</mark> so anpasst, dass Pflichtfelder abgeschafft werden – dabei sind alle Pflichtfelder aufgelistet, die du weglassen darfst. Du kannst dir einfach die für dich relevanten rauspicken:</p>
+										<pre>&lt;div id="drp-booking" data-course-id="1234"
+<!-- 									-->  data-hide-date-of-birth="true"		<span class="text-muted">&lt;!-- Geburtsdatum weglassen --&gt;</span>
+<!-- 									-->  data-hide-street-and-house-number="true"	<span class="text-muted">&lt;!-- Straße und Hausnummer weglassen --&gt;</span>
+<!-- 									-->  data-hide-postal-code="true"			<span class="text-muted">&lt;!-- PLZ weglassen --&gt;</span>
+<!-- 									-->  data-hide-city="true"				<span class="text-muted">&lt;!-- Stadt weglassen --&gt;</span>
+<!-- 									-->  data-hide-phone-mobile="true"			<span class="text-muted">&lt;!-- Mobilnummer weglassen --&gt;</span>
+<!-- 									-->  data-hide-phone-landline="true"		<span class="text-muted">&lt;!-- Festnetznummer weglassen --&gt;</span>
+<!-- 									-->  data-hide-wants-newsletter="true"		<span class="text-muted">&lt;!-- Abfrage weglassen, ob dein Newsletter gewünscht ist (wird am Ende des Buchungsprozesses abgefragt) --&gt;</span>
+<!-- 									-->&gt;&lt;/div&gt;</pre>
+									<p i18n>☝ In deinem Dr.&nbsp;Plano-Account werden bei Buchungen die Pflichtfelder, die du auf diese Weise nicht abgefragt hast, mit einem <mark class="text-monospace">–</mark> gefüllt sein. Nicht wundern 😉</p>
+								</div>
+							</p-collapsible>
+							<p-collapsible id="custom-images">
+								<span trigger i18n>Eigene Bilder im Kachel-Menü verwenden</span>
+								<!-- cspell:ignore bild -->
+								<div content class="card-body">
+									<p i18n>Die Bilder für die einzelnen Kacheln im Angebotsmenü lassen sich per CSS durch eigene Bilder ersetzen. Für ein Angebot mit der ID <mark class="text-monospace">1234</mark> musst du folgendes eingeben:</p>
+									<pre>.drp-course-list-item-id-1234 .drp-course-list-item-image {{ '{' }}<br> background-image: url('&lt;<ng-container i18n>url_vom_bild</ng-container>&gt;') !important;<br>{{ '}' }}</pre>
+									<p i18n><strong>Beachte:</strong> Deine eigenen Bilder sollten dasselbe Seitenverhältnis haben wie die vordefinierten Bilder: Breite / Höhe = {{ 1.53 | number }}. Um die Ladezeit nicht unnötig zu verlängern, solltest du außerdem auf zu große Bilder verzichten. Unsere Bilder haben folgende Größe: 255 x 167 px.</p>
+								</div>
+							</p-collapsible>
+							<p-collapsible id="change-order">
+								<span trigger i18n>Die Reihenfolge der Angebote ändern</span>
+								<div content class="card-body">
+									<p i18n>Um im Angebotsmenü die Reihenfolge der angezeigten Angebote zu ändern, suchst du dir die CSS-Klassen der jeweiligen Angebote mit Hilfe der Developer-Konsole deines Browsers heraus. Anschließend fügst per CSS jeder Klasse das Attribut <mark class="text-monospace">order</mark>, wonach die Angebote sortiert werden sollen. Bei einem Angebot mit der ID <mark class="text-monospace">1234</mark> sieht der CSS-Code folgendermaßen aus:</p>
+									<pre>.drp-course-list-item-1234 {{ '{' }}<br> order: -1;<br>{{ '}' }}</pre>
+								</div>
+							</p-collapsible>
+							<p-collapsible id="toc">
+								<span trigger i18n>Die Zustimmung zu AGB, Datenschutzerklärung etc. bei einem Angebot ausblenden</span>
+								<div content class="card-body">
+									<p i18n>Wenn du bei einem Angebot von deiner allgemeinen Regel abweichen möchtest, dass die Kunden vor einer Buchung deiner AGB, Datenschutzerklärung oder Teilnahmebedingungen zustimmen müssen, dann kannst du eine solche Ausnahme mit folgenden Flags definieren: <mark class="text-monospace">data-hide-terms</mark>, <mark class="text-monospace">data-hide-data-protection</mark> und <mark class="text-monospace">data-hide-terms-of-participation</mark>. Diese werden in dem <mark class="text-monospace">&lt;div&gt;</mark>, womit du das Plugin für das Angebot einbindest, eingefügt. Der HTML-Code, um alle drei Links auszublenden, sieht so aus:</p>
+									<pre>{{exampleSnippetToc}}</pre>
+									<button type="button" class="btn btn-primary d-block ml-auto mb-3" (click)="copyString(exampleSnippetToc)"><fa-icon [fixedWidth]="true" icon="clipboard"></fa-icon>&nbsp;<ng-container i18n>HTML-Code in die Zwischenablage kopieren</ng-container></button>
+								</div>
+							</p-collapsible>
+							<p-collapsible id="custom-agreement">
+								<span trigger i18n>Zustimmung einholen für benutzerdefinierte Vereinbarungen oder Bedingungen</span>
+								<div content class="card-body">
+									<p i18n>Zum Abschluss einer Buchung kannst du die Zustimmung deiner Kunden zu deiner AGB, Datenschutzerklärung, Teilnahme- sowie Stornobedingungen einholen. Dafür musst du lediglich <a routerLink="/client/plugin/basis" fragment="legal-links-anchor" rel="noopener" target="_blank">hier</a> die jeweilige URL eintragen. Bei Bedarf kannst du auch die Zustimmung deiner Kunden für weitere Vereinbarungen oder Bedingungen einholen. Ergänze dafür den <mark class="text-monospace">&lt;div&gt;</mark>, womit du das Plugin auf deiner Homepage einbindest, folgendermaßen:</p>
+									<pre>{{exampleSnippetCustomAgreement}}</pre>
+									<button type="button" class="btn btn-primary d-block ml-auto mb-3" (click)="copyString(exampleSnippetCustomAgreement)"><fa-icon [fixedWidth]="true" icon="clipboard"></fa-icon>&nbsp;<ng-container i18n>HTML-Code in die Zwischenablage kopieren</ng-container></button>
+									<p class="mt-4">☝ der Text in <mark class="text-monospace">< ></mark> inkl. den Klammern muss ersetzt werden durch den konkreten Inhalten, den du angezeigt bekommen möchtest</p>
+								</div>
+							</p-collapsible>
+							<p-collapsible id="multiple-instances">
+								<span trigger i18n>Das Buchungsplugin mehrmals auf derselben Seite anzeigen lassen</span>
+								<div content class="card-body">
+									<h6 i18n>Das Menü mehrmals anzeigen</h6>
+										<p i18n>Füge das <mark class="text-monospace">&lt;div&gt;</mark> Element, das du oben für das Menü findest, so oft deiner HTML-Seite hinzu, wie du das Menü anzeigen lassen möchtest. Dabei musst du das in jedem <mark class="text-monospace">&lt;div&gt;</mark> enthaltene <mark class="text-monospace">id</mark> Attribut so ergänzen, dass daraus eine einzigartige ID wird. Orientiere dich einfach am folgenden Beispiel, in dem das Menü drei Mal eingebunden werden soll:</p>
+										<pre>&lt;div id="drp-booking<strong>-1</strong>"&gt;<br>&lt;div id="drp-booking<strong>-2</strong>"&gt;<br>&lt;div id="drp-booking<strong>-3</strong>"&gt;</pre>
+									<h6 i18n>Mehrere Angebote ohne das Menü auf derselben Seite anzeigen</h6>
+										<p i18n>Füge die <mark class="text-monospace">&lt;div&gt;</mark> Elemente der einzelnen Angebote, die du oben abrufen kannst, an den Stellen deiner HTML-Seite ein, wo deren Inhalte erscheinen sollen. Dabei müssen – wie beim mehrmaligen Einbinden des Menüs – die ID der <mark class="text-monospace">&lt;div&gt;</mark> Elemente entsprechend folgendem Beispiel angepasst werden:</p>
+										<pre>&lt;div id="drp-booking<strong>-1</strong>" data-course-id="9879"&gt;<br>&lt;div id="drp-booking<strong>-2</strong>" data-course-id="9968"&gt;<br>&lt;div id="drp-booking<strong>-3</strong>" data-course-id="8998"&gt;</pre>
+										<p i18n>☝ Auch wenn du beides kombinierst und gleichzeitig das Menü sowie einzelne Angebote auf derselben HTML-Seite einbindest, musst du darauf achten, dass jedes <mark class="text-monospace">&lt;div&gt;</mark> Element eine eigene ID hat.</p>
+								</div>
+							</p-collapsible>
+						</div>
+					</div>
+				</p-tab>
+
+				<!-- Inform Mui if you have to change this url, as it's used in the manual of Boulderado in order to explain how to connect their pos with Dr.&nbsp;Plano -->
+				<p-tab
+					label="Schnittstellen" i18n-label
+					urlName="interfaces"
+				>
+					<div *ngIf="api.isLoaded() && accountApi.isLoaded(); else spinnerTemplate">
+						<div class="mb-4" i18n>Hier hast du die Möglichkeit, deinen <span class="nowrap">Dr.&nbsp;Plano-Account</span> mit anderen Lösungen zu verbinden, um dein Buchungssystem zu optimieren. Die Verbindung zu einer Kassensoftware vereinfacht das Check-In von Teilnehmenden. Die Routendatenbank-Apps sind ein zusätzlicher Vertriebskanal für deine Kurse & Events. Und falls dir eine Schnittstelle fehlt, dann melde dich gerne bei uns.</div>
+						<h3 i18n>Unterstütze Anbieter</h3>
+						<p-interface-cards
+							class="mb-4"
+							(onClick)="onClickInterfaceCards($event)"
+							[posSystem]="posSystem!"
+							[paymentSystem]="!!accountApi.data.paypalAccountEmail ? PSupportedPaymentSystems.PAYPAL : undefined"
+							[isUsingBeta7]="api.data.isUsingBeta7"
+							[isUsingRoutesManager]="api.data.isUsingRoutesManager"
+							[isUsingKletterszene]="!!api.data.kletterszeneId"
+						></p-interface-cards>
+					</div>
+				</p-tab>
+
+				<p-tab
+					label="Datenschutz" i18n-label
+					urlName="privacy"
+					[size]="PTabSizeEnum.FRAMELESS"
+				>
+					<p-section *ngIf="accountApi.isLoaded() && !!formGroup; else spinnerTemplate" label="Anonymisierung von Kundendaten" class="pt-5" i18n-label>
+						<p i18n>Um Datenschutzvorgaben einzuhalten, kannst du hier die automatische Anonymisierung von Buchungen deiner Kunden aktivieren. Dabei werden personenbezogene Daten in Buchungen von Gutscheinen, Kursen, Slots usw. anonymisiert, sodass die Buchungen keinen Personen mehr zugeordnet werden können. Auch Zahlungseinträge, die mit den Buchungen verbunden sind und personenbezogene Daten enthalten, werden anonymisiert. Für die Buchhaltung oder statistische Auswertungen relevante Daten bleiben unverändert.</p>
+						<p i18n>Die Anonymisierung geschieht einige Monate nach Beendigung des vom Kunden gebuchten Angebots; bei Gutscheinen einige Monate nach Verjährung eines Gutscheins. Sicherheitshalber werden alle anonymisierten Buchungen und Zahlungseinträge in einem passwortgeschützten Export an eure <a routerLink="/client/account/location" fragment="booking-contact" target="_blank" rel="noopener">Ansprechperson für das Buchungssystem</a> (Email: {{accountApi.data.bookingSystemContactEmail}}) geschickt.</p>
+						<p class="mb-5" i18n>Von der Anonymisierung generell ausgenommen sind Buchungen, bei denen noch eine Kundenzahlung oder Rückerstattung offen ist. Ebenfalls ausgenommen sind Gutscheine mit unbeschränkter Gültigkeitsdauer.</p>
+						<p-grid>
+							<div class="col-12 col-md-7">
+								<p-form-control-switch
+									*ngIf="!!formGroup"
+									[pEditable]="true"
+									[api]="accountApi"
+									[saveChangesHook]="getModalHook()"
+
+									label="Buchungen & Zahlungseinträge anonymisieren nach" i18n-label
+									[group]="formGroup"
+									[attributeInfo]="accountApi.data.attributeInfoAutomaticBookableAnonymizationAfterPeriod"
+									inputGroupAppendText="Monaten nach Angebotsende / Gutscheinsverjährung" i18n-inputGroupAppendText
+								></p-form-control-switch>
+							</div>
+							<div class="col-12 col-md-5">
+								<p-form-group label="Passwort für den Export" i18n-label>
+									<p-input-copy-string
+										[type]="PApiPrimitiveTypes.Password"
+										[valueToCopy]="accountApi.data.automaticBookableAnonymizationExportPassword"
+									></p-input-copy-string>
+								</p-form-group>
+							</div>
+						</p-grid>
+						<ng-container
+							*ngIf="automaticBookableAnonymizationAfterPeriod !== null; else noAutomaticBookableAnonymizationAfterPeriodTemplate"
+						>
+							<p-alert
+								*ngIf="automaticBookableAnonymizationAfterPeriod < 4"
+								i18n
+								[dismissable]="false"
+							>Wir empfehlen dir die Buchungsdaten frühestens nach <mark>vier Monaten</mark> zu anonymisieren, um bei möglichen <a routerLink="/client/plugin/faq-online-payment/" fragment="chargeback" rel="noopener" target="_blank">Zahlungsreklamationen</a> essenzielle Daten für die Anfechtung der Reklamation zur Verfügung zu haben.</p-alert>
+							<p-alert
+								i18n
+								[theme]="PThemeEnum.INFO"
+								[dismissable]="false"
+							>Die automatische Anonymisierung ist <mark>aktiviert</mark>. Sie wird ein Mal pro Monat ausgeführt. Die nächste Ausführung ist am <mark>{{ accountApi.data.nextAutomaticBookableAnonymization | date:'shortDate' }}</mark>. Um die automatische Anonymisierung zu deaktivieren, lasse bitte das obige Feld leer.</p-alert>
+						</ng-container>
+						<ng-template #noAutomaticBookableAnonymizationAfterPeriodTemplate>
+							<p-alert
+								[theme]="PAlertThemeEnum.PLAIN"
+								[dismissable]="false"
+								i18n
+							>Die automatische Anonymisierung ist <mark>deaktiviert</mark>. Um sie zu aktivieren, trage bitte oben ein, auf welche Buchungen und Zahlungseinträge die Anonymisierung angewandt werden soll.</p-alert>
+						</ng-template>
+					</p-section>
+				</p-tab>
+			</p-tabs>
+
+		</div>
+	</scroll-shadow-box>
+</div>
+
+<ng-template #spinnerTemplate>
+	<p-spinner [size]="BootstrapSize.LG" class="m-3"></p-spinner>
+</ng-template>
+
+<ng-template #snippetPreviewTemplate let-snippet>
+	<ng-container *ngIf="!!snippet"><pre>{{ snippet }}</pre></ng-container>
+	<ng-container *ngIf="!snippet"><pre i18n><fa-icon [icon]="'lock'"></fa-icon> Um den Code zu erhalten, gib bitte erst <a routerLink="/client/plugin/setup" fragment="host-name-required-hint">oben</a> die Domain der Homepage an, auf der du das Plugin einbinden möchtest.</pre></ng-container>
+</ng-template>
+

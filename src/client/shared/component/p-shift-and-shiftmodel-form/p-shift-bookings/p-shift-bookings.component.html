@@ -1,0 +1,266 @@
+<h5 class="mb-3">
+	<span class="justify-content-between align-items-center"
+		[class.d-flex]="!CONFIG.IS_MOBILE"
+	>
+		<span>
+			<ng-template [ngIf]="!!bookingsForList.length" [ngIfElse]="noBookings">
+				<span [class.d-block]="CONFIG.IS_MOBILE"><span class="badge-{{participantsCountStyle}} badge-pill">{{ shift.currentCourseParticipantCount }}</span>&nbsp;<ng-container i18n>Teilnehmende Personen</ng-container></span>
+				<span [class.muted-item]="!shift.currentCourseAttendeeCount"><span *ngIf="!CONFIG.IS_MOBILE"> – </span><span class="nowrap"><code *ngIf="!shift.model!.onlyWholeCourseBookable || !shift.currentCourseAttendeeCount; else onlyWholeCourseBookableCounterTemplate">{{ shift.currentCourseAttendeeCount }}</code><ng-template #onlyWholeCourseBookableCounterTemplate>
+					<fa-icon
+						[isLoading]="isLoading"
+						[fixedWidth]="true"
+						[icon]="PlanoFaIconPool.SUCCESS"
+						[theme]="PThemeEnum.PRIMARY"
+					></fa-icon>
+				</ng-template>&nbsp;<ng-container i18n>teilgenommen</ng-container>&nbsp;<p-info-circle>Die Teilnahme kann unten bei den teilnehmenden Personen manuell bestätigt werden. Sie wird automatisch bestätigt, falls Dr.&nbsp;Plano am Tag des Termins einen Vermerk über eine erfolgte Kassenzahlung erhalten sollte. Voraussetzung dafür ist die eingerichtete Schnittstelle zu eurer Kassensoftware.</p-info-circle></span></span>
+			</ng-template>
+			<ng-template #noBookings><span i18n>Buchungen</span></ng-template>
+		</span>
+		<p-input
+			*ngIf="hasBookingsForList"
+			class="ml-auto"
+			[class.mt-2]="CONFIG.IS_MOBILE"
+			[class.mr-3]="!CONFIG.IS_MOBILE"
+			[type]="PApiPrimitiveTypes.Search"
+			[(ngModel)]="searchTerm"
+			[ngModelOptions]="{standalone: true}"
+		></p-input>
+		<button
+			*ngIf="!CONFIG.IS_MOBILE"
+			type="button"
+			class="btn btn-outline-secondary"
+			[disabled]="!bookingsForList || !bookingsForList.length"
+
+			ngxPrint
+			printSectionId="print-section"
+			printTitle="Teilnehmende" i18n-printTitle
+			styleSheetFile="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.css,static/css/print.css"
+		>
+			<fa-icon [fixedWidth]="true" icon="print"></fa-icon>&nbsp;<ng-container i18n>Teilnehmende</ng-container>
+		</button>
+	</span>
+</h5>
+<ng-template
+	[ngIf]="hasBookingsForList"
+	[ngIfElse]="noBookingsAvailable"
+>
+	<ng-template ngFor let-booking [ngForOf]="bookingsForList.iterable()">
+		<div class="card"
+			*ngIf="isRelatedBooking(booking)"
+			[class.d-none]="searchTerm && !booking.fitsSearch(searchTerm)"
+		>
+			<p-booking-item
+				class="card-header p-0 o-hidden"
+				[booking]="booking"
+				[showDropDown]="false"
+			></p-booking-item>
+			<div class="card-body p-0 bg-light"
+				[class.muted-item]="isCanceled(booking) || isDeclined(booking)"
+			>
+				<div *ngIf="isCanceled(booking) || isDeclined(booking)"
+					class="text-danger stemp"
+				><ng-container *ngIf="isCanceled(booking)" i18n>Storniert</ng-container><ng-container *ngIf="isDeclined(booking)" i18n>Abgelehnt</ng-container></div>
+				<section class="justify-content-between p-3"
+					[class.d-flex]="!CONFIG.IS_MOBILE"
+				>
+					<div *ngIf="booking.paymentMethodId !== null"><ng-container i18n>Präferierte Zahlungsart</ng-container>: {{ booking.model.coursePaymentMethods.get(booking.paymentMethodId)!.name }}</div>
+					<ng-template [ngIf]="booking.price !== undefined">
+						<div [ngSwitch]="booking.paymentStatus">
+							<ng-container *ngSwitchCase="PPaymentStatusEnum.CASHBACK" i18n>Rückerstattung fällig: {{-booking.getOpenAmount()! | currency}}</ng-container>
+							<ng-container *ngSwitchCase="PPaymentStatusEnum.UNPAID" i18n>Noch zu zahlen: {{booking.getOpenAmount() ?? null | currency}}</ng-container>
+							<ng-container *ngSwitchCase="PPaymentStatusEnum.INSTALMENT" i18n>Noch zu zahlen: {{booking.getOpenAmount() ?? null | currency}}</ng-container>
+
+							<ng-container *ngSwitchDefault>{{paymentStatusTitle(booking) | localize}}</ng-container>
+						</div>
+					</ng-template>
+				</section>
+
+				<div class="m-3">
+					<label><fa-icon [icon]="PlanoFaIconPool.ITEMS_BOOKING_PERSON"></fa-icon>&nbsp;<ng-container i18n>Buchende Person</ng-container></label>
+					<p-booking-person-card
+						class="m-0 card bg-white"
+						[booking]="booking"
+						[card]="false"
+					></p-booking-person-card>
+				</div>
+
+				<div class="m-3">
+					<label i18n><fa-icon [icon]="PlanoFaIconPool.ITEMS_BOOKING_PERSON"></fa-icon>&nbsp;Teilnehmende {booking.participantCount, plural, one {Person} other {Personen}}</label>
+					<div class="card bg-white mb-2 d-flex flex-row"
+						[class.flex-column]="CONFIG.IS_MOBILE"
+						*ngIf="booking.overallTariffId !== null; else notOnlyWholeCourseBookable"
+					>
+						<p-persons
+							class="flex-grow-1 pl-3 pr-3 pt-2 pb-2"
+							[count]="booking.participantCount"
+							[tariffName]="getTariffName(booking, booking.overallTariffId)"
+							[price]="getTotalFee(booking, booking.overallTariffId)"
+							[ageMin]="booking.ageMin"
+							[ageMax]="booking.ageMax"
+							[additionalFieldLabel]="getAdditionalFieldLabel(booking, booking.overallTariffId)"
+							[additionalFieldValue]="booking.additionalFieldValue"
+						></p-persons>
+						<p-checkbox
+							*ngIf="!booking.isNewItem()"
+
+							[disabled]="bookingsService.attendedCheckboxDisabled(booking)"
+							[popover]="bookingsService.attendedCheckboxTooltipContent(booking)"
+
+							[pEditable]="!booking.isNewItem()"
+							[api]="api"
+
+							class="rounded-0 btn-outline-secondary border-right-0 border-top-0 border-bottom-0 form-control w-auto"
+							[class.border-left]="!CONFIG.IS_MOBILE"
+							[class.border-top]="CONFIG.IS_MOBILE"
+							[hasButtonStyle]="false"
+							[readMode]="false"
+							[(ngModel)]="booking.attended"
+							[ngModelOptions]="{standalone: true}"
+							[icon]="booking.attendedSetByPos ? 'plug' : null"
+							valueText="Teilgenommen" i18n-valueText
+						></p-checkbox>
+					</div>
+					<ng-template #notOnlyWholeCourseBookable>
+						<ng-template
+							ngFor let-item
+							[ngForOf]="booking.participants.iterable()"
+						>
+							<ng-template [ngIf]="item.isBookingPerson">
+								<ng-container *ngTemplateOutlet="participantTemplate; context: {$implicit: item}"></ng-container>
+							</ng-template>
+						</ng-template>
+						<ng-template
+							ngFor let-item
+							[ngForOf]="booking.participants.iterableSortedBy(['firstName', 'lastName'])"
+						>
+							<ng-template [ngIf]="!item.isBookingPerson">
+								<ng-container *ngTemplateOutlet="participantTemplate; context: {$implicit: item}"></ng-container>
+							</ng-template>
+						</ng-template>
+						<ng-template #participantTemplate let-participant>
+							<div class="card bg-white mb-2 d-flex flex-row"
+								[class.flex-column]="CONFIG.IS_MOBILE"
+							>
+								<p-person
+									class="flex-grow-1 pl-3 pr-3 pt-2 pb-2"
+									[class.border-primary]="participant.isBookingPerson"
+									[lastName]="participant.lastName"
+									[firstName]="participant.firstName"
+									[tariffName]="getTariffName(booking, participant.tariffId)"
+									[price]="getParticipantFee(booking, participant.tariffId)"
+									[additionalField]="getAdditionalFieldLabel(booking, participant.tariffId)"
+									[additionalFieldValue]="participant.additionalFieldValue"
+								></p-person>
+								<p-checkbox
+									*ngIf="!booking.isNewItem()"
+
+									[disabled]="bookingsService.attendedCheckboxDisabled(booking)"
+									[popover]="bookingsService.attendedCheckboxTooltipContent(booking)"
+
+									[pEditable]="!booking.isNewItem()"
+									[api]="api"
+
+									class="rounded-0 btn-outline-secondary border-right-0 border-top-0 border-bottom-0 form-control w-auto"
+									[class.border-left]="!CONFIG.IS_MOBILE"
+									[class.border-top]="CONFIG.IS_MOBILE"
+									[hasButtonStyle]="false"
+									[readMode]="false"
+									[(ngModel)]="participant.attended"
+									[ngModelOptions]="{standalone: true}"
+									[icon]="booking.attendedSetByPos ? 'plug' : null"
+									valueText="Teilgenommen" i18n-valueText
+								></p-checkbox>
+							</div>
+						</ng-template>
+						<div *ngIf="!booking.participants.length">-</div>
+					</ng-template>
+				</div>
+			</div>
+		</div>
+	</ng-template>
+</ng-template>
+<ng-template #noBookingsAvailable>
+	<p-alert class="text-center form-text" [theme]="PAlertThemeEnum.PLAIN" i18n>Aktuell keine Buchungen vorhanden.</p-alert>
+</ng-template>
+
+
+<div id="print-section" class="d-none">
+	<div class="m-1">
+		<div class="print-break mb-5">
+			<h2 class="mb-4">
+				{{ shift.name }} •
+				<code style="line-height: 0; color: #cf812f;">{{ shift.id.courseCode }}</code> •
+				{{ printHeadlineDate }} •
+				{{ shift.start | date:'shortTime' }}
+			</h2>
+			<h4><span i18n>Zugeteilte Mitarbeitende:</span> {{ assignedMembersToString }}</h4>
+		</div>
+		<div class="print-no-break mb-5">
+			<h4 class="text-bold" i18n>Liste der Teilnehmenden</h4>
+			<table *ngIf="participantPrintData && shift.model" class="table mt-4">
+				<tr>
+					<th style="width: 50px" scope="col">#</th>
+
+					<th *ngIf="!shift.model.onlyWholeCourseBookable" scope="col" i18n>Teilnehmende Person</th>
+					<th *ngIf="shift.model.onlyWholeCourseBookable" scope="col" i18n>Buchende Person</th>
+
+					<th *ngIf="!shift.model.onlyWholeCourseBookable" scope="col" i18n>Geburtsdatum</th>
+					<th *ngIf="shift.model.onlyWholeCourseBookable" scope="col" i18n>Gebuchte Teilnehmende</th>
+
+					<th scope="col" i18n>Email</th>
+					<th scope="col" i18n>Telefon</th>
+					<th scope="col" i18n>Tarif</th>
+					<th scope="col" i18n>Zahlungsstatus</th>
+					<th scope="col" i18n>Buchung Nr.</th>
+				</tr>
+				<tr *ngFor="let data of participantPrintData; let i=index">
+					<th scope="row">{{ i + 1 }}</th>
+					<td>{{ data.name }}</td>
+					<td class="text-monospace">
+						{{ shift.model.onlyWholeCourseBookable ? data.participantCount : (data.dateOfBirth | date:'shortDate') }}
+					</td>
+					<td>{{ data.email }}</td>
+					<td>{{ data.phone }}</td>
+					<td>
+						<span *ngIf="data.tariff">{{ data.tariff.name }}</span>
+					</td>
+					<td>
+						<span class="text-{{data.paymentStatusTheme}}" *ngIf="data.paymentStatus">
+							{{ data.paymentStatus }}
+						</span>
+					</td>
+					<td class="text-monospace">
+						<span *ngIf="data.bookingNumber">
+							<span class="text-muted" style="padding-right: 1px">#</span>{{ data.bookingNumber }}
+						</span>
+					</td>
+				</tr>
+			</table>
+		</div>
+		<ng-container *ngFor="let table of tableIndexes; let i=index">
+			<div class="print-no-break mb-5" *ngIf="shift.model">
+				<h4 *ngIf="i === 0" class="text-bold" i18n>Teilnahme-Check</h4>
+				<table class="table mt-4 mb-5" style="table-layout: fixed;">
+					<tr>
+						<th style="width: 50px" scope="col">#</th>
+						<th *ngIf="!shift.model.onlyWholeCourseBookable" scope="col" i18n>Teilnehmende Person</th>
+						<th *ngIf="shift.model.onlyWholeCourseBookable" scope="col" i18n>Buchende Person</th>
+						<th scope="col" *ngFor="let shiftId of table" style="text-align: center;">
+							<span *ngIf="shiftId !== null">{{ shiftId.start | date:'EE' }} {{ shiftId.start | date:'veryShortDate' }}</span>
+						</th>
+					</tr>
+					<tr *ngFor="let participant of participantPrintData; let j=index">
+						<th style="width: 100px" scope="row">{{ j + 1 }}</th>
+						<td>{{ participant.name }}</td>
+						<td *ngFor="let shiftId of table" style="text-align: center;">
+							<ng-container *ngIf="shiftId !== null">
+								<input *ngIf="!shift.model.onlyWholeCourseBookable" style="transform: scale(1.3);accent-color: #cf812f;" type="checkbox" [checked]="participant.attended" onclick="!undefined">
+								<span *ngIf="shift.model.onlyWholeCourseBookable" i18n>______ von <code style="color:#cf812f">{{participant.participantCount}}</code> teilgenommen</span>
+							</ng-container>
+						</td>
+					</tr>
+				</table>
+			</div>
+		</ng-container>
+	</div>
+</div>

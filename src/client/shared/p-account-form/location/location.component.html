@@ -1,0 +1,181 @@
+<p-section label="Standort" i18n-label>
+	<p-grid>
+		<div class="col">
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+
+				label="Standortname für eure Kunden" i18n-label
+				description="Dieser Name wird euren Kunden im Buchungsplugin und bei der Bezahlung angezeigt. Hier muss also nicht die Firmenbezeichnung stehen, die für die Dr.&nbsp;Plano-Rechnungen genutzt werden soll, sondern ein euren Kunden bekannter Name" i18n
+				[attributeInfo]="api.data.attributeInfoLocationName"
+				[group]="formGroup"
+				placeholder="Magic Plano Place" i18n-placeholder
+			></p-form-control-switch>
+		</div>
+		<div class="col">
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+
+				label="Eure Homepage" i18n-label
+				[attributeInfo]="api.data.attributeInfoLocationHomepage"
+				[group]="formGroup"
+				placeholder="https://" i18n-placeholder
+			></p-form-control-switch>
+		</div>
+	</p-grid>
+	<p-grid>
+		<div class="col">
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+
+				label="Vorname der Geschäftsleitung" i18n-label
+
+				[attributeInfo]="api.data.attributeInfoCeoFirstName"
+				[group]="formGroup"
+			></p-form-control-switch>
+		</div>
+		<div class="col">
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+
+				label="Nachname der Geschäftsleitung" i18n-label
+
+				[attributeInfo]="api.data.attributeInfoCeoLastName"
+				[group]="formGroup"
+			></p-form-control-switch>
+		</div>
+	</p-grid>
+
+	<p-form-control-switch
+		[pEditable]="!turnIntoRealAccountForm"
+
+		label="Straße und Hausnummer" i18n-label
+
+		[attributeInfo]="api.data.attributeInfoLocationStreetAndHouseNumber"
+		[group]="formGroup"
+	></p-form-control-switch>
+
+	<p-grid>
+		<div class="col-4">
+
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+
+				label="Postleitzahl" i18n-label
+
+				[attributeInfo]="api.data.attributeInfoLocationPostalCode"
+				[group]="formGroup"
+			></p-form-control-switch>
+
+		</div>
+		<div class="col-8">
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+
+				label="Stadt" i18n-label
+				[attributeInfo]="api.data.attributeInfoLocationCity"
+				[group]="formGroup"
+			></p-form-control-switch>
+		</div>
+		<div class="col-12">
+
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+
+				label="Land" i18n-label
+				[attributeInfo]="api.data.attributeInfoLocationCountry"
+				[group]="formGroup"
+				[type]="FormControlSwitchType.DROPDOWN"
+			>
+				<p-form-control-switch-item
+					*ngFor="let country of countriesArray"
+					label="{{country | pTranslateCountryKey}}"
+					[value]="country"
+				></p-form-control-switch-item>
+			</p-form-control-switch>
+		</div>
+	</p-grid>
+</p-section>
+<p-section id="scroll-target-id-scheduling-contact" label="Ansprechperson für Personalplanung" i18n-label>
+	<p-grid>
+		<div class="col">
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+
+				label="Vorname" i18n-label
+				[attributeInfo]="api.data.attributeInfoHrmContactFirstName"
+				[group]="formGroup"
+			></p-form-control-switch>
+		</div>
+		<div class="col">
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+
+				label="Nachname" i18n-label
+				[attributeInfo]="api.data.attributeInfoHrmContactLastName"
+				[group]="formGroup"
+			></p-form-control-switch>
+		</div>
+	</p-grid>
+	<p-grid>
+		<div class="col">
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+
+				label="Email-Adresse" i18n-label
+				[attributeInfo]="api.data.attributeInfoHrmContactEmail"
+				[group]="formGroup"
+			></p-form-control-switch>
+		</div>
+		<div class="col">
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+
+				label="Telefonnummer" i18n-label
+				[attributeInfo]="api.data.attributeInfoHrmContactPhone"
+				[group]="formGroup"
+			></p-form-control-switch>
+		</div>
+	</p-grid>
+</p-section>
+<p-section id="scroll-target-id-booking-contact" label="Ansprechperson fürs Buchungssystem" i18n-label>
+	<p-grid>
+		<div class="col">
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+
+				label="Vorname" i18n-label
+				[attributeInfo]="api.data.attributeInfoBookingSystemContactFirstName"
+				[group]="formGroup"
+			></p-form-control-switch>
+		</div>
+		<div class="col">
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+
+				label="Nachname" i18n-label
+				[attributeInfo]="api.data.attributeInfoBookingSystemContactLastName"
+				[group]="formGroup"
+			></p-form-control-switch>
+		</div>
+	</p-grid>
+	<p-grid>
+		<div class="col">
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+
+				label="Email-Adresse" i18n-label
+				[attributeInfo]="api.data.attributeInfoBookingSystemContactEmail"
+				[group]="formGroup"
+			></p-form-control-switch>
+		</div>
+		<div class="col">
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+
+				label="Telefonnummer" i18n-label
+				[attributeInfo]="api.data.attributeInfoBookingSystemContactPhone"
+				[group]="formGroup"
+			></p-form-control-switch>
+		</div>
+	</p-grid>
+</p-section>

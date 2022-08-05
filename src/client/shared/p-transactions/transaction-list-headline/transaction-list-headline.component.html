@@ -1,0 +1,59 @@
+<div class="list-headline-bar">
+	<div class="flex-grow-1 transactions-list-headlines p-2">
+		<p-list-headline-item
+			*ngIf="!excludedColumn.includes(TransactionsSortedByEmum.DATE_TIME)"
+			class="{{ TransactionsSortedByEmum.DATE_TIME }}"
+			label="Datum" i18n-label
+			[isLoading]="isLoading"
+			[disabled]="!sorterChange.observers.length"
+			(onToggle)="sorterChange.emit(TransactionsSortedByEmum.DATE_TIME)"
+			[sortDirection]="sorter!==TransactionsSortedByEmum.DATE_TIME ? ListSortDirection.INACTIVE : (sortedReverse ? ListSortDirection.UP : ListSortDirection.DOWN)"
+		></p-list-headline-item>
+		<p-list-headline-item
+			*ngIf="!excludedColumn.includes(TransactionsSortedByEmum.BOOKING_NUMBER)"
+			class="{{ TransactionsSortedByEmum.BOOKING_NUMBER }}"
+			label="Buchung" i18n-label
+			[isLoading]="isLoading"
+			[disabled]="!sorterChange.observers.length"
+			(onToggle)="sorterChange.emit(TransactionsSortedByEmum.BOOKING_NUMBER)"
+			[sortDirection]="sorter!==TransactionsSortedByEmum.BOOKING_NUMBER ? ListSortDirection.INACTIVE : (sortedReverse ? ListSortDirection.UP : ListSortDirection.DOWN)"
+		></p-list-headline-item>
+		<p-list-headline-item
+			*ngIf="!excludedColumn.includes(TransactionsSortedByEmum.OFFER_NAME)"
+			class="{{ TransactionsSortedByEmum.OFFER_NAME }}"
+			label="Gebuchtes Angebot" i18n-label
+			[isLoading]="isLoading"
+			[disabled]="!sorterChange.observers.length"
+			(onToggle)="sorterChange.emit(TransactionsSortedByEmum.OFFER_NAME)"
+			[sortDirection]="sorter!==TransactionsSortedByEmum.OFFER_NAME ? ListSortDirection.INACTIVE : (sortedReverse ? ListSortDirection.UP : ListSortDirection.DOWN)"
+		></p-list-headline-item>
+		<p-list-headline-item
+			*ngIf="!excludedColumn.includes(TransactionsSortedByEmum.TYPE)"
+			class="{{ TransactionsSortedByEmum.TYPE }}"
+			label="Zahlungstyp" i18n-label
+			[isLoading]="isLoading"
+			[disabled]="!sorterChange.observers.length"
+			(onToggle)="sorterChange.emit(TransactionsSortedByEmum.TYPE)"
+			[sortDirection]="sorter!==TransactionsSortedByEmum.TYPE ? ListSortDirection.INACTIVE : (sortedReverse ? ListSortDirection.UP : ListSortDirection.DOWN)"
+		></p-list-headline-item>
+		<p-list-headline-item
+			*ngIf="!excludedColumn.includes(TransactionsSortedByEmum.PAYMENT_METHOD_TYPE)"
+			class="{{ TransactionsSortedByEmum.PAYMENT_METHOD_TYPE }}"
+			label="Zahlungsart" i18n-label
+			[isLoading]="isLoading"
+			[disabled]="!sorterChange.observers.length"
+			(onToggle)="sorterChange.emit(TransactionsSortedByEmum.PAYMENT_METHOD_TYPE)"
+			[sortDirection]="sorter!==TransactionsSortedByEmum.PAYMENT_METHOD_TYPE ? ListSortDirection.INACTIVE : (sortedReverse ? ListSortDirection.UP : ListSortDirection.DOWN)"
+		></p-list-headline-item>
+		<p-list-headline-item
+			*ngIf="!excludedColumn.includes(TransactionsSortedByEmum.AMOUNT)"
+			class="{{ TransactionsSortedByEmum.AMOUNT }}"
+			label="Betrag" i18n-label
+			[isLoading]="isLoading"
+			[disabled]="!sorterChange.observers.length"
+			(onToggle)="sorterChange.emit(TransactionsSortedByEmum.AMOUNT)"
+			[sortDirection]="sorter!==TransactionsSortedByEmum.AMOUNT ? ListSortDirection.INACTIVE : (sortedReverse ? ListSortDirection.UP : ListSortDirection.DOWN)"
+		></p-list-headline-item>
+	</div>
+	<div class="card-option border-0" *ngIf="canEditTransactions"></div>
+</div>

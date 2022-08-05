@@ -1,0 +1,41 @@
+<div class="card mt-1 mb-4 o-hidden">
+	<div
+		class="justify-content-between align-items-center w-100 position-relative p-2"
+		[class.d-flex]="!CONFIG.IS_MOBILE"
+	>
+		<p-color-marker
+			[isLoading]="isLoading"
+			[title]="shiftName"
+			[hexColor]="shiftColor"
+			[isPacket]="item ? item.isPacket : false"
+		></p-color-marker>
+		<h2 class="m-0 title text-left pl-2"
+			[class.text-muted]="!shiftModel"
+		>{{ shiftName }}</h2>
+		<div
+			*ngIf="shiftStart"
+			class="pl-2"
+			[class.text-right]="!CONFIG.IS_MOBILE"
+			[class.text-left]="CONFIG.IS_MOBILE"
+		>
+			<ng-template [ngIf]="item" [ngIfElse]="noShift">
+				<span *ngIf="item.isCourseCanceled"><span style="vertical-align: middle;" class="badge-danger badge-pill nowrap" i18n>fällt aus</span><span class="text-monospace"> | </span></span>
+				<span class="text-monospace" *ngIf="courseCode"><code style="line-height: 0;" class="nowrap">{{ courseCode }}</code> | </span>
+				<span class="text-monospace"><span class="nowrap">{{formattedDateTimePipe.getFormattedDateInfo(item!.start, item!.end, true).full}}</span> | </span>
+				<span class="nowrap text-monospace">{{headlineTime}}</span>
+			</ng-template>
+			<ng-template #noShift>
+				<span>{{ shiftName }}</span>
+			</ng-template>
+		</div>
+	</div>
+</div>
+
+<p-spinner *ngIf="!item" [size]="BootstrapSize.LG" class="m-3"></p-spinner>
+
+<p-shift-and-shiftmodel-form
+	*ngIf="!!item"
+	[shift]="item"
+	(dismiss)="navBack()"
+	(add)="saveItem()"
+></p-shift-and-shiftmodel-form>

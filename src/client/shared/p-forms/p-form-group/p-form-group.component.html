@@ -1,0 +1,19 @@
+<label *ngIf="label" [class.text-loading]="isLoading" [class.read-mode]="readMode" [class.text-danger]="control && control.touched && control.invalid">{{ label }}&nbsp;<ng-template [ngTemplateOutlet]="infoCircleTemplate"></ng-template></label>
+
+<ng-content></ng-content>
+<div class="d-flex align-items-center"><ng-template [ngIf]="!label"><ng-template [ngTemplateOutlet]="infoCircleTemplate"></ng-template></ng-template></div>
+
+<div *ngIf="isMobile && (description || descriptionHTML)" class="form-text small">
+	<ng-template [ngTemplateOutlet]="descriptionWrapper"></ng-template>
+</div>
+
+<ng-template #infoCircleTemplate><p-info-circle *ngIf="!isMobile && (description || descriptionHTML)">
+	<ng-template [ngTemplateOutlet]="descriptionWrapper"></ng-template>
+</p-info-circle></ng-template>
+
+<ng-template #descriptionWrapper>
+	<div [innerHTML]="description"></div>
+	<ng-container *ngIf="descriptionHTML">
+		<ng-template [ngTemplateOutlet]="descriptionHTML"></ng-template>
+	</ng-container>
+</ng-template>

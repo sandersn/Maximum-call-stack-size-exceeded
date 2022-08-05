@@ -1,0 +1,15 @@
+<p-report-row
+	[headline]="false"
+	(onEdit)="onClick.emit(absence.id)"
+	[hideEditBtn]="hideEditBtn"
+	[absence]="absence"
+>
+	<span report-row-title class="title">
+		<span class="mr-3"><fa-icon [fixedWidth]="true" [icon]="absence.typeIconName"></fa-icon> {{ absence.title! | localize }}</span>
+		<span class="text-monospace d-none d-lg-inline mr-3"><span>{{ getDateInfo(absence).start }}</span>{{ getDateInfo(absence).separator }}<span>{{ getDateInfo(absence).end }}</span></span>
+		<span class="text-monospace d-none d-lg-inline"
+			*ngIf="absence.workingTimePerDay === null"
+		>{{ absence.time.start | date:'shortTime' }} – <span>{{ absence.time.end | date:'shortTime' }}</span></span>
+	</span>
+	<strong report-row-earnings>{{ absence.totalEarningsBetween() | currency:undefined:'symbol':'1.2-2' }}</strong>
+</p-report-row>

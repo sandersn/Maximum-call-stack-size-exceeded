@@ -1,0 +1,187 @@
+<p-editable-modal-box
+	[pEditable]="!formItem.isNewItem()"
+	[api]="api"
+	[saveChangesHook]="assignMembersHook(assignMembersHookContent)"
+	(editMode)="updateFormItemCopy()"
+	(onModalClosed)="formItem.isNewItem() ? updateFormItemCopy() : undefined"
+	[valid]="true"
+	[disabled]="boxDisabled"
+
+	label="Zugewiesene Personen" i18n-label
+>
+	<p-editable-modal-box-showroom>
+		<div *ngIf="!hasAssignedMembersForList && !hasAssignableMembersForList">
+			<p class="m-0" *ngIf="!isOwner || CONFIG.IS_MOBILE; else addItemsHint" i18n><code>{{ formItem.name }}</code> wurden bisher noch keine potenziellen Personen zugewiesen.</p>
+			<ng-template #addItemsHint>
+				<p class="m-0" i18n>Hier kannst du Personen eintragen, die für <code>{{ formItem.name ? formItem.name : '…' }}</code> prinzipiell in Frage kommen.<br />Klicke auf den Stift um loszulegen.</p>
+			</ng-template>
+		</div>
+		<p-list class="pb-3" *ngIf="hasAssignedMembersForList">
+			<p-assign-members-headline
+				[showHearts]="showHearts"
+				[editMode]="false"
+				i18n
+			>{{ formItem.name }} <strong>wird</strong> gemacht von</p-assign-members-headline>
+			<ng-template
+				ngFor let-member
+				[ngForOf]="assignedMembersForList"
+			>
+				<ng-container *ngTemplateOutlet="memberListItemForShowroomTemplate; context: {$implicit: member, hasDanger: absenceTypeIconName(member.id)}"></ng-container>
+			</ng-template>
+		</p-list>
+		<p-list *ngIf="hasAssignableMembersForList">
+			<p-assign-members-headline
+				[showHearts]="showHearts"
+				[editMode]="false"
+			><ng-container *ngIf="!CONFIG.IS_MOBILE">{{ formItem.name }}&ngsp;</ng-container><ng-container i18n><strong>darf</strong> gemacht werden von</ng-container></p-assign-members-headline>
+			<ng-template
+				ngFor let-member
+				[ngForOf]="assignableMembersForList"
+			>
+				<ng-template [ngIf]="!formItem.assignedMemberIds.contains(member.id)">
+					<ng-container *ngTemplateOutlet="memberListItemForShowroomTemplate; context: {$implicit: member, hasDanger: false}"></ng-container>
+				</ng-template>
+			</ng-template>
+		</p-list>
+	</p-editable-modal-box-showroom>
+	<p-editable-modal-box-form>
+		<p-list class="pb-3" *ngIf="hasAssignedMembersForList">
+			<p-assign-members-headline
+				[showHearts]="showHearts"
+				[editMode]="true"
+				i18n
+			>{{ formItem.name }} <strong>wird</strong> gemacht von</p-assign-members-headline>
+			<ng-template
+				ngFor let-member
+				[ngForOf]="assignedMembersForList"
+			>
+				<ng-template [ngIf]="formItemCopy!.assignableMembers.getByMember(member)">
+					<ng-container *ngTemplateOutlet="listItemForFormTemplate; context: {$implicit: member, hasDanger: absenceTypeIconName(member.id)}"></ng-container>
+				</ng-template>
+			</ng-template>
+		</p-list>
+		<p-list class="pb-3" *ngIf="hasAssignableMembersForList">
+			<p-assign-members-headline
+				[showHearts]="showHearts"
+				[editMode]="true"
+			><ng-container *ngIf="!CONFIG.IS_MOBILE">{{ formItem.name }}&ngsp;</ng-container><ng-container i18n><strong>darf</strong> gemacht werden von</ng-container></p-assign-members-headline>
+			<ng-template
+				ngFor let-member
+				[ngForOf]="assignableMembersForList"
+			>
+				<ng-template [ngIf]="!formItemCopy!.assignedMemberIds.contains(member.id) && formItemCopy!.assignableMembers.getByMember(member)">
+					<ng-container *ngTemplateOutlet="listItemForFormTemplate; context: {$implicit: member, hasDanger: false}"></ng-container>
+				</ng-template>
+			</ng-template>
+		</p-list>
+		<p-list class="pb-3" *ngIf="showListOfUnassignableMembers">
+			<p-assign-members-headline
+				[showHearts]="showHearts"
+				[editMode]="true"
+				i18n
+			>{!!hasAssignedMembersForList || !!hasAssignableMembersForList, select, true {Sonstige }}User</p-assign-members-headline>
+			<ng-template
+				ngFor let-member
+				[ngForOf]="api!.data.members.iterableSortedBy(['lastName', 'firstName', 'trashed'])"
+			>
+				<ng-template [ngIf]="!(!shift && member.trashed) && !formItemCopy!.assignedMemberIds.contains(member.id) && !formItemCopy!.assignableMembers.getByMember(member)">
+					<ng-container *ngTemplateOutlet="listItemForFormTemplate; context: {$implicit: member, hasDanger: false}"></ng-container>
+				</ng-template>
+			</ng-template>
+		</p-list>
+	</p-editable-modal-box-form>
+</p-editable-modal-box>
+
+<ng-template #memberListItemForShowroomTemplate let-member let-hasDanger="hasDanger">
+	<p-list-item size="frameless">
+		<div class="d-flex justify-content-between align-items-stretch position-relative p-0 card-options w-100">
+			<!-- [class.bg-danger]="hasDanger"
+			[class.text-white]="hasDanger" -->
+			<ng-container *ngTemplateOutlet="memberLabelTemplate; context: {$implicit: member}"></ng-container>
+			<div *ngIf="isOwner" class="d-flex align-items-center flex-shrink-0">
+				<div class="text-monospace p-2 pr-3">{{ earningsForMember(member)! | currency }}</div>
+			</div>
+			<div
+				*ngIf="showHearts"
+				class="card-option btn pt-2 pb-2 d-flex align-items-center justify-content-center flex-shrink-0"
+			><p-member-wish-icon
+				[member]="member"
+			></p-member-wish-icon></div>
+		</div>
+	</p-list-item>
+</ng-template>
+
+<ng-template #listItemForFormTemplate let-member let-hasDanger="hasDanger">
+	<p-list-item size="frameless">
+		<div class="d-flex justify-content-between align-items-stretch position-relative p-0 card-options w-100">
+			<!-- [class.bg-danger]="hasDanger"
+			[class.text-white]="hasDanger" -->
+			<ng-container *ngTemplateOutlet="memberLabelTemplate; context: {$implicit: member}"></ng-container>
+			<div *ngIf="isOwner" class="d-flex align-items-center p-2 flex-shrink-0">
+				<div class="d-flex">
+					<p-input-member-earnings
+						[member]="member"
+						[formItem]="formItem"
+					></p-input-member-earnings>
+				</div>
+			</div>
+			<div
+				*ngIf="showHearts"
+				class="card-option btn pt-1 pb-1 d-flex align-items-center justify-content-center pl-1 pr-1 min-w-50 flex-shrink-0"
+			><p-member-wish-icon
+				[member]="member"
+			></p-member-wish-icon></div>
+			<div class="d-flex bg-light">
+				<button
+					*ngIf="isOwner"
+					type="button"
+					(click)="toggleAssignableMember(member)"
+					[class.text-primary]="!!formItem.assignableMembers.getByMember(member)"
+					[class.text-secondary]="!!!formItem.assignableMembers.getByMember(member)"
+					class="card-option btn pt-1 pb-1 d-flex align-items-center justify-content-center btn-outline-secondary min-w-50 border-bottom-0"
+				><fa-icon [fixedWidth]="true" [icon]="!!formItem.assignableMembers.getByMember(member) ? PlanoFaIconPool.CHECKBOX_SELECTED : PlanoFaIconPool.CHECKBOX_UNSELECTED"></fa-icon></button>
+				<button
+					type="button"
+					(click)="toggleAssignedMember(member)"
+					[class.text-primary]="!!formItem.assignedMemberIds.get(member.id)"
+					[class.text-secondary]="!!!formItem.assignedMemberIds.get(member.id)"
+					class="card-option btn pt-1 pb-1 d-flex align-items-center justify-content-center btn-outline-secondary min-w-50 border-bottom-0"
+				><fa-icon [fixedWidth]="true" [icon]="!!formItem.assignedMemberIds.get(member.id) ? PlanoFaIconPool.CHECKBOX_SELECTED : PlanoFaIconPool.CHECKBOX_UNSELECTED"></fa-icon></button>
+			</div>
+		</div>
+	</p-list-item>
+</ng-template>
+
+<ng-template #memberLabelTemplate let-member>
+	<span class="card-option d-flex align-items-center w-100 border-0 p-2">
+		<p-member-badge
+			[memberId]="member.id"
+			[firstName]="member.firstName"
+			[lastName]="member.lastName"
+			[isMe]="isMe(member)"
+			[absenceType]="member.trashed ? 'trashed' : $any(absenceService.absenceType(member.id, shift))"
+			size="normal"
+		></p-member-badge>
+		<div class="mr-auto ml-2">
+			<span class="title"><strong>{{ member.firstName }}</strong> {{ member.lastName }}</span>
+			<!-- <fa-icon *ngIf="absenceTypeIconName(member.id)" class="mr-2 ml-2" [fixedWidth]="true" [icon]="absenceTypeIconName(member.id)"></fa-icon> -->
+		</div>
+	</span>
+</ng-template>
+
+<ng-template #assignMembersHookContent let-c="close" let-d="dismiss">
+	<p-change-selectors-modal
+		[shiftChangeSelector]="api!.data.shiftChangeSelector"
+		title="Neue Liste auf andere Bereiche übertragen?" i18n-title
+		[close]="c"
+		[dismiss]="d"
+		[shift]="shift!"
+		[shiftModel]="shiftModel"
+		[defaultStart]="shift ? shift.start : undefined"
+		[isForDeletion]="false"
+		customWarning="Bedenke bitte, dass hiermit alle Informationen aus der Liste »Personen für {{shiftModel.name}}« übertragen werden. Nicht nur das, was du gerade geändert hast." i18n-customWarning
+		[members]="api!.data.members"
+		[showSendMailCheckbox]="showSendMailCheckbox"
+	>
+	</p-change-selectors-modal>
+</ng-template>

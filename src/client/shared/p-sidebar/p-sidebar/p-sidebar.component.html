@@ -1,0 +1,50 @@
+<ng-template [ngIf]="!collapsed" [ngIfElse]="collapsedTemplate">
+	<div class="sidebar-toggle d-flex align-items-center justify-content-center btn btn-frameless btn-light border-right p-0 shadow"
+		(click)="toggleCollapsed($event)"
+	><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.COLLAPSIBLE_CLOSE_TO_LEFT"></fa-icon></div>
+	<ng-content></ng-content>
+</ng-template>
+<ng-template #collapsedTemplate>
+	<div *ngIf="!config.IS_MOBILE" class="flex-grow-0 d-flex align-items-center justify-content-center flex-column">
+
+		<fa-icon
+			class="mt-2"
+
+			[popover]="showFilterIconPopover"
+			placement="right"
+
+			[class.text-primary]="showFilterIcon"
+			[style.opacity]="showFilterIcon ? '1' : '0.1'" [fixedWidth]="true" [icon]="PlanoFaIconPool.FILTER"
+		></fa-icon>
+
+		<div
+			class="todo-badge badge border mt-2"
+
+			[popover]="badgeContentPopover"
+			placement="right"
+
+			[class.badge-danger]="badgeContent"
+			[class.badge-light]="!badgeContent"
+			[class.border-dark]="badgeContent"
+			[style.opacity]="badgeContent ? '1' : '0.1'"
+		>
+			<code class="text-white">{!!badgeContent, select, true {{{ badgeContent }}} other {&nbsp;}}</code>
+		</div>
+
+		<p-sticky-note
+			class="mt-2"
+
+			[popover]="showStickyNoteIconPopover"
+			placement="right"
+
+			[style.opacity]="showStickyNoteIcon ? '1' : '0.1'"
+			[backgroundColor]="showStickyNoteIcon ? PThemeEnum.DARK : null"
+			[showDot]="showStickyNoteIconDot"
+		></p-sticky-note>
+
+	</div>
+
+	<div class="flex-grow-1 d-flex align-items-center justify-content-center">
+		<fa-icon [fixedWidth]="true" [icon]="'chevron-right'"></fa-icon>
+	</div>
+</ng-template>

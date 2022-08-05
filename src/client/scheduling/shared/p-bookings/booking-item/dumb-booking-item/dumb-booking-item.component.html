@@ -1,0 +1,201 @@
+<div class="mb-0 o-hidden" [class.is-inside-list]="isInsideList" [class.is-not-inside-list]="!isInsideList">
+	<p-color-marker
+		[item]="model"
+		[hexColor]="modelColor"
+		[title]="model?.name"
+		[isLoading]="isLoading"
+	></p-color-marker>
+	<div class="d-flex align-items-center data-tupel">
+		<div class="booking-data-values">
+			<fa-icon
+				class="status"
+				[fixedWidth]="true"
+				[icon]="statusIcon"
+				[popover]="statusLabel"
+				triggers="mouseenter:mouseleave"
+				container="body"
+				[isLoading]="isLoading"
+			></fa-icon>
+			<span class="bookingNumber"
+				pCropOnOverflow
+				[class.text-skeleton-animated]="isLoading"
+				title="Buchungsnummer" i18n-title
+			><fa-icon class="small text-muted" [icon]="'hashtag'"></fa-icon>{{ bookingNumber }}</span>
+			<span class="shiftModelName"
+				[class.text-skeleton-animated]="isLoading"
+				pCropOnOverflow
+			>{{ !isLoading ? modelName : '████ ██████' }}</span>
+			<ng-container *ngIf="isInsideList">
+				<span class="bookingPerson"
+					*ngIf="!isLoading"
+					pCropOnOverflow
+				>{{ firstName }} {{ lastName }}</span>
+				<span class="bookingPerson text-skeleton-animated"
+					*ngIf="isLoading"
+				>████ ██████</span>
+			</ng-container>
+			<span class="dateOfBooking">
+				<span
+					*ngIf="!isLoading"
+					[popover]="isInsideList ? '' : 'Buchungsdatum' | localize"
+				>{{ dateOfBooking | date:(Config.IS_MOBILE ? 'veryShortDate' : 'shortDate') }}</span>
+				<span
+					*ngIf="isLoading"
+					class="text-skeleton-animated"
+				>██.██.████</span>
+			</span>
+
+			<span class="firstShiftStart" *ngIf="showFirstShiftStart">
+				<ng-container *ngIf="!isLoading">
+					<span
+						*ngIf="!firstShiftStart"
+					>-</span>
+					<span
+						*ngIf="firstShiftStart"
+						[class.text-line-through]="noRelatedShiftsAvailable"
+					>{{ firstShiftStart | date:(Config.IS_MOBILE ? 'veryShortDate' : 'shortDate') }}</span>
+				</ng-container>
+				<span
+					*ngIf="isLoading"
+					class="text-skeleton-animated text-monospace"
+				>██.██.████</span>
+			</span>
+
+			<span class="participantCount" *ngIf="isLoading || !!participantCount">
+				<span
+					*ngIf="!isLoading"
+				>{{ participantCount }}</span>
+				<span
+					*ngIf="isLoading"
+					class="text-skeleton-animated text-monospace"
+				>██</span>
+			</span>
+
+			<span class="price" *ngIf="isLoading || (price !== null && price !== undefined)">
+				<span
+					*ngIf="!isLoading"
+				>{{ price | currency }}</span>
+				<span
+					*ngIf="isLoading"
+					class="text-skeleton-animated text-monospace"
+				>███.██</span>
+			</span>
+
+			<div
+				class="paymentStatus"
+				[tooltip]="paymentStatusTooltipContent"
+				placement="left"
+				[class.text-skeleton-animated]="isLoading"
+			>
+				<fa-icon
+					[isLoading]="isLoading || paymentStatusIcon === PlanoFaIconPool.LOADING"
+					[fixedWidth]="true"
+					[icon]="paymentStatusIcon"
+					[theme]="paymentStatusIconStyle"
+					class="d-block"
+				></fa-icon>
+			</div>
+
+			<ng-container *ngIf="isInsideList">
+				<span class="bookingComment">
+					<fa-icon
+						*ngIf="!isLoading && !!bookingComment"
+						pTooltip="Die buchende Person hat einen Kommentar hinterlassen." i18n-pTooltip
+						class="mr-1"
+						[fixedWidth]="true" [icon]="['far', 'comment-dots']"
+					></fa-icon>
+				</span>
+				<span class="ownerComment">
+					<fa-icon
+						*ngIf="!isLoading && ownerComment"
+						pTooltip="Hat eine interne Notiz." i18n-pTooltip
+						class="mr-1"
+						[fixedWidth]="true" [icon]="PlanoFaIconPool.NOTE"
+					></fa-icon>
+				</span>
+			</ng-container>
+		</div>
+		<div class="booking-controls card-options">
+			<ng-content></ng-content>
+
+			<ng-container *ngIf="hasDropdown === false; else dropdownTemplate">
+				<button
+					type="button"
+					*ngIf="(isLoading || onSelectShifts.observers.length) && !Config.IS_MOBILE"
+					class="card-option btn btn-outline-secondary radius-0 border-bottom-0 nowrap"
+					(click)="isLoading || noRelatedShiftsAvailable ? undefined : onSelectShifts.emit()"
+					[class.disabled]="isLoading || noRelatedShiftsAvailable"
+					[pTooltip]="noRelatedShiftsAvailable ? ('Keine Schicht im Kalender' | localize) : ('Im Kalender ansehen' | localize)"
+				><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.CALENDAR_SELECT_RELATED_SHIFTS"></fa-icon></button>
+				<button
+					type="button"
+					*ngIf="isLoading || userCanWrite"
+					class="card-option btn btn-outline-secondary radius-0 border-bottom-0 nowrap"
+					(click)="onEdit.emit()"
+					[class.disabled]="isLoading"
+					[disabled]="isLoading"
+				><fa-icon [fixedWidth]="true" icon="pen"></fa-icon></button>
+			</ng-container>
+			<ng-template #dropdownTemplate>
+				<button
+					type="button"
+					*ngIf="(hasDropdown && hasControls || hasDropdown === null && hasControls) && !Config.IS_MOBILE"
+					(click)="dropdownMenuIsUncollapsed=!dropdownMenuIsUncollapsed"
+					class="card-option btn btn-outline-secondary border-bottom-0"
+					[class.disabled]="isLoading"
+					[disabled]="isLoading"
+				><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.COLLAPSIBLE_CLOSE"></fa-icon></button>
+			</ng-template>
+		</div>
+	</div>
+</div>
+
+<ul
+	*ngIf="dropdownMenuIsUncollapsed"
+	class="d-block dropdown-menu text-left"
+	[class.w-100]="dropdownMenuAlignment==='fullWidth'"
+	[class.dropdown-menu-right]="dropdownMenuAlignment==='right'"
+	[class.dropdown-menu-left]="dropdownMenuAlignment==='left'"
+
+>
+	<li>
+		<button
+			type="button"
+			class="btn btn-frameless btn-outline-secondary w-100 title rounded-0 text-right"
+			[class.bg-primary]="!!relatedShiftsSelected"
+			[class.text-white]="!!relatedShiftsSelected"
+			(click)="dropdownMenuIsUncollapsed=false; selectShiftIsDisabled || noRelatedShiftsAvailable ? undefined : onSelectShifts.emit();"
+			[class.disabled]="isLoading || noRelatedShiftsAvailable"
+			[pTooltip]="noRelatedShiftsAvailable ? ('Keine Schicht im Kalender' | localize) : ''"
+			[disabled]="selectShiftIsDisabled || noRelatedShiftsAvailable"
+			i18n
+		>Angebot im Kalender {!!relatedShiftsSelected, select, true {deselektieren} other {selektieren}}</button>
+	</li>
+	<li>
+		<button
+			type="button"
+			class="btn btn-frameless btn-outline-secondary w-100 title rounded-0 text-right"
+			(click)="onEdit.emit()"
+			i18n
+		>Buchung bearbeiten</button>
+	</li>
+	<li *ngIf="showEditCourseBtn">
+		<button
+			type="button"
+			class="btn btn-frameless btn-outline-secondary w-100 title rounded-0 text-right"
+			(click)="onEditCourse.emit()"
+			i18n
+		>Angebot bearbeiten</button>
+	</li>
+
+</ul>
+
+<ng-template #spinnerTemplate>
+	<p-spinner></p-spinner>
+</ng-template>
+
+<ng-template #paymentStatusTooltipContent>
+	<div [class]="'d-block card m-0 text-left o-hidden ' + paymentStatusTooltipBgClass + ' ' + paymentStatusTooltipTextClass">
+		<div class="p-2">{{ paymentStatusTitle | localize }}</div>
+	</div>
+</ng-template>

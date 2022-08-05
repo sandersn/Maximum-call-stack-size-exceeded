@@ -1,0 +1,45 @@
+@import "variables";
+
+:host {
+	position: relative;
+	display: flex;
+	justify-content: flex-start;
+	overflow: hidden;
+	// position: sticky;
+
+	&.cal-today {
+		// background: $gray-200;
+		background: $primary;
+
+		.cal-day-number {
+			color: white !important;
+			font-size: $font-size-lg;
+		}
+	}
+}
+
+.sticky-note-button {
+	position: absolute;
+	right: 0;
+	z-index: 1;
+}
+
+@media (hover: hover) {
+	:host:hover .cal-day-number {
+		z-index: 0;
+	}
+}
+
+.shifts {
+	@media (min-width: 1620px) {
+		padding: map-get($spacers, 5);
+	}
+}
+
+.multi-select-checkbox {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 1;
+}

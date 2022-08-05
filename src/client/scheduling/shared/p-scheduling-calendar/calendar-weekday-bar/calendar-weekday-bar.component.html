@@ -1,0 +1,23 @@
+<div class="d-flex pt-2">
+	<div style="width:3em;height:2em"><span>&nbsp;</span></div>
+
+	<div class="position-relative" *ngIf="api.isLoaded()">
+		<span>&nbsp;</span>
+
+		<ng-template
+			ngFor let-parentName
+			[ngForOf]="api.data.shiftModels.parentNames"
+		>
+			<div
+				*ngIf="showThisShiftModelParent(parentName)"
+				class="border-left pl-2 pr-2 title"
+				[style.position]="'absolute'"
+				[style.left]="layout.getLayout(parentName).x + 'px'"
+				[style.top]="layout.getLayout(parentName).y + 'px'"
+				[style.z-index]="layout.getLayout(parentName).z.toString()"
+				[style.bottom]="'0px'"
+				[style.width]="layout.getLayout(parentName).width + 'px'"
+			>{{ parentName }}</div>
+		</ng-template>
+	</div>
+</div>

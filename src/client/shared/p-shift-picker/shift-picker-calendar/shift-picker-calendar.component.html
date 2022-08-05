@@ -1,0 +1,62 @@
+<div class="d-flex justify-content-between">
+	<p-calendar-nav
+		class="mr-2"
+		[size]="CONFIG.IS_MOBILE ? BootstrapSize.LG : BootstrapSize.SM"
+		[calendarMode]="pShiftPickerService.mode"
+		(selectedDateChange)="setSelectedDateAndLoadData($event)"
+		[selectedDate]="pShiftPickerService.date"
+	></p-calendar-nav>
+	<p-calendar-view-settings
+		[showListBtn]="false"
+		[calendarMode]="pShiftPickerService.mode"
+		(calendarModeChange)="setCalendarModeAndLoadData($event)"
+		[isLoading]="!api.isLoaded()"
+	></p-calendar-view-settings>
+</div>
+
+<h5 class="title mb-0 pt-2 pb-2 d-flex align-items-center justify-content-center">{{ pShiftPickerService.date | calendarTitle:pShiftPickerService.mode:CONFIG.IS_MOBILE }}</h5>
+<div class="position-relative flex-grow-1 d-flex flex-column">
+	<nav
+		*ngIf="pShiftPickerService.mode===CalendarModes.WEEK && !CONFIG.IS_MOBILE"
+		class="border-bottom bg-white flex-grow-0"
+		style="margin-right: 12px;"
+	>
+		<p-calendar-weekdays-bar
+			[timestamp]="pShiftPickerService.date"
+			[timelineMode]="false"
+			[neverShowDayTools]="true"
+			[shifts]="availableShifts"
+		></p-calendar-weekdays-bar>
+	</nav>
+	<div class="position-relative flex-grow-1">
+		<scroll-shadow-box>
+
+			<p-calendar
+				[shiftStyle]="PCalendarShiftStyle.SHIFT_PICKER"
+				[shifts]="availableShifts"
+				[absences]="absences"
+				[holidays]="holidays"
+				[birthdays]="birthdays"
+				[calendarMode]="pShiftPickerService.mode"
+				[selectedStartOfDay]="pShiftPickerService.date"
+				[shiftIsSelectable]="true"
+				[showAsList]="true"
+				[shiftTemplate]="shiftTemplate ? shiftTemplate : defaultTemplate"
+				[neverShowDayTools]="true"
+			></p-calendar>
+			<ng-template #defaultTemplate let-shift let-viewStyle="viewStyle">
+				<!-- Obsolete? -->
+				<p-shift-item
+					[readMode]="true"
+					[shift]="shift"
+					[emptyMemberSlots]="shift.emptyMemberSlots"
+					[viewStyle]="viewStyle"
+					[selectable]="true"
+					[showAsList]="true"
+					[showCourseInfo]="true"
+				></p-shift-item>
+			</ng-template>
+		</scroll-shadow-box>
+	</div>
+	<p-spinner [size]="BootstrapSize.LG" *ngIf="api.isLoadOperationRunning" class="area-blocking-spinner"></p-spinner>
+</div>

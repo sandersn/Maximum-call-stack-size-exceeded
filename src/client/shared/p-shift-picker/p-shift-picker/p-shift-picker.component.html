@@ -1,0 +1,137 @@
+<div class="flex-grow-1 d-flex" *ngIf="!CONFIG.IS_MOBILE">
+	<div class="flex-grow-0 flex-shrink-0 d-flex flex-column" style="flex-basis: 30%;">
+		<ng-template [ngTemplateOutlet]="listOfPickedItemsTemplate"></ng-template>
+	</div>
+	<div class="flex-grow-0 flex-shrink-0 d-flex flex-column pl-2 pl-4 pb-0" style="flex-basis: 70%;">
+		<ng-template [ngTemplateOutlet]="pickerCalendarTemplate"></ng-template>
+	</div>
+</div>
+<div class="flex-grow-1 d-flex flex-column" *ngIf="CONFIG.IS_MOBILE">
+	<div class="d-flex mb-3 m-3">
+		<div class="btn-group flex-grow-1" role="group">
+			<p-button
+				class="flex-grow-1"
+				[attributeInfo]="null"
+				(triggerClick)="showList=true"
+				[theme]="showList ? PThemeEnum.PRIMARY : PThemeEnum.SECONDARY"
+				i18n
+			>Angebot</p-button>
+			<p-button
+				class="flex-grow-1"
+				[attributeInfo]="null"
+				(triggerClick)="showList=false"
+				[theme]="!showList ? PThemeEnum.PRIMARY : PThemeEnum.SECONDARY"
+				i18n
+			>Kalender</p-button>
+		</div>
+	</div>
+	<div [class.d-flex]="!showList" [class.d-none]="showList" class="flex-grow-1 d-flex flex-column">
+		<ng-template [ngTemplateOutlet]="pickerCalendarTemplate"></ng-template>
+	</div>
+	<div [class.d-flex]="showList" [class.d-none]="!showList" class="flex-grow-1 flex-column">
+		<ng-template [ngTemplateOutlet]="listOfPickedItemsTemplate"></ng-template>
+	</div>
+</div>
+
+<ng-template #pickerCalendarTemplate>
+	<p-shift-picker-calendar
+		#shiftPickerCalendarRef
+		class="picker-calendar d-flex flex-column flex-grow-1 h-100"
+		[availableShifts]="availableShifts"
+		[loadDetailedItem]="loadDetailedItem!"
+		[shiftTemplate]="shiftTemplate ? shiftTemplate : defaultTemplate"
+	></p-shift-picker-calendar>
+</ng-template>
+<ng-template #listOfPickedItemsTemplate>
+	<p-section
+		class="d-flex flex-column flex-grow-1 h-100 pb-0"
+		[whitespace]="SectionWhitespace.MEDIUM"
+	>
+		<h4
+			class="mb-3"
+		>{{ pickedOffersHeadline }}</h4>
+		<p-shift-picker-picked-offers
+			class="flex-grow-1 d-flex flex-column"
+			[alerts]="alerts"
+			[offers]="offersRef"
+			(addToOffer)="addSelectedShiftsToRefs($event)"
+			(addToOffers)="onAddSelectedShifts()"
+			(addSelectedShiftsAsPacket)="addSelectedShiftsAsPacket()"
+			(onRemoveOffer)="onRemoveOffer($event)"
+			(onRemoveShiftRefFromOffer)="onRemoveShiftRefFromOffer($event)"
+			[shiftsToBeAdded]="availableShifts.selectedItems"
+			[showBoundShiftOfferSetBtn]="showBoundShiftOfferSetBtn"
+			[addToOffersBtnLabel]="addToOffersBtnLabel"
+			[hideAddToOffersBtn]="hideAddToOffersBtn"
+			[offerTemplate]="offerTemplate"
+		>
+			<p-alert
+				class="small pl-2 pt-2 pb-2"
+				*ngIf="someHint"
+				[theme]="PThemeEnum.INFO"
+				[dismissable]="true"
+			>{{ someHint }}</p-alert>
+			<p-alert
+				class="small pl-2 pt-2 pb-2"
+				*ngIf="showHasBundleWarning && alertForHasBundle"
+				[theme]="alertForHasBundle.type"
+				[dismissable]="alertForHasBundle.dismissable"
+			>{{ alertForHasBundle.text }}</p-alert>
+		</p-shift-picker-picked-offers>
+		<ng-content></ng-content>
+	</p-section>
+</ng-template>
+
+<ng-template #defaultTemplate let-shift let-viewStyle="viewStyle">
+	<ng-template [ngIf]="CONFIG.IS_MOBILE" [ngIfElse]="notMobileTemplate">
+		<p-shifts-info
+			class="flex-grow-1 border"
+			[shiftId]="shift.id"
+			[showDate]="false"
+			[class.muted-item]="pShiftExchangeService.shiftExchangeExistsForShiftAndRequester(shift.id) || !requesterIsAssigned(shift)"
+			(click)="onShiftClick(shift)"
+			[selected]="shift.selected"
+		>
+			<p-shift-info-content-left *ngIf="requesterIsAssigned(shift)" class="align-self-stretch d-flex align-items-stretch">
+				<p-multi-select-checkbox
+					*ngIf="!valueContainsShiftId(shift.id) && !pShiftExchangeService.shiftExchangeExistsForShiftAndRequester(shift.id); else disabledTemplate"
+					class="border-right"
+					[ngModel]="shift.selected"
+					[readMode]="false"
+				></p-multi-select-checkbox>
+				<ng-template #disabledTemplate>
+					<fa-icon *ngIf="valueContainsShiftId(shift.id); else alreadyInAnotherShiftExchangeTemplate" class="ml-2 mr-2 align-self-center" [fixedWidth]="true" icon="hands-helping"></fa-icon>
+					<ng-template #alreadyInAnotherShiftExchangeTemplate>
+						<fa-icon class="ml-2 mr-2 align-self-center" [fixedWidth]="true" icon="hands-helping"></fa-icon>
+					</ng-template>
+				</ng-template>
+			</p-shift-info-content-left>
+			<p-shift-info-content-right>
+				<p-member-badges
+					class="mr-1 ml-1"
+					[members]="shift.assignedMembers"
+					[emptyMemberSlots]="shift.emptyMemberSlots"
+
+					[shiftStart]="shift.start"
+					[shiftEnd]="shift.end"
+					[shiftId]="shift.id"
+
+					[myId]="meService.isLoaded() ? meService.data.id : null"
+				></p-member-badges>
+			</p-shift-info-content-right>
+		</p-shifts-info>
+	</ng-template>
+	<ng-template #notMobileTemplate>
+		<p-shift-item
+			[class.border-primary]="valueContainsShiftId(shift.id)"
+			style="margin-top: 0 !important;"
+			[shift]="shift"
+			[emptyMemberSlots]="shift.emptyMemberSlots"
+			[viewStyle]="viewStyle"
+			[selectable]="!valueContainsShiftId(shift.id)"
+			[class.muted-item]="valueContainsShiftId(shift.id)"
+			[showAsList]="true"
+			[showCourseInfo]="true"
+		></p-shift-item>
+	</ng-template>
+</ng-template>

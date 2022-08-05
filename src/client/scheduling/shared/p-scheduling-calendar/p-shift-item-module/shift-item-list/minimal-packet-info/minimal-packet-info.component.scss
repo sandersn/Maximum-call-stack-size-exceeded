@@ -1,0 +1,75 @@
+@import "variables";
+
+$shift-item-radius: 0.7rem;
+
+:host {
+	display: block;
+}
+
+.header {
+	padding: map-get($spacers, 4);
+
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		margin-bottom: 0;
+	}
+
+	.close {
+		font-size: inherit;
+	}
+}
+
+p-multi-select-checkbox.show-on-hover {
+	display: none;
+}
+
+@media (hover: hover) {
+	:host:hover {
+		p-multi-select-checkbox.show-on-hover {
+			display: flex !important;
+		}
+	}
+}
+
+.card {
+	// overflow: hidden;
+	border-radius: $shift-item-radius;
+
+	// remove transitions for performance reason
+	transition: none;
+
+	// cursor: pointer;
+}
+
+// .card:hover {
+// 	box-shadow: 0 7px 12px rgba(0,0,0,0.16), 0 3px 5px rgba(0,0,0,0.22);
+// }
+
+.card-body {
+	background: $white;
+}
+
+.card-header {
+	position: relative;
+	overflow: hidden;
+
+	.title {
+		line-height: 1.4rem;
+	}
+
+	&:first-child {
+		border-radius: 0;
+	}
+}
+
+table tr {
+	vertical-align: baseline;
+}
+
+.empty-slots-text {
+	padding: map-get($spacers, 2);
+}

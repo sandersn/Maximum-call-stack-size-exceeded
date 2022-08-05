@@ -1,0 +1,87 @@
+{
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"compileOnSave": false,
+	"compilerOptions": {
+		"outDir": "./dist/out-tsc",
+		"sourceMap": true,
+		"declaration": false,
+		"baseUrl": "./",
+		"module": "es2020",
+		"moduleResolution": "node",
+		"downlevelIteration": true,
+		// This is necessary for the fixer for @typescript-eslint/consistent-type-imports
+		// ➡ https://github.com/typescript-eslint/typescript-eslint/issues/3630
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+		"importHelpers": true,
+		"target": "es2018",
+		"typeRoots": ["node_modules/@types", "typings"],
+		"plugins": [{ "name": "@angular/language-service" }],
+		"paths": {
+			"@plano/*": ["src/*"]
+		},
+		"lib": ["es2018", "dom", "dom.iterable"],
+		"resolveJsonModule": true,
+		"noImplicitThis": true,
+		"alwaysStrict": true,
+		"strictBindCallApply": true,
+		"pretty": true,
+		"noImplicitAny": true,
+		"strictFunctionTypes": true,
+		"noUnusedParameters": true,
+		"allowSyntheticDefaultImports": true,
+		"forceConsistentCasingInFileNames": true,
+    "assumeChangesOnlyAffectDirectDependencies": true,
+    "strictNullChecks": true,
+
+		// NOTE: 	We use unused locals e.g. in case of `private _alwaysTrue = true;`.
+		// 				Therefore i decided to leave this off, and use @typescript-eslint/no-unused-vars instead.
+		// 				noUnusedLocals can not be ignored. Eslint rules can be ignored.
+		"noUnusedLocals": false,
+
+		// // NOTE: 	This is Nils’ Playground
+		// // 				If these lines are enabled in dev, then its probably a mistake. Sorry!
+		// // 				This is what Nils temporarily comments out and in while refactonring.
+		"strictPropertyInitialization": true,
+
+    "explainFiles": false,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "useUnknownInCatchVariables": true,
+    "exactOptionalPropertyTypes": false, // Check angular template errors after this.
+
+		"strict": true,
+		"skipLibCheck": true
+	},
+	"angularCompilerOptions": {
+		"extendedDiagnostics": {
+			"checks": {
+				"invalidBananaInBox": "error",
+				"nullishCoalescingNotNullable": "error"
+			},
+			// The category to use for any diagnostics not listed in `checks` above.
+			"defaultCategory": "warning"
+		},
+		"genDir": "aot",
+		"skipMetadataEmit": true,
+		"preserveWhitespaces": false,
+		"strictInjectionParameters": true,
+		"fullTemplateTypeCheck": true,
+		"strictInputAccessModifiers": false, // Makes no sense for us
+		"strictLiteralTypes": true,
+		"strictContextGenerics": true,
+		"strictAttributeTypes": true,
+		"strictDomLocalRefTypes": true,
+		"strictSafeNavigationTypes": true,
+		"strictNullInputTypes": true,
+		"strictDomEventTypes": true,
+		"strictTemplates": true,
+		"strictInputTypes": true,
+		"enableI18nLegacyMessageIdFormat": false,
+		"strictOutputEventTypes": true
+	},
+	"exclude": [
+		// NOTE: Keep these excluded…
+		"tools/**/*"
+	]
+}

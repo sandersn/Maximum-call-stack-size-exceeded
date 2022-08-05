@@ -1,0 +1,7 @@
+@import "variables";
+
+@media (hover: hover) {
+	.card:hover {
+		background-color: $light;
+	}
+}

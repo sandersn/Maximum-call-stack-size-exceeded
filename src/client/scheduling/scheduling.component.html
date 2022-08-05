@@ -1,0 +1,183 @@
+<p-main-sidebar
+	*ngIf="!config.IS_MOBILE"
+	[class.flex-grow-1]="hasFullscreenSideBar"
+	[shifts]="shiftsForCalendar"
+	(onSelectRelatedShifts)="selectRelatedShifts($event)"
+></p-main-sidebar>
+
+<ng-template [ngIf]="showContent">
+
+	<div class="calendar-wrap flex-grow-1 d-flex flex-column o-hidden">
+		<div class="flex-shrink-0 d-flex">
+			<div class="flex-grow-1">
+				<ng-container *ngTemplateOutlet="calendarNavTemplate"></ng-container>
+			</div>
+		</div>
+
+		<div class="flex-grow-1 d-flex">
+			<div class="flex-grow-1 d-flex flex-column o-hidden">
+				<div class="flex-shrink-0">
+					<nav class="border-bottom bg-white">
+						<ng-container *ngTemplateOutlet="calendarTitleBar"></ng-container>
+					</nav>
+					<ng-container *ngTemplateOutlet="calendarSubNavTemplate"></ng-container>
+				</div>
+				<div class="flex-grow-1 position-relative d-flex flex-column">
+					<scroll-shadow-box
+						class="flex-grow-1"
+						[alwaysShowScrollbar]="!config.IS_MOBILE"
+						[contentContainerStyles]="config.IS_MOBILE ? 'scroll-padding: 25vh;' : null"
+					>
+						<ng-container *ngTemplateOutlet="calendarTemplate"></ng-container>
+					</scroll-shadow-box>
+					<p-spinner [size]="BootstrapSize.LG" *ngIf="api.isLoadOperationRunning" class="area-blocking-spinner"></p-spinner>
+				</div>
+			</div>
+		</div>
+	</div>
+</ng-template>
+
+<ng-template #calendarTemplate>
+	<div
+		#startOfWorkday
+		class="h-100"
+		[class.pb-tawk]="config.IS_MOBILE || schedulingService.urlParam!.calendarMode === CalendarModes.MONTH"
+		[class.ml-3]="!config.IS_MOBILE"
+		[class.mr-3]="!config.IS_MOBILE"
+	>
+		<p-calendar
+			[changeDetection]="!currentModalsService.isModalOpened"
+			[shifts]="shiftsForCalendar"
+			[absences]="absencesForCalendar"
+			[holidays]="holidaysForCalendar"
+			[birthdays]="birthdaysForCalendar"
+			[selectedStartOfDay]="schedulingService.urlParam!.date!"
+			[calendarMode]="schedulingService.urlParam!.calendarMode"
+			(dayClick)="onDayClick($event)"
+			(onShiftClick)="onShiftSelect($event)"
+
+			[showAsList]="schedulingService.urlParam!.calendarMode === CalendarModes.DAY ? schedulingService.showDayAsList : schedulingService.showWeekAsList"
+			[shiftIsSelectable]="true"
+		></p-calendar>
+	</div>
+</ng-template>
+<ng-template #calendarNavTemplate>
+
+	<ng-content></ng-content>
+
+	<nav class="navbar d-flex align-items-center border-bottom bg-white" [class.p-2]="config.IS_MOBILE">
+		<div class="flex-grow-1 d-flex justify-content-between">
+			<p-calendar-nav
+				class="mr-2"
+				[size]="config.IS_MOBILE ? null : BootstrapSize.SM"
+				[calendarMode]="schedulingService.urlParam!.calendarMode"
+				(selectedDateChange)="onChangeDate($event)"
+				(onNavToToday)="scrollToToday()"
+				[selectedDate]="schedulingService.urlParam!.date!"
+				[earlyBirdMode]="schedulingService.earlyBirdMode"
+				[wishPickerMode]="schedulingService.wishPickerMode"
+				[hideLabels]="!!courseFilterService.bookingsVisible"
+			></p-calendar-nav>
+			<p-calendar-view-settings
+				[calendarMode]="schedulingService.urlParam!.calendarMode"
+				(calendarModeChange)="onChangeMode($event)"
+				[showDayAsList]="schedulingService.showDayAsList"
+				(showDayAsListChange)="onChangeShowDayAsList($event)"
+				[showWeekAsList]="schedulingService.showWeekAsList"
+				(showWeekAsListChange)="onChangeShowWeekAsList($event)"
+				[hideLabels]="!!courseFilterService.bookingsVisible"
+				[isLoading]="!api.isLoaded()"
+			></p-calendar-view-settings>
+
+			<div class="d-flex justify-content-end">
+				<p-calendar-filter-settings
+					[showShiftsFilterBtn]="true"
+					[showShowOnlyMemberBtn]="true"
+					[itemsFilterTitle]="itemsFilterTitle"
+				></p-calendar-filter-settings>
+				<!-- [badge]="todoRightView" -->
+			</div>
+		</div>
+
+	</nav>
+</ng-template>
+<ng-template #calendarSubNavTemplate>
+	<ng-template [ngIf]="!config.IS_MOBILE">
+
+		<ng-template [ngIf]="schedulingService.urlParam!.calendarMode === CalendarModes.WEEK">
+			<nav
+				*ngIf="!schedulingService.showWeekAsList && (!!absencesForCalendar.length || !!holidaysForCalendar.length || !!birthdaysForCalendar.length)"
+				class="border-bottom bg-white mr-12px"
+			>
+				<div class="mt-2 mb-2 ml-3 mr-3">
+					<p-calendar-absences-week-bar
+						[timestamp]="schedulingService.urlParam!.date!"
+						[absences]="absencesForCalendar"
+						[holidays]="holidaysForCalendar"
+						[birthdays]="birthdaysForCalendar"
+						[readMode]="false"
+					></p-calendar-absences-week-bar>
+				</div>
+			</nav>
+
+			<nav class="border-bottom bg-white mr-12px">
+				<div class="mt-2 ml-3 mr-3">
+					<p-calendar-weekdays-bar
+						[timestamp]="schedulingService.urlParam!.date!"
+						(dayClick)="onDayClick($event)"
+						[timelineMode]="!schedulingService.showWeekAsList"
+						[neverShowDayTools]="false"
+						[shifts]="shiftsForCalendar"
+					></p-calendar-weekdays-bar>
+				</div>
+			</nav>
+		</ng-template>
+		<ng-template [ngIf]="schedulingService.urlParam!.calendarMode === CalendarModes.DAY && !schedulingService.showDayAsList">
+
+			<nav
+				*ngIf="!!absencesForCalendar.length || !!holidaysForCalendar.length || !!birthdaysForCalendar.length"
+				class="border-bottom bg-white mr-12px"
+			>
+				<div class="mt-2 mb-2 ml-3 mr-3">
+					<p-calendar-absences-day-bar
+						[startOfDay]="schedulingService.urlParam!.date!"
+						[readMode]="false"
+						[holidays]="holidaysForCalendar"
+						[absences]="absencesForCalendar"
+						[birthdays]="birthdaysForCalendar"
+					></p-calendar-absences-day-bar>
+				</div>
+			</nav>
+
+			<nav class="border-bottom bg-white">
+				<div class="ml-3 mr-3">
+					<p-calendar-weekday-bar></p-calendar-weekday-bar>
+				</div>
+			</nav>
+		</ng-template>
+		<ng-template [ngIf]="schedulingService.urlParam!.calendarMode === CalendarModes.MONTH">
+			<nav class="border-bottom bg-white mr-12px">
+				<div class="ml-3 mr-3">
+					<p-calendar-month-weekdays-bar
+						[timestamp]="schedulingService.urlParam!.date!"
+						(onDayClick)="selectAllShiftsOfThisWeekday($event)"
+					></p-calendar-month-weekdays-bar>
+				</div>
+			</nav>
+		</ng-template>
+	</ng-template>
+</ng-template>
+<ng-template #calendarTitleBar>
+	<p-calendar-title-bar
+		[selectedDate]="schedulingService.urlParam!.date!"
+		(selectedDateChange)="onDayClick($event)"
+		[calendarMode]="schedulingService.urlParam!.calendarMode"
+	></p-calendar-title-bar>
+</ng-template>
+
+<!-- <ng-container *ngTemplateOutlet="accessgroupTitle; context: {$implicit: rightGroup}"></ng-container>
+
+<ng-template #accessgroupTitle let-rightGroup>
+</ng-template>
+-->
+<br>

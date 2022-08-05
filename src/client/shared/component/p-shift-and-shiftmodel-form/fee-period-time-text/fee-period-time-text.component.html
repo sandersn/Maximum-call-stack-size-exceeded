@@ -1,0 +1,32 @@
+<ng-container *ngIf="start === null && end === null; else detailPeriodDatesTemplate" i18n>Bei jeglicher Stornierung</ng-container>
+
+<ng-template #detailPeriodDatesTemplate>
+	<span [ngSwitch]="textId">
+		<ng-container *ngSwitchCase="'zeroToNull'">
+			<ng-container i18n>Am Angebotstag selbst & danach</ng-container>
+		</ng-container>
+		<ng-container *ngSwitchCase="'XToNull'">
+			<ng-container *ngIf="start !== null"><code>{{ start ===  null ? '…' : start.toString() }}</code>&nbsp;</ng-container>
+			<ng-container *ngIf="end === null"><ng-container i18n>oder weniger</ng-container>&nbsp;</ng-container>
+			<span i18n>{(start && start > 1) || end ===  null || end > 1 || end === null, select, true {Tage} other {Tag}} vor dem</span>
+			<ng-container *ngIf="end === null">&nbsp;<ng-container i18n>Angebotsbeginn & danach</ng-container></ng-container>
+		</ng-container>
+		<ng-container *ngSwitchCase="'nullToY'">
+			<ng-container *ngIf="end !== null"><code>{{ end ===  null ? '…' : end.toString() }}</code>&nbsp;</ng-container>
+			<ng-container *ngIf="start === null && end !== null"><ng-container i18n>oder mehr</ng-container>&nbsp;</ng-container>
+			<span i18n>{(start && start > 1) || end ===  null || end > 1 || end === null, select, true {Tage} other {Tag}} vor dem</span>
+			<ng-container *ngIf="end !== null">&nbsp;<ng-container i18n>Angebotstag</ng-container></ng-container>
+		</ng-container>
+		<ng-container *ngSwitchCase="'XToY'">
+			<ng-container *ngIf="start !== null"><code>{{ start ===  null ? '…' : start.toString() }}</code>&nbsp;</ng-container>
+			<ng-container *ngIf="start !== null && end !== null"><ng-container i18n>bis</ng-container>&nbsp;</ng-container>
+			<ng-container *ngIf="end !== null"><code>{{ end ===  null ? '…' : end.toString() }}</code>&nbsp;</ng-container>
+			<span i18n>{(start && start > 1) || end ===  null || end > 1 || end === null, select, true {Tage} other {Tag}} vor dem</span>
+			<ng-container *ngIf="end !== null">&nbsp;<ng-container i18n>Angebotstag</ng-container></ng-container>
+		</ng-container>
+
+		<ng-container *ngSwitchDefault>
+			<p-alert [theme]="PThemeEnum.WARNING">ERROR</p-alert>
+		</ng-container>
+	</span>
+</ng-template>

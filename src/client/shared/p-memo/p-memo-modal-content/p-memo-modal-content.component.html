@@ -1,0 +1,72 @@
+<p-modal-header
+	title="Tageskommentar" i18n-title
+	[theme]="theme"
+	(onClose)="onDismiss()"
+></p-modal-header>
+<section class="modal-body">
+	<div
+		*ngIf="showDateInput"
+		class="form-group"
+	>
+		<label i18n>Datum</label>
+		<p-input-date
+			class="flex-grow-1"
+			[showEraseValueBtn]="false"
+			[ngModel]="memoModalDay"
+			(ngModelChange)="onDateChange($event)"
+			[min]="min"
+			[max]="max"
+		></p-input-date>
+	</div>
+	<div class="form-group">
+		<label i18n>Kommentar {memoModalDay && !showDateInput, select, true {{{ memoModalDay | date:'EEEE' }}, den {{ memoModalDay | date:'shortDate' }}}}</label>
+		<div class="input-group">
+			<ng-template [ngIf]="showBlockquote" [ngIfElse]="showTextarea">
+				<blockquote class="flex-grow-1 text-style-reset-to-body">
+					<span [innerHTML]="memo ? textToHtml(memo.message) : ''"></span>
+				</blockquote>
+			</ng-template>
+			<ng-template #showTextarea>
+				<p-textarea
+					*ngIf="memo && memo.rawData && api.isLoaded(); else disabledTextarea"
+					[(ngModel)]="memo.message"
+					[disabled]="!userCanEditMemos"
+				></p-textarea>
+				<ng-template #disabledTextarea>
+					<textarea
+						class="form-control"
+						[disabled]="true"
+					></textarea>
+				</ng-template>
+			</ng-template>
+		</div>
+	</div>
+</section>
+<div class="modal-footer">
+	<ng-template
+		[ngIf]="!showBlockquote"
+		[ngIfElse]="justClose"
+	>
+		<button type="button" class="btn btn-outline-secondary mr-auto" (click)="onDismiss()"
+			i18n
+		>Abbrechen</button>
+		<ng-template [ngIf]="!!memo">
+		<button type="button" class="btn btn-danger"
+			*ngIf="!memo.isNewItem()"
+			(click)="onRemoveMemo()"
+		><fa-icon [fixedWidth]="true" icon="trash"></fa-icon><ng-template [ngIf]="!CONFIG.IS_MOBILE">&nbsp;<ng-container i18n>Löschen</ng-container></ng-template></button>
+		<button type="button" class="btn"
+			[class.btn-primary]="!(memo && memo.rawData && !memo.isNewItem() && !memo.message.length)"
+			[class.btn-danger]="memo && memo.rawData && !memo.isNewItem() && !memo.message.length"
+			[disabled]="!(memo && memo.rawData) || memo.isNewItem() && !memo.message.length"
+			(click)="onClose.emit();"
+		><fa-icon [fixedWidth]="true" [icon]="!memo || memo.isNewItem() ? 'plus' : 'check'"></fa-icon>&nbsp;<ng-container i18n>{!memo || memo.isNewItem(), select, true {Anlegen} other {Speichern}}</ng-container></button>
+		</ng-template>
+	</ng-template>
+	<ng-template #justClose>
+		<button type="button" class="btn btn-outline-secondary ml-auto" (click)="onDismiss();"
+			i18n
+		>OK</button>
+	</ng-template>
+
+</div>

@@ -1,0 +1,165 @@
+<scroll-shadow-box class="flex-grow-1">
+
+	<ng-template [ngIf]="api.isLoaded() && meService.isLoaded() && isAllowedTimeStampDevice !== undefined" [ngIfElse]="spinnerTemplate">
+		<div class="container pb-tawk">
+
+			<ng-template [ngIf]="!isAllowedTimeStampDevice" [ngIfElse]="timeStampTemplate">
+				<div class="card card-body max-width-600">
+					<h3 i18n>Gerät & Browser nicht zugelassen</h3>
+					<div class="mb-2" i18n>Nutze bitte eins der folgenden zugelassenen Geräte & Browser, um deine Arbeitszeiten zu stempeln:</div>
+					<div class="mb-2">
+						<div *ngFor="let device of api.data.allowedTimeStampDevices.iterable()" class="mt-2 mb-2"><fa-icon [fixedWidth]="true" [icon]="device.iconName"></fa-icon> {{ device.name }}</div>
+					</div>
+					<div *ngIf="!meService.data.isOwner; else ownerHintTemplate">
+						<small><fa-icon [icon]="PlanoFaIconPool.MORE_INFO"></fa-icon>&nbsp;<ng-container i18n>Bei Fragen oder dem Wunsch nach weiteren zugelassenen Geräten wende dich bitte an deine Personalleitung.</ng-container></small>
+					</div>
+					<ng-template #ownerHintTemplate>
+						<div>
+							<small><fa-icon [icon]="PlanoFaIconPool.MORE_INFO"></fa-icon>&nbsp;<ng-container i18n>Willst du weitere Geräte zulassen, schau mal in die <a routerLink="/client/devices" rel="noopener" target="_blank">Stempeluhr-Einstellungen</a>.</ng-container></small>
+						</div>
+					</ng-template>
+				</div>
+			</ng-template>
+
+			<ng-template #timeStampTemplate>
+				<p-grid>
+					<div class="col-sm-12 col-md-6 col-lg-8">
+						<div class="card">
+							<div class="card-header">
+								<span *ngIf="!start" i18n>Wähle deine Schicht</span>
+								<span *ngIf="!!start" i18n>Deine Schicht</span>
+							</div>
+							<div class="card-body pb-1">
+								<p-grid>
+									<ng-template [ngIf]="start && api.data.end" [ngIfElse]="newWorkingtimeEnabled">
+										<div class="col-12">
+											<div class="form-group">
+												<button
+													type="button"
+													class="btn btn-primary w-100"
+													(click)="resetTimeStamp($event)"
+													i18n
+												>Neue Schicht beginnen</button>
+											</div>
+										</div>
+									</ng-template>
+									<ng-template #newWorkingtimeEnabled>
+										<div class="col-12" *ngIf="noShiftModelExists && canCreateShiftModels">
+											<p-alert
+												[theme]="PThemeEnum.INFO"
+												[dismissable]="false"
+												i18n
+											>Bevor es hier los geht, musst du eine Tätigkeit (und ggf. eine Schicht) anlegen.</p-alert>
+										</div>
+
+										<div class="col-12" *ngIf="noStampableItemsAvailableForStamping && !noShiftModelExists || noShiftModelExists && !canCreateShiftModels">
+											<p-alert
+												[theme]="PThemeEnum.INFO"
+												[dismissable]="false"
+												i18n
+											>Du darfst keine Tätigkeiten ausführen und bist keinen Schichten zugewiesen. Daher kannst du keine Zeiten stempeln. Wende dich bitte an deine Personalleitung.</p-alert>
+										</div>
+
+										<div class="col-12"
+											*ngIf="!start || (api.data.selectedShiftId !== null ? true : hasTempSelectedShiftId)"
+										>
+										<!-- <span *ngIf="!start && api.data.shifts.length" i18n>Wähle deine Schicht</span>
+										<span *ngIf="!start && !api.data.shifts.length" i18n>Keinen Schichten zu stempeln</span> -->
+
+											<p-shift-select
+												[placeholder]="shiftSelectPlaceholder"
+												[shifts]="api.data.shifts"
+												[disabled]="disableShiftSelect"
+												[selectedShiftId]="selectedShiftId"
+												(selectedShiftIdChange)="onSelectShiftId($event)"
+											></p-shift-select>
+										</div>
+										<ng-template [ngIf]="showSectionForUnplanned">
+											<div class="col-sm-12 col-lg-6 col-xl-5">
+												<div class="form-group"
+													[popover]="unplannedShiftToggleTooltipContent!"
+													placement="bottom"
+												>
+													<p-checkbox [attributeInfo]="null"
+														class="flex-grow-1"
+														[readMode]="false"
+														[disabled]="disableUnplannedShiftToggle"
+														[ngModel]="isUnplanned"
+														(ngModelChange)="toggleIsUnplanned()"
+														valueText="Ungeplanter Einsatz" i18n-valueText
+													></p-checkbox>
+												</div>
+											</div>
+											<div class="col-sm-12 col-lg-6 col-xl-7 d-flex"
+												*ngIf="!start || !!initialShiftModel"
+											>
+												<p-input-shiftmodel-id
+													style="min-height: 38px;"
+													class="w-100 d-flex mb-3"
+													[disabled]="disableShiftModelSelect"
+													[ngModel]="tempSelectedShiftModelId"
+													(ngModelChange)="onSelectShiftModelId($event)"
+													[items]="shiftModelsForDropdown"
+												></p-input-shiftmodel-id>
+											</div>
+										</ng-template>
+									</ng-template>
+								</p-grid>
+							</div>
+						</div>
+					</div>
+					<div class="d-none d-sm-block col-md-6 col-lg-4">
+						<p-stamped-members-card></p-stamped-members-card>
+					</div>
+					<div class="col-sm-12 col-md-12 col-lg-8">
+						<p-stopwatch
+							[selectedItem]="tempSelectedItem"
+							(onEnd)="onEnd()"
+						></p-stopwatch>
+					</div>
+					<div class="col-sm-12 col-md-12 col-lg-4">
+						<p-time-stamp-results></p-time-stamp-results>
+					</div>
+					<p-form-group
+						class="mb-3 col-sm-8"
+						[hasDanger]="api.hasWarningMessages && !api.data.comment?.length"
+					>
+						<label><fa-icon [fixedWidth]="true" [icon]="api.data.comment ? 'comment' : ['far','comment']"></fa-icon>&nbsp;<ng-container i18n>Kommentar an die Personalleitung</ng-container></label>
+						<div hidden><span i18n #translatedPlaceholderForTextarea>{isUnplanned, select, true {z.B. »Bin mal eben für Peter eingesprungen«}}</span></div>
+						<p-textarea
+							[pEditable]="true"
+							[api]="api"
+							[valid]="true"
+							(onSaveSuccess)="refreshCommentReminderToast()"
+							(onDismiss)="refreshCommentReminderToast()"
+							class="input-group"
+
+							[disabled]="!start"
+							[readMode]="false"
+
+							[(ngModel)]="api.data.comment"
+							[placeholder]="translatedPlaceholderForTextarea.textContent!"
+						></p-textarea>
+						<!-- [formControl]="formGroup.controls['description']!" -->
+					</p-form-group>
+					<div class="col-sm-4">
+						<div *ngIf="api.hasWarningMessages">
+							<span [class.text-danger]="!api.data.comment?.length"><span class="d-none d-sm-inline"><fa-icon [fixedWidth]="true" [icon]="api.data.comment?.length ? ['far','thumbs-up'] : ['far','hand-point-left']"></fa-icon>&nbsp;</span><ng-container i18n>{!api.data.comment?.length, select, true {Bitte begründe!}}</ng-container></span>
+						</div>
+						<ul class="list-group" *ngIf="api.hasWarningMessages">
+							<li
+								class="list-group-item p-2"
+								*ngFor="let message of warningMessages"
+							>{{ message | localize }}</li>
+						</ul>
+					</div>
+				</p-grid>
+			</ng-template>
+
+		</div>
+	</ng-template>
+
+	<ng-template #spinnerTemplate>
+		<p-spinner [size]="BootstrapSize.LG" class="m-3"></p-spinner>
+	</ng-template>
+</scroll-shadow-box>

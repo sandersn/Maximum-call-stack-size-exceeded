@@ -1,0 +1,57 @@
+<p-subheader [containerSize]="BootstrapSize.SM" [isNewItem]="false"></p-subheader>
+
+<div class="flex-grow-1 d-flex position-relative">
+	<scroll-shadow-box class="flex-grow-1">
+		<div class="container-sm pb-tawk pl-6 pr-6">
+			<h2><img src="images/beta7.png" alt="BETA7" style="width: 280px"></h2>
+			<p i18n>Die Schnittstelle zu <a href="https://beta7.app/" rel="noopener" target="_blank">Beta 7</a> ist eine wertvolle Ergänzung des Buchungssystems von Dr.&nbsp;Plano. Über die Schnittstelle werden deine buchbaren Angebote in der Beta7-App angezeigt und können direkt dort von den App-Usern gebucht werden. Damit vertreibst du deine Angebote über einen zusätzlichen Kanal und steigerst so deren Wahrnehmung – und damit auch deinen Umsatz.</p>
+
+			<p-checkbox
+				*ngIf="api.isLoaded()"
+				class="mb-4"
+				[pEditable]="true"
+				[api]="api"
+
+				[(ngModel)]="api.data.isUsingBeta7"
+				valueText="Schnittstelle zu BETA7 verwenden" i18n-valueText
+			></p-checkbox>
+
+			<p-alert
+				*ngIf="showUnlinkHint"
+				[theme]="PThemeEnum.WARNING"
+				[dismissable]="false"
+				i18n
+			>Um die Verbindung vollständig zu trennen, musst du auch bei BETA7 die hinterlegten Benutzerdaten entfernen.</p-alert>
+
+			<p-form-group label="ID zum Einbinden" i18n-label *ngIf="api.data.isUsingBeta7">
+				<p-input-copy-string
+					[valueToCopy]="clientId"
+					[isLoading]="!meService.isLoaded()"
+				></p-input-copy-string>
+			</p-form-group>
+		<div id="scroll-target-id-faq" class="mb-4">
+			<span><h3 class="mt-5 text-center" i18n>Fragen & Antworten</h3></span>
+			<p-collapsible>
+				<span trigger i18n>Was kann die Schnittstelle zu Beta7?</span>
+				<div content class="card-body" i18n>Sobald du die Verbindung herstellst, werden in der App Beta7 unter der Rubrik »Kurse« dein Angebotsmenü aus Dr.&nbsp;Plano und – falls aktiviert – auch der Gutscheinverkauf angezeigt. So können die User von Beta7 direkt in der App deine Angebote buchen und Gutscheine bestellen. Mehr Infos zum Angebotsmenü findest du <a routerLink="/client/plugin/setup" target="_blank" rel="noopener">hier</a>.</div>
+			</p-collapsible>
+			<p-collapsible>
+				<span trigger i18n>Wie richte ich die Schnittstelle ein?</span>
+				<div content class="card-body" i18n>Du musst lediglich in Beta7 unter Settings > Booking Services > Dr.&nbsp;Plano ID die oben angegebene ID eintragen. Voilà!</div>
+			</p-collapsible>
+			<p-collapsible>
+				<span trigger i18n>Ist das datenschutzrechtlich abgesichert?</span>
+				<div content class="card-body" i18n>Die Kommunikation mit Beta 7 erfolgt verschlüsselt. Beachte, dass du durch das Verbinden deines <span class="nowrap">Dr.&nbsp;Plano-Accounts</span> mit Beta 7 dem Datenaustausch zum Zweck der Kurs- und Buchungsabwicklung zustimmst. Du kannst jederzeit diesen Datenaustausch unterbinden, indem du die Verbindung kappst. Wir gehen unsererseits sehr sorgsam mit deinen Daten um. Informationen zu unseren Schutzmaßnahmen findest du unter <a routerLink="/personal-data-protection-regulation" target="_blank" rel="noopener">Datenschutz-Grundverordnung</a> sowie in unserer <a routerLink="/privacy" target="_blank" rel="noopener">Datenschutzerklärung</a>. Bitte informiere dich bei Beta 7, um zu erfahren, welche Maßnahmen der Anbieter ergreift, um datenschutzkonform zu handeln und die Datenschutz-Grundverordnung (DSGVO) einzuhalten.</div>
+			</p-collapsible>
+			<p-collapsible>
+				<span trigger i18n>Kostet die Schnittstelle zusätzlich?</span>
+				<div content class="card-body" i18n>Unsererseits stellen wir dir die Schnittstelle gratis zur Verfügung. Es fallen keine zusätzlichen Kosten an. Ob auf Seiten von Beta 7 zusätzliche Kosten anfallen, entscheidet der Anbieter. Wir können darüber leider keine Auskunft erteilen.</div>
+			</p-collapsible>
+			<p-collapsible>
+				<span trigger i18n>Ich habe eine andere Routendatenbank! 😱</span>
+				<div content class="card-body" i18n>Unsere Schnittstelle steht prinzipiell auch anderen Routendatenbank-Apps zur Verfügung. Wenn du Interesse an einer Kooperation hast, dann melde dich einfach bei uns und verrate uns deine App. Wir nehmen Kontakt mit deinem Anbieter auf und besprechen das Weitere.</div>
+			</p-collapsible>
+		</div>
+		</div>
+	</scroll-shadow-box>
+</div>

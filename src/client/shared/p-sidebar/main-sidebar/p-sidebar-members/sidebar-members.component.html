@@ -1,0 +1,275 @@
+<div class="flex-grow-1 d-flex flex-column">
+	<div class="flex-grow-0 d-flex pl-3 pr-3 pt-3 pb-2">
+		<div class="flex-grow-1 d-flex">
+			<p-button [attributeInfo]="null"
+				class="mr-2"
+				[buttonType]="PButtonType.TOGGLE"
+				[icon]="null"
+				[theme]="PThemeEnum.PRIMARY"
+				[isActiveButton]="!!editFilterModeActive"
+				[darkMode]="true"
+				[size]="BootstrapSize.SM"
+				(triggerClick)="editFilterModeActive=!editFilterModeActive"
+
+				[popover]="!editFilterModeActive ? (filterIsActive ? itemsFilterTitlePopover : 'Filter') : undefined!"
+				placement="bottom"
+			><span class="nowrap"><fa-icon
+				[class.text-white]="!editFilterModeActive"
+				[fixedWidth]="true" icon="filter"
+			></fa-icon><span *ngIf="editFilterModeActive || filterIsActive">&nbsp;<p-led [theme]="PThemeEnum.PRIMARY" [off]="!filterIsActive"></p-led></span></span></p-button>
+			<ng-template #itemsFilterTitlePopover>
+				<span [innerHTML]="itemsFilterTitle"></span>
+			</ng-template>
+			<p-button [attributeInfo]="null"
+				class="mr-2"
+				[buttonType]="PButtonType.TOGGLE"
+				[icon]="null"
+				[theme]="PThemeEnum.PRIMARY"
+				[isActiveButton]="!!editListItemsMode"
+				[darkMode]="true"
+				[size]="BootstrapSize.SM"
+				(triggerClick)="editListItemsMode=!editListItemsMode"
+
+				[popover]="editButtonTitle"
+				placement="bottom"
+			><fa-icon
+				[class.text-white]="!editListItemsMode"
+				[fixedWidth]="true" icon="pen"
+			></fa-icon></p-button>
+			<p-button [attributeInfo]="null"
+				popover="Verdienstanzeige" i18n-popover
+				placement="bottom"
+
+				class="mr-2"
+				[buttonType]="PButtonType.TOGGLE"
+				[icon]="null"
+				[theme]="PThemeEnum.PRIMARY"
+				[isActiveButton]="!!pSidebarService.isWorkloadMode"
+				[darkMode]="true"
+				[size]="BootstrapSize.SM"
+				(triggerClick)="pSidebarService.isWorkloadMode=!pSidebarService.isWorkloadMode"
+			><fa-icon
+				[class.text-white]="!pSidebarService.isWorkloadMode"
+				[fixedWidth]="true" [icon]="currencyIcon"
+			></fa-icon></p-button>
+			<p-button [attributeInfo]="null"
+				*ngIf="exportMembersApiService.data.attributeInfoThis.show"
+				popover="Exportieren" i18n-popover
+				placement="bottom"
+
+				class="mr-2"
+				[darkMode]="true"
+				[size]="BootstrapSize.SM"
+				[disabled]="exportIsRunning"
+				(triggerClick)="exportMembers()"
+			><fa-icon
+				[fixedWidth]="true" [icon]="exportIsRunning ? PlanoFaIconPool.SYNCING : PlanoFaIconPool.EXPORT" [spin]="exportIsRunning"
+			></fa-icon></p-button>
+			<p-button [attributeInfo]="null"
+				*ngIf="rightsService.isOwner"
+				class="ml-auto"
+				[darkMode]="true"
+				[theme]="PBtnThemeEnum.OUTLINE_PRIMARY"
+				[size]="BootstrapSize.SM"
+				[disabled]="!!isLoading"
+				(triggerClick)="showDetails(null)"
+				popover="User hinzufügen" i18n-popover
+				placement="bottom"
+			><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon></p-button>
+		</div>
+	</div>
+	<div class="flex-grow-1 position-relative">
+		<scroll-shadow-box [backgroundStyle]="PThemeEnum.DARK">
+			<div class="pl-3 pr-3">
+				<p-input
+					class="mt-1 mb-3"
+					[type]="PApiPrimitiveTypes.Search"
+					[(ngModel)]="searchTerm"
+					[theme]="!!searchTerm ? null : PBtnThemeEnum.OUTLINE_DARK"
+					[class.flex-grow-1]="searchIsActive"
+					[size]="BootstrapSize.SM"
+				></p-input>
+
+				<div *ngIf="editFilterModeActive" class="mr-2 ml-2 title mb-3 mt-3">
+					<span><fa-icon
+						[class.text-primary]="filterIsActive"
+						[class.text-white]="!filterIsActive"
+						[style.opacity]="filterIsActive ? '1' : '0.2'"
+						[fixedWidth]="true"
+						icon="filter"
+					></fa-icon>&nbsp;<span class="text-white" [innerHTML]="itemsFilterTitle"></span></span>
+				</div>
+				<nav class="d-block mt-2 mb-2" *ngIf="pSidebarService.isWorkloadMode">
+					<label *ngIf="me.isLoaded() && me.data.isOwner"><a target="_self" routerLink="/client/account" fragment="abrechnungszeitraum" i18n>Lohn-Abrechnungszeitraum:</a></label>
+					<label *ngIf="!(me.isLoaded() && me.data.isOwner)" class="text-white" i18n>Lohn-Abrechnungszeitraum:</label>
+					<div class="text-white">
+						<ng-template [ngIf]="!isLoading" [ngIfElse]="spinnerTemplate">
+						<ng-template [ngIf]="accountingPeriods.length === 1">
+							<div class="d-flex justify-content-between align-items-center ml-1 mb-2">
+								<p-checkbox
+									[(ngModel)]="pSidebarService.showWorkload[1]"
+									[hasButtonStyle]="false"
+									class="flex-grow-1 mr-2"
+									valueText="{{ formattedDateTimePipe.getFormattedDateInfo(accountingPeriods.get(0)!.start, accountingPeriods.get(0)!.end, true, true).full }}"
+								></p-checkbox>
+								<img alt="Icon für die Auslastungsanzeige" i18n-alt src="images/miniatur-bottom.png">
+							</div>
+						</ng-template>
+						<ng-template [ngIf]="accountingPeriods.length === 2">
+							<div class="d-flex justify-content-between align-items-center ml-1 mb-2">
+								<p-checkbox
+									[(ngModel)]="pSidebarService.showWorkload[0]"
+									[hasButtonStyle]="false"
+									class="flex-grow-1 mr-2"
+									valueText="{{ formattedDateTimePipe.getFormattedDateInfo(accountingPeriods.get(0)!.start, accountingPeriods.get(0)!.end, true, true).full }}"
+								></p-checkbox>
+								<img alt="Icon für die Auslastungsanzeige" i18n-alt src="images/miniatur-top.png">
+							</div>
+							<div class="d-flex justify-content-between align-items-center ml-1 mb-2">
+								<p-checkbox
+									[(ngModel)]="pSidebarService.showWorkload[1]"
+									[hasButtonStyle]="false"
+									class="flex-grow-1 mr-2"
+									valueText="{{ formattedDateTimePipe.getFormattedDateInfo(accountingPeriods.get(1)!.start, accountingPeriods!.get(1)!.end, true, true).full }}"
+								></p-checkbox>
+								<img alt="Icon für die Auslastungsanzeige" i18n-alt src="images/miniatur-bottom.png">
+							</div>
+						</ng-template>
+						</ng-template>
+					</div>
+				</nav>
+				<div class="mb-0">
+					<div class="list-group list-group-flush members"
+						*ngIf="!isLoading; else spinnerTemplate"
+					>
+						<ng-template
+							[ngIf]="!showAllItemsFilteredHint"
+							[ngIfElse]="everyItemFilteredTemplate"
+						>
+							<list-headline text="Aktive User" i18n-text
+								class="card mb-1 mt-2 o-hidden"
+								*ngIf="showHeadline(membersForList.untrashed) && showHeadline(membersForList.trashed)"
+								headlineIconAlign="left"
+								[class.trashed]="false"
+								[text]="translatedListHeadlineText(membersForList.untrashed)"
+								(onClick)="toggleList('untrashed')"
+							>
+								<fa-icon headline-icon [icon]="!isCollapsed('untrashed') ? PlanoFaIconPool.COLLAPSIBLE_OPEN : PlanoFaIconPool.COLLAPSIBLE_CLOSE"></fa-icon>
+								<button
+									*ngIf="editFilterModeActive"
+									(click)="$event.stopPropagation();filterService.toggleMembers(membersForList.untrashed)"
+									[class.affected]="allMembersIsAffected(membersForList.untrashed)"
+									class="card-option btn btn-sm pt-1 pb-1 d-flex align-items-center justify-content-center btn-secondary"
+								><fa-icon [fixedWidth]="true" [class.text-primary]="!(allMembersIsAffected(membersForList.untrashed) || isVisibleItems(membersForList.untrashed))" [icon]="allMembersIsAffected(membersForList.untrashed) || isVisibleItems(membersForList.untrashed) ? PlanoFaIconPool.VISIBLE : PlanoFaIconPool.INVISIBLE"></fa-icon></button>
+							</list-headline>
+
+							<ng-container *ngIf="!isCollapsed('untrashed')">
+								<ng-container *ngTemplateOutlet="memberListItemTemplate; context: {$implicit: members.get(me.data.id)}"></ng-container>
+
+								<ng-template
+									ngFor let-member
+									[ngForOf]="membersForList.untrashed.iterableSortedBy(sortByFns)"
+								>
+									<ng-template [ngIf]="!member.id.equals(me.data.id)">
+										<ng-container *ngTemplateOutlet="memberListItemTemplate; context: {$implicit: member}"></ng-container>
+									</ng-template>
+								</ng-template>
+
+							</ng-container>
+
+							<list-headline text="Gelöschte User" i18n-text
+								class="card mb-1 mt-2 o-hidden border-danger border-0"
+								*ngIf="showHeadline(membersForList.trashed)"
+								[theme]="PThemeEnum.DANGER"
+								headlineIconAlign="left"
+								[class.trashed]="true"
+								[text]="translatedListHeadlineText(membersForList.trashed)"
+								(onClick)="toggleList('trashed')"
+							>
+								<fa-icon headline-icon [icon]="!isCollapsed('trashed') ? PlanoFaIconPool.COLLAPSIBLE_OPEN : PlanoFaIconPool.COLLAPSIBLE_CLOSE"></fa-icon>
+								<button
+									*ngIf="editFilterModeActive"
+									(click)="$event.stopPropagation();filterService.toggleMembers(membersForList.trashed)"
+									[class.affected]="allMembersIsAffected(membersForList.trashed)"
+									class="card-option btn btn-sm pt-1 pb-1 d-flex align-items-center justify-content-center btn-secondary"
+								><fa-icon [fixedWidth]="true" [class.text-primary]="!(allMembersIsAffected(membersForList.trashed) || isVisibleItems(membersForList.trashed))" [icon]="allMembersIsAffected(membersForList.trashed) || isVisibleItems(membersForList.trashed) ? PlanoFaIconPool.VISIBLE : PlanoFaIconPool.INVISIBLE"></fa-icon></button>
+							</list-headline>
+
+							<ng-container *ngIf="!isCollapsed('trashed')">
+								<ng-template
+									ngFor let-member
+									[ngForOf]="membersForList.trashed.iterableSortedBy(sortByFns)"
+								>
+									<ng-template [ngIf]="!member.id.equals(me.data.id)">
+										<ng-container *ngTemplateOutlet="memberListItemTemplate; context: {$implicit: member}"></ng-container>
+									</ng-template>
+								</ng-template>
+
+							</ng-container>
+						</ng-template>
+
+
+						<ng-template #everyItemFilteredTemplate>
+							<ng-template
+								[ngTemplateOutlet]="everythingFilteredTemplate"
+								[ngTemplateOutletContext]="{$implicit: members}"
+							></ng-template>
+						</ng-template>
+					</div>
+				</div>
+				<ng-template [ngIf]="showSomeItemsFilteredHint">
+					<p-alert
+						class="mt-2"
+						[theme]="PThemeEnum.SECONDARY"
+						[dismissable]="false"
+					>
+						<div class="mb-2" i18n>Übrigens… {{filterService.hiddenItemsCount(searchedMembers)}} {filterService.hiddenItemsCount(searchedMembers), plural, =1 {weiteres Suchergebnis ist} other {weitere Suchergebnisse sind}} durch deine Filter-Einstellung nicht sichtbar.</div>
+						<p-button [attributeInfo]="null"
+							(triggerClick)="editFilterModeActive=!editFilterModeActive"
+							[theme]="PThemeEnum.PRIMARY"
+							[darkMode]="true"
+							i18n
+						>Filter anzeigen</p-button>
+					</p-alert>
+				</ng-template>
+			</div>
+		</scroll-shadow-box>
+	</div>
+</div>
+
+<ng-template #everythingFilteredTemplate let-items>
+	<p-alert
+		class="mt-2"
+		[theme]="PThemeEnum.SECONDARY"
+		[dismissable]="false"
+	>
+		<div class="mb-2">
+			<span i18n>Aktuell sind alle {{filterService.hiddenItemsCount(items)}} Elemente mit Hilfe der Filter-Funktion ausgeblendet.</span>
+		</div>
+		<p-button [attributeInfo]="null"
+			(triggerClick)="editFilterModeActive=!editFilterModeActive"
+			[theme]="PThemeEnum.PRIMARY"
+			[darkMode]="true"
+			i18n
+		>Filter anzeigen</p-button>
+	</p-alert>
+</ng-template>
+<ng-template #spinnerTemplate>
+	<div class="card m-0">
+		<p-spinner [size]="BootstrapSize.LG" class="m-3"></p-spinner>
+	</div>
+</ng-template>
+
+<ng-template #memberListItemTemplate let-member>
+	<p-member-list-item
+		*ngIf="showThisMemberInList(member)"
+		class="mb-1"
+		[member]="member"
+		(onItemClick)="highlightService.isHighlighted($event) ? pWishesService.item = null : pWishesService.item = $event;highlightService.isHighlighted($event) ? highlightService.setHighlighted(null) : highlightService.setHighlighted($event)"
+		(onSelectInCalendarClick)="onSelectRelatedShifts.emit(member)"
+		[showExpectedEarnings]="true"
+		[editFilterModeActive]="!!editFilterModeActive"
+		[editListItemsMode]="!!editListItemsMode"
+		[hideMultiSelectBtn]="hideMultiSelectBtn"
+	></p-member-list-item>
+</ng-template>

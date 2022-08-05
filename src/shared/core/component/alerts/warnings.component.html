@@ -1,0 +1,6 @@
+<p-alert
+	class="m-0"
+	[class.rounded-bottom-only]="hasClassRoundedBottom"
+	*ngFor="let warning of warnings.iterableSortedBy('severity', true)"
+	[theme]="warning.theme"
+><span [innerHTML]="warning.text | pSafeHtml"></span></p-alert>

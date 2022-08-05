@@ -1,0 +1,77 @@
+<p-shifts-info
+	class="flex-grow-1 border rounded shadow-sm align-items-stretch o-hidden"
+	style="z-index: 1;"
+	[shiftId]="shiftId"
+	[shiftRefs]="shiftRefs"
+	[showDate]="true"
+	[showTime]="!isPaket ? true : !(shiftRefs!.length > 1)"
+	[selected]="selectedOffer"
+	[affected]="affectedOffer"
+	(click)="!!showOnSelectButton ? onSelect(offer!) : undefined"
+>
+	<p-shift-info-content-left *ngIf="showOnSelectButton" class="d-flex flex-column align-items-stretch">
+		<p-checkbox
+			class="border-right bg-white flex-grow-1"
+			[hasButtonStyle]="false"
+			[ngModel]="selectedOffer"
+		></p-checkbox>
+	</p-shift-info-content-left>
+	<p-shift-info-content-right class="align-items-stretch">
+		<div
+			*ngIf="showAddToOfferButton"
+			class="d-flex"
+			[popover]="addToOfferBtnDisabledLabel!"
+			placement="bottom"
+		>
+			<p-button [attributeInfo]="null"
+				title="Dem Bündel hinzufügen" i18n-title
+				[size]="BootstrapSize.LG"
+				class="border-left"
+				[rounded]="BootstrapRounded.NONE"
+				btnClasses="border-0"
+				[theme]="!addToOfferBtnDisabled ? PThemeEnum.PRIMARY : PThemeEnum.LIGHT"
+				(triggerClick)="addToOffer(shiftRefs)"
+				[disabled]="addToOfferBtnDisabled"
+			><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon></p-button>
+		</div>
+		<div hidden><span i18n #translatedTitle>{!!shiftRefs && shiftRefs.length === 1, select, true {Die Schicht entfernen} other {Das Bündel entfernen}}</span></div>
+		<p-button [attributeInfo]="null"
+			*ngIf="showOnRemoveOfferButton"
+			[title]="translatedTitle.textContent!"
+			[size]="BootstrapSize.LG"
+			class="border-left"
+			[rounded]="BootstrapRounded.NONE"
+			btnClasses="border-0"
+			[theme]="PThemeEnum.LIGHT"
+			(triggerClick)="onRemoveOffer.emit(offer!)"
+		><fa-icon class="text-danger" [fixedWidth]="true" icon="trash"></fa-icon></p-button>
+	</p-shift-info-content-right>
+</p-shifts-info>
+<ng-template [ngIf]="shiftRefs && shiftRefs.length > 1">
+	<ng-template
+		ngFor let-shiftRef
+		[ngForOf]="$any(shiftRefs).iterable()"
+		let-i="index"
+	>
+		<p-shifts-info
+			class="flex-grow-1 border border-top-0 ml-2 mr-2 bg-white shadow-sm"
+			[class.rounded-bottom]="i === shiftRefs.length - 1"
+			[class.rounded-0]="i !== shiftRefs.length - 1"
+			[shiftId]="shiftRef.id"
+			[oneLine]="true"
+		>
+			<p-shift-info-content-right class="align-items-stretch"
+				*ngIf="showOnRemoveFromOfferButton"
+			>
+				<p-button [attributeInfo]="null"
+					title="Aus dem Bündel entfernen" i18n-title
+					class="border-left"
+					[rounded]="BootstrapRounded.NONE"
+					btnClasses="border-0"
+					[theme]="PThemeEnum.LIGHT"
+					(triggerClick)="onRemoveFromOffer.emit(shiftRef)"
+				><fa-icon class="text-danger" [fixedWidth]="true" icon="trash"></fa-icon></p-button>
+			</p-shift-info-content-right>
+		</p-shifts-info>
+	</ng-template>
+</ng-template>

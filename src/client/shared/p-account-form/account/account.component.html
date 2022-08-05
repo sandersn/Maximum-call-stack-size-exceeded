@@ -1,0 +1,34 @@
+<p-section [whitespace]="SectionWhitespace.LG">
+	<p-form-group class="mb-5"	label="Kundennummer" i18n-label>
+		<p-input
+			[ngModel]="api.data.attributeInfoCustomerId.value"
+			placeholder="0000"
+			[readMode]="api.data.attributeInfoCustomerId.readMode"
+			[useSeparatorForThousands]="false"
+		></p-input>
+	</p-form-group>
+
+	<ng-template [ngIf]="!turnIntoRealAccountForm">
+		<h4 i18n>Abrechnungszeitraum in deinem Betrieb</h4>
+		<p-form-group
+			label="In deinem Betrieb beginnt der Abrechnungsmonat für die Lohnabrechnung am folgenden Monatstag" i18n-label
+			[control]="formGroup.controls['accountingPeriodStartDay']!"
+		>
+			<p-input
+				[type]="PApiPrimitiveTypes.number"
+				[pEditable]="!turnIntoRealAccountForm"
+				[api]="api"
+
+				[formControl]="formGroup.controls['accountingPeriodStartDay']!"
+			>
+				<p-input-append>
+					<span class="input-group-text" i18n="ggf. endung von Abrechungszeitraum">ter</span>
+				</p-input-append>
+			</p-input>
+			<div>
+				<p class="m-0" i18n>Der Abrechnungszeitraum beginnt am <code>{!!api.data.accountingPeriodStartDay, select, true {{{api.data.accountingPeriodStartDay}}.} other {?}}</code> jedes Monats und endet am <code>{api.data.accountingPeriodStartDay, plural, zero {?} one {letzten Tag} other {{{(api.data.accountingPeriodStartDay - 1)}}.}}</code> des {api.data.accountingPeriodStartDay === 1, select, true {Monats} other {Folgemonats}}.</p>
+			</div>
+		</p-form-group>
+
+	</ng-template>
+</p-section>

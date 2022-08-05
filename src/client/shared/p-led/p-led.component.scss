@@ -1,0 +1,91 @@
+@import "variables";
+
+.led-wrap {
+	border: $border-width solid #000;
+
+	height: 12px;
+	width: 12px;
+	border-radius: 100%;
+	overflow: hidden;
+
+	.led {
+		height: 100%;
+		width: 100%;
+		border-radius: 100%;
+
+		background: #777;
+		/* stylelint-disable-next-line plugin/stylelint-no-indistinguishable-colors */
+		background-image: radial-gradient(circle at 50% 66%, rgba(255, 255, 255, 0.25) 0%, rgba(0, 0, 0, 0.1) 100%);
+		/* stylelint-disable-next-line plugin/stylelint-no-indistinguishable-colors */
+		border: $border-width solid rgba(0, 0, 0, 0.54);
+	}
+
+	&.led-is-on.led-theme-success {
+		box-shadow: 0 0 10px 0 $success;
+	}
+
+	&.led-is-on.led-theme-primary {
+		box-shadow: 0 0 10px 0 $primary;
+	}
+
+	&.led-is-on.led-theme-warning {
+		box-shadow: 0 0 10px 0 $warning;
+	}
+
+	&.led-is-on.led-theme-danger {
+		box-shadow: 0 0 10px 0 $danger;
+	}
+
+	&.led-is-on .led {
+		/* stylelint-disable-next-line plugin/stylelint-no-indistinguishable-colors */
+		background-image: radial-gradient(circle at 50% 66%, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.22) 100%);
+	}
+
+	&.led-is-on.led-theme-success .led {
+		// background-color: theme-color-level("success", -5);
+		background-color: #7fde7f;
+	}
+
+	&.led-is-on.led-theme-primary .led {
+		// background-color: theme-color-level("primary", -3);
+		background-color: #ff901a;
+	}
+
+	&.led-is-on.led-theme-warning .led {
+		// background-color: theme-color-level("warning", -3);
+		background-color: #ffc107;
+	}
+
+	&.led-is-on.led-theme-danger .led {
+		// background-color: theme-color-level("danger", -3);
+		background-color: #d12733;
+	}
+}
+
+:host {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+	padding: 4px;
+
+	&.large {
+		/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+		padding: 6px;
+
+		.led-wrap {
+			height: 16px;
+			width: 16px;
+		}
+	}
+
+	&.small {
+		/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+		padding: 2px;
+
+		.led-wrap {
+			height: 10px;
+			width: 10px;
+		}
+	}
+}

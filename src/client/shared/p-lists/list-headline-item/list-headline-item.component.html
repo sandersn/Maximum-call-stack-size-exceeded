@@ -1,0 +1,9 @@
+<ng-template [ngIf]="!!labelIcon"><fa-icon
+  [fixedWidth]="true"
+  [icon]="labelIcon"
+></fa-icon>&nbsp;</ng-template><ng-container *ngIf="!!label">{{ label }}</ng-container><ng-container *ngIf="!label"><ng-content></ng-content></ng-container><ng-template [ngIf]="isClickable">&nbsp;<fa-icon
+  [class.text-primary]="sortDirection !== ListSortDirection.INACTIVE"
+  [class.text-muted]="sortDirection === ListSortDirection.INACTIVE"
+  [fixedWidth]="true"
+  [icon]="sortDirection === ListSortDirection.UP ? 'caret-up' : 'caret-down'"
+></fa-icon></ng-template>

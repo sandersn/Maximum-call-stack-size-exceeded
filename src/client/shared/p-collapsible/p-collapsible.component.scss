@@ -1,0 +1,22 @@
+@import "variables";
+
+:host {
+	&.collapsed {
+		// border-width: 0;
+
+		.card-header {
+			// border-radius: $border-radius;
+		}
+	}
+}
+
+.card-header.clickable:hover {
+	background: theme-color-level("secondary", 2);
+}
+
+button {
+	text-transform: none;
+	letter-spacing: normal;
+	word-spacing: normal;
+	text-align: left;
+}

@@ -1,0 +1,22 @@
+<p-form-group
+	*ngIf="show"
+	[isLoading]="isLoading"
+	[label]="label"
+	[description]="description"
+	[descriptionHTML]="descriptionHTML"
+	[readMode]="true"
+>
+	<div class="mb-0 mb-md-3 {{contentThemeClass}} {{cardClasses}} {{monospaceClass}} {{isLoading ? 'text-loading' : ''}}">
+		<fa-icon *ngIf="!!icon" [icon]="icon" class="pr-2"></fa-icon>
+		<a
+			*ngIf="!!link; else noLinkTemplate"
+			[href]="link"
+		><span [innerHTML]="content"></span></a>
+		<ng-template #noLinkTemplate>
+			<span [innerHTML]="content! | pSafeHtml"></span>
+		</ng-template>
+		<span class="form-text small d-inline ml-2">
+			<span [innerHTML]="appendContent"></span>
+		</span>
+	</div>
+</p-form-group>

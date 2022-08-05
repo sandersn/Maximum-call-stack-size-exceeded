@@ -1,0 +1,108 @@
+<ng-template
+	[ngIf]="!pEditable"
+	[ngIfElse]="showEditableFormComponent"
+>
+	<ng-container *ngTemplateOutlet="radioBtnWithoutEditable"></ng-container>
+</ng-template>
+<ng-template #showEditableFormComponent>
+	<div
+		[pEditable]="true"
+		[api]="api"
+		[valid]="valid"
+		[saveChangesHook]="saveChangesHook"
+		(onSaveSuccess)="onSaveSuccess.emit()"
+		(onDismiss)="onDismiss.emit()"
+		(onLeaveCurrent)="onLeaveCurrent.emit()"
+	>
+		<ng-container *ngTemplateOutlet="radioBtnWithEditable"></ng-container>
+	</div>
+</ng-template>
+
+<ng-template #radioBtnWithoutEditable>
+	<ng-template
+		[ngIf]="card"
+		[ngIfElse]="noCard"
+	>
+		<button
+			ngbAutofocus
+			type="button"
+			(mouseenter)="hover=true"
+			(mouseleave)="hover=false"
+			class="mb-0 w-100 card flex-row clickable bg-light"
+			[class.required]="required"
+			[class.disabled]="disabled"
+			[disabled]="disabled"
+
+			[class.btn]="btn"
+			(click)="disabled ? undefined : checkedChange.emit($event)"
+		>
+			<ng-container *ngTemplateOutlet="inner"></ng-container>
+		</button>
+	</ng-template>
+	<ng-template #noCard>
+		<button
+			ngbAutofocus
+			type="button"
+			(mouseenter)="hover=true"
+			(mouseleave)="hover=false"
+			class="mb-0 btn btn-frameless p-0 bg-transparent"
+			(click)="disabled ? undefined : checkedChange.emit($event)"
+			[class.required]="required"
+			[disabled]="disabled"
+		>
+			<ng-container *ngTemplateOutlet="inner"></ng-container>
+		</button>
+	</ng-template>
+</ng-template>
+
+<ng-template #radioBtnWithEditable>
+	<ng-template
+		[ngIf]="card"
+		[ngIfElse]="noCard"
+	>
+		<button
+			ngbAutofocus
+			type="button"
+			(mouseenter)="hover=true"
+			(mouseleave)="hover=false"
+			class="mb-0 w-100 card flex-row clickable align-items-stretch bg-light"
+			pEditableInstantSaveButton
+			(triggerClick)="disabled ? undefined : checkedChange.emit($event)"
+
+			[class.required]="required"
+			[class.disabled]="disabled"
+			[class.btn]="btn"
+			[disabled]="disabled"
+		>
+			<ng-container *ngTemplateOutlet="inner"></ng-container>
+		</button>
+	</ng-template>
+	<ng-template #noCard>
+		<button
+			ngbAutofocus
+			type="button"
+			(mouseenter)="hover=true"
+			(mouseleave)="hover=false"
+			pEditableInstantSaveButton
+			(triggerClick)="disabled ? undefined : checkedChange.emit($event)"
+
+			class="mb-0 btn btn-frameless p-0 bg-transparent"
+			[class.required]="required"
+			[disabled]="disabled"
+		>
+			<ng-container *ngTemplateOutlet="inner"></ng-container>
+		</button>
+	</ng-template>
+</ng-template>
+
+<ng-template #inner>
+	<div class="flex-grow-1 d-flex align-items-center">
+		<fa-icon
+			*ngIf="radioIcon"
+			[fixedWidth]="true" [icon]="radioIcon"
+			[class.text-primary]="checked"
+			[class.text-muted]="(hover && !disabled) && !checked"
+		></fa-icon>
+		<div class="flex-grow-1 pl-2 pr-2 m-0 w-100 text-left"><ng-content></ng-content></div>
+	</div>
+</ng-template>

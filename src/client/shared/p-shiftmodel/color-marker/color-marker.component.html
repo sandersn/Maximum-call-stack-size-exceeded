@@ -1,0 +1,45 @@
+<ng-template [ngIf]="!!items && !!items.length" [ngIfElse]="showSingleItem">
+	<ng-container *ngIf="hasDots(null)">
+		<ng-template
+			[ngTemplateOutlet]="singleItemTemplate"
+			[ngTemplateOutletContext]="{$implicit : null}"
+		></ng-template>
+	</ng-container>
+	<ng-container *ngIf="!hasDots(null)">
+		<ng-template
+			ngFor let-item
+			[ngForOf]="items.iterable()"
+		>
+			<ng-template
+				[ngTemplateOutlet]="singleItemTemplate"
+				[ngTemplateOutletContext]="{$implicit : item}"
+			></ng-template>
+		</ng-template>
+
+	</ng-container>
+</ng-template>
+
+<ng-template #showSingleItem>
+	<ng-template
+		[ngTemplateOutlet]="singleItemTemplate"
+		[ngTemplateOutletContext]="{$implicit : item}"
+	></ng-template>
+</ng-template>
+
+<ng-template #singleItemTemplate let-singleItem>
+	<span
+		*ngIf="hexColor(singleItem)"
+		class="color-marker"
+		[class.rounded-left]="rounded===BootstrapRounded.LEFT"
+		[class.rounded-right]="rounded===BootstrapRounded.RIGHT"
+		[class.rounded-0]="rounded===BootstrapRounded.NONE"
+		[class.rounded-top-left]="rounded==='top-left'"
+		[style.background-color]="backgroundColor(singleItem)"
+		[title]="title(singleItem)"
+	>
+		<img
+			[style.opacity]="!!hasDots(singleItem) ? '1' : '0'"
+			src="images/icons/packet-icon-all-white.svg" alt="Schicht-Paket" i18n-alt
+		>
+	</span>
+</ng-template>

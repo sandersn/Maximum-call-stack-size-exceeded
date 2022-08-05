@@ -1,0 +1,122 @@
+<ng-template [ngIf]="readMode && valueItem" [ngIfElse]="inputTemplate">
+	<div class="input-group disabled">
+		<div class="input-group-prepend">
+			<span class="input-group-text"><fa-icon [fixedWidth]="true" [icon]="icon"></fa-icon></span>
+		</div>
+		<div class="form-control-read-mode">
+			<ng-template
+				[ngTemplateOutlet]="itemTemplate ? itemTemplate : itemTemplateDefault"
+				[ngTemplateOutletContext]="{ result: valueItem }"
+			></ng-template>
+		</div>
+	</div>
+</ng-template>
+<ng-template #inputTemplate>
+	<div
+		[class.required]="required"
+
+		class="input-group position-relative"
+		[class.disabled]="readMode || disabled || allItems"
+
+		[pEditable]="pEditable"
+		[api]="api"
+		[valid]="isValid"
+		[saveChangesHook]="saveChangesHook"
+		(onSaveStart)="onSaveStart.emit($event)"
+		(onSaveSuccess)="onSaveSuccess.emit($event)"
+		(onDismiss)="onDismiss.emit($event)"
+		(onLeaveCurrent)="onLeaveCurrent.emit($event)"
+		(editMode)="changeEditMode($event)"
+	>
+		<div class="input-group-prepend"
+			(click)="setFocus(pEditableTriggerFocussableRef)"
+		>
+			<span class="input-group-text"><fa-icon [fixedWidth]="true" [icon]="icon"></fa-icon></span>
+		</div>
+		<div class="position-relative flex-grow-1 align-items-stretch form-control p-0 d-flex">
+			<ng-template
+				[ngTemplateOutlet]="itemColorMarkerTemplate"
+				[ngTemplateOutletContext]="{ $implicit : valueItem }"
+			></ng-template>
+			<input
+				pEditableTriggerFocussable
+				#pEditableTriggerFocussableRef
+
+				[type]="'search'"
+				autocomplete="off"
+				[readonly]="readMode"
+
+				class="form-control w-100 pl-3"
+				[class.rounded-right]="inputHasClassRoundedRight"
+				[(ngModel)]="valueItem"
+				[placeholder]="placeholder"
+				(focusout)="focusout.emit($event)"
+				(focus)="onFocus($event)"
+				(change)="onChange($event)"
+				(keyup)="onKeyUp($event)"
+				(blur)="onBlur()"
+				[disabled]="readMode || disabled"
+				[required]="required"
+				[class.required]="required"
+
+				[ngbTypeahead]="search"
+				#instance="ngbTypeahead"
+				placement="bottom-left"
+				[resultTemplate]="itemTemplate ? itemTemplate : itemTemplateDefault"
+				[inputFormatter]="formatter"
+				[editable]="true"
+				(selectItem)="typeaheadOnSelect($event, pEditableTriggerFocussableRef)"
+
+				(click)="onClick($event)"
+			/>
+		</div>
+		<div class="input-group-append"
+			pVisibleInEditMode
+		>
+			<button
+				type="reset"
+				class="btn btn-outline-secondary"
+				pEditableDismissButton
+			><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.UNDO"></fa-icon></button>
+			<button
+				type="submit"
+				class="btn btn-outline-secondary"
+				pEditableSuccessButton
+			><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.SUCCESS"></fa-icon></button>
+		</div>
+		<ng-container *ngTemplateOutlet="appendItem"></ng-container>
+	</div>
+</ng-template>
+
+<ng-template #itemTemplateDefault let-item="result" let-t="term">
+	<div class="position-relative pl-3 pr-3 pt-1 pb-1 d-flex"><ng-template
+		[ngTemplateOutlet]="itemColorMarkerTemplate"
+		[ngTemplateOutletContext]="{ $implicit : item }"
+	></ng-template> <div class="flex-grow-1 d-flex align-items-center justify-content-between flex-wrap-reverse wrap">
+		<div class="mr-2">{{item.name}}</div>
+		<div class="ml-auto form-text small">{{item.parentName}}</div>
+	</div></div>
+</ng-template>
+
+<ng-template #itemColorMarkerTemplate let-item>
+	<p-color-marker
+		[item]="item"
+		[hexColor]="item?.color ? '#' + item.color : null"
+		[isPacket]="item ? item.isPacket : undefined"
+		[title]="item ? item.name : undefined"
+	></p-color-marker>
+</ng-template>
+
+<ng-template [ngIf]="!!formControl">
+	<p-validation-hint
+		[control]="formControl"
+		[checkTouched]="!!checkTouched"
+	></p-validation-hint>
+</ng-template>
+
+<ng-template #prependItem>
+	<ng-content select="p-input-prepend"></ng-content>
+</ng-template>
+<ng-template #appendItem>
+	<ng-content select="p-input-append"></ng-content>
+</ng-template>

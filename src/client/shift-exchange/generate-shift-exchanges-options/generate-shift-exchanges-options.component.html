@@ -1,0 +1,80 @@
+<p-section *ngIf="formGroup" class="mt-3" label="Ersatzsuche" i18n-label [whitespace]="SectionWhitespace.NONE">
+	<p-form-group
+		label="Wie möchtest du diese {{shiftExchange.shiftRefs.length}} Schichten deinen Mitarbeitenden anbieten?" i18n-label
+		*ngIf="showModeInput"
+	>
+		<p-radios [formControl]="formGroup.controls['mode']!">
+			<p-radios-radio
+				label="Schichten getrennt voneinander" i18n-label
+				[value]="GenerateShiftExchangesMode.ONE_SHIFT_EXCHANGE_FOR_EACH"
+				class="mb-2"
+			></p-radios-radio>
+			<p-radios-radio
+				*ngIf="shiftRefsHasMultipleShiftsOfSamePacket"
+				label="Jedes Schicht-Paket einzeln" i18n-label
+				[value]="GenerateShiftExchangesMode.ONE_SHIFT_EXCHANGE_FOR_EACH_PACKAGE"
+				class="mb-2"
+			></p-radios-radio>
+			<p-radios-radio
+				label="Alle Schichten gebündelt" i18n-label
+				[value]="null"
+				class="mb-2"
+			></p-radios-radio>
+		</p-radios>
+
+		<p-alert
+			class="mt-3"
+			*ngIf="value && value.mode === null"
+			[theme]="PThemeEnum.INFO"
+			[dismissable]="false"
+			i18n
+		>Ein gebündeltes Schicht-Angebot muss von einer einzigen Person komplett übernommen werden.</p-alert>
+	</p-form-group>
+
+	<!-- <p-form-group
+		*ngIf="!showModeInput && shiftExchange.isNewItem()"
+	>Hiermit startest du eine Ersatzsuche über die Tauschbörse für die zu {this.shiftExchange && this.shiftExchange.shiftRefs.length > 1, select, true {besetzenden Schichten} other {besetzende Schicht}}.</p-form-group> -->
+
+	<p-form-group
+		label="Frist für die Ersatzsuche" i18n-label
+		[control]="formGroup.controls['deadline']!"
+	>
+		<p-input-date
+			[type]="PInputDateTypes.deadline"
+			[isExclusiveEnd]="true"
+
+			[formControl]="formGroup.controls['deadline']!"
+			[showDaysBeforeInput]="true"
+			[(daysBefore)]="daysBefore"
+
+			[disabled]="deadlineIsDisabled"
+			[min]="now"
+			[max]="deadlineMax!"
+		></p-input-date>
+		<p-alert
+			class="mt-2"
+			*ngIf="value && value.daysBefore !== null"
+			[@slideVertical]
+			[theme]="formGroup.controls['deadline']!.valid ? PThemeEnum.INFO : PThemeEnum.DANGER"
+		>
+			<ng-template [ngIf]="shiftExchange.shiftRefs.length > 1 && value.mode === GenerateShiftExchangesMode.ONE_SHIFT_EXCHANGE_FOR_EACH" [ngIfElse]="singleShiftExchangeTemplate">
+				<span i18n>Sich daraus ergebende Fristen</span>
+				<ul class="m-0">
+					<li *ngFor="let shiftRef of sortedShiftRefs">{{ removeDaysFromTimestamp(api.data.shifts.get(shiftRef.id)!.start, value.daysBefore) - 1 | date:'shortDate' }}</li>
+				</ul>
+			</ng-template>
+			<ng-template #singleShiftExchangeTemplate>
+				<span i18n>Sich daraus ergebende Frist: {{ removeDaysFromTimestamp(api.data.shifts.get(shiftExchange.shiftRefs.get(shiftExchange.shiftRefs.length -  1)!.id)!.start, value.daysBefore) - 1 | date:'shortDate' }}</span>
+			</ng-template>
+		</p-alert>
+	</p-form-group>
+
+	<p-form-group
+		[label]="illnessResponderCommentToMembersLabel"
+		[control]="formGroup.controls['illnessResponderCommentToMembers']!"
+	>
+		<p-textarea
+			[formControl]="formGroup.controls['illnessResponderCommentToMembers']!"
+		></p-textarea>
+	</p-form-group>
+</p-section>

@@ -1,0 +1,51 @@
+<div class="card-deck">
+	<p-interface-card
+		headline="PayPal"
+		subtitle="Zahlungsanbieter" i18n-subtitle
+		description="Online-Zahlungen empfangen – auch per Kreditkarte & Lastschrift." i18n-description
+		img="images/de-pp-logo-200px.png"
+		(click)="onClick.emit(paymentSystems.PAYPAL)"
+		[isActive]="paymentSystem===paymentSystems.PAYPAL"
+		*ngIf="showPaypal"
+	></p-interface-card>
+	<p-interface-card
+		headline="Boulderado"
+		subtitle="Kassensystem" i18n-subtitle
+		description="Kassensystem für Boulder- und Kletterhallen." i18n-description
+		img="images/boulderado.png"
+		(click)="onClick.emit(posSystems.BOULDERADO)"
+		[isActive]="posSystem===posSystems.BOULDERADO"
+	></p-interface-card>
+	<p-interface-card
+		headline="Freeclimber"
+		subtitle="Kassensystem" i18n-subtitle
+		description="Kassensystem für Kletterhallen und Sportstätten." i18n-description
+		img="images/freeclimber.png"
+		(click)="onClick.emit(posSystems.FREECLIMBER)"
+		[isActive]="posSystem===posSystems.FREECLIMBER"
+	></p-interface-card>
+	<p-interface-card
+		headline="BETA7"
+		subtitle="Routendatenbank" i18n-subtitle
+		description="App zum Verwalten & Bewerten von Routen." i18n-description
+		img="images/beta7.png"
+		(click)="onClick.emit(routeDatabases.BETA7)"
+		[isActive]="isUsingBeta7"
+	></p-interface-card>
+	<p-interface-card
+		headline="ROUTES-MANAGER"
+		subtitle="Routendatenbank" i18n-subtitle
+		description="App zum Verwalten & Bewerten von Routen." i18n-description
+		img="images/routes-manager.png"
+		(click)="onClick.emit(routeDatabases.ROUTES_MANAGER)"
+		[isActive]="isUsingRoutesManager"
+	></p-interface-card>
+	<p-interface-card
+		headline="KLETTERSZENE"
+		subtitle="Kletterhallen Datenbank" i18n-subtitle
+		description="Webseite mit Kletterhallen" i18n-description
+		img="images/kletterszene.png"
+		(click)="onClick.emit(gymDatabases.KLETTERSZENE)"
+		[isActive]="isUsingKletterszene"
+	></p-interface-card>
+</div>

@@ -1,0 +1,36 @@
+<p-all-day-items-list
+	[startOfDay]="weekday"
+	[readMode]="readMode"
+	[absences]="absences"
+	[holidays]="holidays"
+	[birthdays]="birthdays"
+></p-all-day-items-list>
+
+<ng-template [ngIf]="!!shifts && !shifts.length && !absences.length">
+	<div class="p-2 text-center">
+		<ng-template [ngIf]="isLoading" [ngIfElse]="noItems">
+			<p-spinner [size]="BootstrapSize.LG" style="opacity: 0.3;"></p-spinner>
+		</ng-template>
+		<ng-template #noItems>
+			<div><small style="opacity: 0.3;">×</small></div>
+		</ng-template>
+	</div>
+</ng-template>
+
+
+<div class="shifts">
+	<ng-template
+		ngFor let-shift
+		[ngForOf]="shifts.iterable()"
+	>
+		<p-now-line
+			*ngIf="showNowLine(shift)"
+			class="d-block mx-1"
+			style="opacity: 0"
+		></p-now-line>
+		<ng-container
+			[ngTemplateOutlet]="shiftTemplate"
+			[ngTemplateOutletContext]="{$implicit: shift}"
+		></ng-container>
+	</ng-template>
+</div>

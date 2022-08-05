@@ -1,0 +1,90 @@
+<div class="bg-light rounded p-4 o-hidden">
+<div class="row justify-content-stretch align-items-stretch p-3">
+	<div class="col-12 col-lg-6 d-flex justify-content-center align-items-center">
+		<div class="p-5">
+			<p-button [attributeInfo]="null"
+				*ngIf="!value; else hasValueTemplate"
+				[disabled]="disabled"
+				[theme]="PThemeEnum.DARK"
+				(triggerClick)="fileInput.click()"
+			><fa-icon [icon]="PlanoFaIconPool.UPLOAD"></fa-icon>&nbsp;<ng-container i18n>Bild auswählen</ng-container></p-button>
+
+			<ng-template #hasValueTemplate>
+				<p-button [attributeInfo]="null"
+					class="mb-2"
+					[disabled]="disabled"
+					[theme]="PBtnThemeEnum.OUTLINE_SECONDARY"
+					(triggerClick)="fileInput.click()"
+				><fa-icon [icon]="PlanoFaIconPool.UPLOAD"></fa-icon>&nbsp;<ng-container i18n>Neues Bild</ng-container></p-button>
+				<p-button [attributeInfo]="null"
+					class="mb-2"
+					[disabled]="disabled"
+					[theme]="PBtnThemeEnum.OUTLINE_DANGER"
+					(triggerClick)="removeImage()"
+				><fa-icon [icon]="PlanoFaIconPool.DELETE"></fa-icon>&nbsp;<ng-container i18n>Bild Löschen</ng-container></p-button>
+			</ng-template>
+
+			<div class="form-text">
+				<ng-container i18n>Unterstützte Formate: <strong>JPG</strong> & <strong>PNG</strong></ng-container>
+				<ng-template [ngIf]="!!minWidth && !!minHeight">
+					<br><ng-container i18n>Breite min. <strong>{{minWidth}}</strong>px, Höhe min. <strong>{{minHeight}}</strong>px</ng-container>
+				</ng-template>
+			</div>
+		</div>
+	</div>
+	<div [style.opacity]="disabled ? '0.6' : '1'" class="col-12 col-lg-6 d-flex justify-content-center align-items-center">
+		<ng-template [ngIf]="showPreview">
+			<ng-template
+				[ngTemplateOutlet]="previewTemplate ? previewTemplate : defaultPreviewTemplate"
+				[ngTemplateOutletContext]="{
+					$implicit: value,
+					aspectRatio: imageRatio,
+					minWidth: minWidth,
+					minHeight: minHeight
+				}"
+			></ng-template>
+		</ng-template>
+	</div>
+</div>
+</div>
+
+<ng-template #defaultPreviewTemplate let-imageSrc>
+	<img *ngIf="!!value" [src]="imageSrc" alt="Vorschau des hochgeladenen Bildes" i18n-alt>
+	<fa-icon
+		*ngIf="!value"
+		class="deco-icon mx-auto d-block text-center"
+		[class.text-primary]="true"
+		[style.opacity]="disabled ? '0.6' : '1'"
+		[icon]="PlanoFaIconPool.IMAGE_UPLOAD"
+	></fa-icon>
+</ng-template>
+
+<ng-template #modalContent let-c="close" let-d="dismiss">
+	<p-modal-content
+		*ngIf="!!formControl"
+		modalTitle="Bild-Upload" i18n-modalTitle
+		(onDismiss)="d('Cross click')"
+		(onClose)="c(cropperRef);"
+		closeBtnLabel="Hochladen" i18n-closeBtnLabel
+		[closeBtnTheme]="PThemeEnum.SUCCESS"
+		dismissBtnLabel="Abbrechen" i18n-dismissBtnLabel
+		[closeBtnDisabled]="closeBtnDisabled(cropperRef)"
+	>
+		<p-modal-content-body>
+			<p-input-image-cropper #cropperRef
+				[control]="formControl"
+				(croppedImageChange)="value=$event"
+				[imageChangedEvent]="imageChangedEvent"
+				[imageFile]="imageAsBlob"
+			></p-input-image-cropper>
+		</p-modal-content-body>
+	</p-modal-content>
+</ng-template>
+
+<input
+	class="d-none"
+	type="file" (change)="fileChangeEvent($event, modalContent)"
+	accept="image/png, image/jpeg"
+	[formGroup]="$any(formControl)"
+	#fileInput
+>

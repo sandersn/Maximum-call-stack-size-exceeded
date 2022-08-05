@@ -1,0 +1,111 @@
+<div
+	[pEditable]="pEditable"
+	[api]="api"
+	[valid]="isValid"
+	[saveChangesHook]="saveChangesHook"
+	(onSaveStart)="onSaveStart.emit($event)"
+	(onSaveSuccess)="onSaveSuccess.emit($event)"
+	(onDismiss)="onDismiss.emit($event)"
+	(onLeaveCurrent)="onLeaveCurrent.emit($event)"
+	(editMode)="editMode.emit($event)"
+
+	(pointerenter)="hover=true"
+	(pointerleave)="hover=false"
+>
+	<ng-template
+		[ngIf]="!pEditable"
+		[ngIfElse]="showEditableFormComponent"
+	>
+		<ng-container *ngTemplateOutlet="checkboxWithoutEditable"></ng-container>
+	</ng-template>
+	<ng-template #showEditableFormComponent>
+		<ng-container *ngTemplateOutlet="checkboxWithEditable"></ng-container>
+	</ng-template>
+</div>
+
+<ng-template #checkboxWithoutEditable>
+	<ng-template
+		[ngIf]="card"
+		[ngIfElse]="noCard"
+	>
+		<button
+			type="button"
+			(click)="disabled ? undefined : checkedChange.emit(!checked)"
+			[disabled]="disabled"
+
+			ngbAutofocus
+
+			class="mb-0 w-100 card clickable flex-row bg-light"
+			[class.disabled]="disabled"
+			[class.btn]="btn"
+			[class.required]="required"
+		>
+			<ng-container *ngTemplateOutlet="inner"></ng-container>
+		</button>
+	</ng-template>
+	<ng-template #noCard>
+		<button
+			type="button"
+			(click)="disabled ? undefined : checkedChange.emit(!checked)"
+			[disabled]="disabled"
+
+			ngbAutofocus
+
+			class="mb-0 btn btn-frameless p-0 bg-transparent"
+		>
+			<ng-container *ngTemplateOutlet="inner"></ng-container>
+		</button>
+	</ng-template>
+</ng-template>
+
+<ng-template #checkboxWithEditable>
+	<ng-template
+		[ngIf]="card"
+		[ngIfElse]="noCard"
+	>
+		<button
+			type="button"
+			[disabled]="disabled"
+
+			ngbAutofocus
+
+			pEditableInstantSaveButton
+			(triggerClick)="disabled ? undefined : checkedChange.emit(!checked)"
+
+			class="mb-0 w-100 card clickable flex-row bg-light"
+			[class.disabled]="disabled"
+			[class.btn]="btn"
+			[class.required]="required"
+		>
+			<ng-container *ngTemplateOutlet="inner"></ng-container>
+		</button>
+	</ng-template>
+	<ng-template #noCard>
+		<button
+			type="button"
+			[disabled]="disabled"
+
+			ngbAutofocus
+
+			pEditableInstantSaveButton
+			(triggerClick)="disabled ? undefined : checkedChange.emit(!checked)"
+
+			class="mb-0 btn btn-frameless p-0 bg-transparent"
+			[class.required]="required"
+		>
+			<ng-container *ngTemplateOutlet="inner"></ng-container>
+		</button>
+	</ng-template>
+</ng-template>
+
+
+<ng-template #inner>
+	<div class="d-flex align-items-center text-left">
+		<fa-icon
+			[fixedWidth]="true" [icon]="checked ? PlanoFaIconPool.CHECKBOX_SELECTED : PlanoFaIconPool.CHECKBOX_UNSELECTED"
+			[class.text-primary]="checked"
+			[class.text-muted]="(hover && !disabled) && !checked"
+		></fa-icon>
+		<span class="pl-2 pr-2 m-0"><ng-content></ng-content></span>
+	</div>
+</ng-template>

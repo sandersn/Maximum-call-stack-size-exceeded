@@ -1,0 +1,17 @@
+@import "variables";
+
+.capture-request-hint {
+	user-select: none;
+}
+
+.unlock-section {
+	padding-top: map-get($spacers, 4) !important;
+}
+
+.unlock {
+	color: $danger;
+}
+
+p-section {
+	padding-top: 0 !important;
+}

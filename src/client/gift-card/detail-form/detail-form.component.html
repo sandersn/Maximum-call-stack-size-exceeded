@@ -1,0 +1,177 @@
+<ng-template [ngIf]="!!item">
+	<div class="mt-3 mb-4">
+		<h2 class="m-0" i18n>Gutschein {item.isNewItem(), select, true {anlegen} other {bearbeiten}}</h2>
+	</div>
+	<ng-template [ngIf]="api.isLoaded() && !!formGroup">
+		<form [formGroup]="$any(formGroup)" class="row">
+			<div class="col-12 col-md-6">
+				<p-form-group label="Gutschein-Code" i18n-label class="mt-4 mb-5">
+					<p-input
+						[formControl]="formGroup.controls['code']!"
+						[readMode]="true"
+					>
+						<p-input-append>
+							<button type="button"
+								class="input-group-btn btn btn-primary"
+								[class.btn-primary]="copiedToClipboard !== item.code"
+								[class.btn-outline-secondary]="copiedToClipboard === item.code"
+								[class.text-success]="copiedToClipboard === item.code"
+								(click)="copyString(item.code)"
+
+								[tooltip]="copyInfo"
+								placement="bottom"
+							><fa-icon [fixedWidth]="true" [icon]="copiedToClipboard === item.code ? 'check' : 'clipboard'"></fa-icon></button>
+						</p-input-append>
+					</p-input>
+					<p-alert
+						class="mt-3"
+						*ngIf="!item.isNewItem() && item.currentValue === 0"
+						[theme]="PThemeEnum.WARNING"
+						[dismissable]="false"
+						i18n
+					>Dieser Gutschein ist vollständig verbraucht.</p-alert>
+					<ng-template #copyInfo>
+						<div class="d-block clickable card m-0 text-left o-hidden"
+						>
+							<div class="p-3">
+								<div i18n>In Zwischenablage kopieren.</div>
+							</div>
+						</div>
+					</ng-template>
+				</p-form-group>
+			</div>
+			<div class="col-12 col-md-6">
+				<p-form-group label="Buchungsnummer" i18n-label class="mt-4 mb-5">
+					<p-input
+						[formControl]="formGroup.controls['bookingNumber']!"
+						[readMode]="true"
+					>
+						<p-input-append>
+							<button type="button"
+								class="input-group-btn btn btn-primary"
+								[class.btn-primary]="copiedToClipboard !== item.bookingNumber"
+								[class.btn-outline-secondary]="copiedToClipboard === item.bookingNumber"
+								[class.text-success]="copiedToClipboard === item.bookingNumber"
+								(click)="copyString(item.bookingNumber)"
+
+								[tooltip]="copyInfo"
+								placement="bottom"
+							><fa-icon [fixedWidth]="true" [icon]="copiedToClipboard === item.bookingNumber ? 'check' : 'clipboard'"></fa-icon></button>
+						</p-input-append>
+					</p-input>
+					<ng-template #copyInfo>
+						<div class="d-block clickable card m-0 text-left o-hidden"
+						>
+							<div class="p-3">
+								<div i18n>In Zwischenablage kopieren.</div>
+							</div>
+						</div>
+					</ng-template>
+				</p-form-group>
+			</div>
+			<div class="col-12 col-md-3">
+				<p-form-group label="Startwert" i18n-label>
+					<p-input
+						[type]="PApiPrimitiveTypes.Currency"
+						[formControl]="formGroup.controls['price']!"
+						[readMode]="true"
+						class="disabled"
+					></p-input>
+				</p-form-group>
+			</div>
+			<div class="col-12 col-md-3">
+				<p-form-group label="Restwert" i18n-label>
+					<p-input
+						[type]="PApiPrimitiveTypes.Currency"
+
+						[pEditable]="!item.isNewItem()"
+						[api]="api"
+						(onDismiss)="initFormGroup()"
+
+						[formControl]="formGroup.controls['currentValue']!"
+					></p-input>
+					<p-validation-hint
+						[control]="formGroup.controls['currentValue']!"
+						text="Der Restwert kann maximal so hoch sein wie der Startwert" i18n-text
+						validationName="max"
+						[checkTouched]="false"
+					></p-validation-hint>
+				</p-form-group>
+			</div>
+			<div class="col-12 col-md-3">
+				<p-form-group label="Gebucht am" i18n-label>
+					<p-input-date
+						[formControl]="formGroup.controls['dateOfBooking']!"
+						[readMode]="true"
+					></p-input-date>
+				</p-form-group>
+			</div>
+			<div class="col-12 col-md-3">
+				<p-form-group label="Gültig bis" i18n-label>
+					<p-input-date
+						[formControl]="formGroup.controls['expirationDate']!"
+						[readMode]="true"
+					></p-input-date>
+				</p-form-group>
+			</div>
+
+			<div class="col-12 col-md-6">
+				<p-form-group label="Vorname" i18n-label>
+					<p-input
+						[pEditable]="!item.isNewItem()"
+						[api]="api"
+						(onDismiss)="initFormGroup()"
+
+						[formControl]="formGroup.controls['firstName']!"
+					></p-input>
+				</p-form-group>
+			</div>
+			<div class="col-12 col-md-6">
+				<p-form-group label="Nachname" i18n-label>
+					<p-input
+						[pEditable]="!item.isNewItem()"
+						[api]="api"
+						(onDismiss)="initFormGroup()"
+
+						[formControl]="formGroup.controls['lastName']!"
+					></p-input>
+				</p-form-group>
+			</div>
+
+			<div class="col-12 col-md-6">
+				<p-form-group label="Für" i18n-label>
+					<p-input
+						[pEditable]="!item.isNewItem()"
+						[api]="api"
+						(onDismiss)="initFormGroup()"
+
+						[formControl]="formGroup.controls['forDescription']!"
+					></p-input>
+				</p-form-group>
+			</div>
+			<div class="col-12 col-md-6">
+				<p-form-group label="Email" i18n-label>
+					<p-input
+						[pEditable]="!item.isNewItem()"
+						[api]="api"
+						(onDismiss)="initFormGroup()"
+
+						[type]="PApiPrimitiveTypes.Email"
+						[formControl]="formGroup.controls['email']!"
+					></p-input>
+				</p-form-group>
+			</div>
+		</form>
+	</ng-template>
+
+	<div
+		*ngIf="item.isNewItem()"
+		class="d-flex justify-content-between"
+	>
+		<button type="button"
+			class="btn btn-lg btn-primary ml-auto"
+			(click)="saveItem()"
+			[disabled]="!formGroup || formGroup.invalid || !formGroup.valid || api.isBackendOperationRunning"
+		><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon> Anlegen</button>
+	</div>
+</ng-template>

@@ -1,0 +1,96 @@
+<div
+	class="o-hidden pl-2 h-100 shift-item-timeline"
+	[class.selectable]="selectable"
+	[style.border-color]="highlightService.isHighlighted(shift) ? '#' + hexColor : ''"
+	[style.background-color]="shift.selected ? '#f3dbc3' : ''"
+
+	[popper]="tooltipRef"
+	[popperShowOnStart]="false"
+	[popperTrigger]="NgxPopperjsTriggers.none"
+	[popperHideOnClickOutside]="false"
+	[popperPlacement]="NgxPopperjsPlacements.AUTOSTART"
+	[popperPositionFixed]="false"
+
+	[class.bg-muted]="!shift.selected && muteItem"
+	[class.muted-item]="!CONFIG.IS_MOBILE ? muteItem : false"
+	[class.is-in-the-past]="!CONFIG.IS_MOBILE && isInThePast && !highlightService.isHighlighted(shift)"
+>
+	<p-color-marker
+		[rounded]="BootstrapRounded.LEFT"
+		[item]="shift"
+		[title]="shift.name"
+		[hexColor]="shift.color ? '#' + shift.color : null"
+		[isPacket]="shift.isPacket"
+	></p-color-marker>
+	<div class="title d-flex">
+		<p-multi-select-checkbox
+			*ngIf="multiSelectIsPossible"
+			class="border-bottom border-right"
+			[class.d-flex]="showMultiSelectCheckbox"
+			[class.d-none]="CONFIG.IS_MOBILE && !showMultiSelectCheckbox"
+			[class.show-on-hover]="!schedulingService.wishPickerMode && !schedulingService.earlyBirdMode && !CONFIG.IS_MOBILE && !shift.selected"
+			[ngModel]="shift.selected"
+			(ngModelChange)="shift.selected=!shift.selected;selectedChange.emit(shift.selected);"
+			[myPref]="shift.myPref"
+			[meIsAssignable]="meIsAssignable"
+			[earlyBirdMode]="schedulingService.earlyBirdMode"
+			[wishPickerMode]="schedulingService.wishPickerMode"
+			[disabled]="!shiftIsSelectable"
+			(onClick)="$event.stopPropagation()"
+		></p-multi-select-checkbox>
+		<p-assign-me-button
+			*ngIf="showAssignMeButton"
+			[shift]="shift"
+		></p-assign-me-button>
+
+		<div
+			*ngIf="highlightService.showWishIcon(shift)"
+			class="pl-2 pr-2 pt-1 pb-1 d-flex align-items-center"
+		>
+			<p-member-wish-icon [shift]="shift"></p-member-wish-icon>
+		</div>
+		<div class="pl-2 pr-2 pt-2 pb-1">
+			<span class="text-monospace">{{ shift.start | date:'veryShortTime' }}</span>
+			<strong class="ml-1">{{ shift.name }}</strong>
+		</div>
+	</div>
+	<p-course-info
+		*ngIf="showCourseInfo"
+		[isCourse]="!!shift.isCourse"
+		[isCourseCanceled]="shift.isCourseCanceled"
+		[currentCourseParticipantCount]="shift.currentCourseParticipantCount"
+		[minCourseParticipantCount]="shift.minCourseParticipantCount"
+		[maxCourseParticipantCount]="shift.maxCourseParticipantCount"
+		[courseType]="shift.model ? shift.model.courseType : undefined!"
+		[isCourseOnline]="shift.isCourseOnline"
+		[onlyWholeCourseBookable]="shift.model!.onlyWholeCourseBookable"
+	></p-course-info>
+
+	<div class="card-body pt-1">
+
+		<div class="d-flex align-items-center mb-1">
+			<!-- NOTE: Niedrige prio hier -->
+			<ng-container *ngTemplateOutlet="memberBadgesTemplate"></ng-container>
+			<ng-container *ngTemplateOutlet="processStatusIconTemplate"></ng-container>
+			<ng-container *ngTemplateOutlet="shiftExchangeIconsTemplate"></ng-container>
+			<!-- NOTE: Hohe prio hier -->
+		</div>
+		<div class="shift-comment text-muted" [innerHTML]="textToHtml(shift.description ?? '')"></div>
+	</div>
+</div>
+
+<popper-content #tooltipRef [class.d-none]="!highlightService.isHighlighted(shift)">
+	<!-- Performance: explicitly use *ngIf to reduce dom -->
+	<p-shift-item-tooltip
+		*ngIf="highlightService.isHighlighted(shift)"
+		[readMode]="readMode"
+		[shift]="shift"
+		(onClickEdit)="onClickEdit.emit({shift: $event.shift, event: $event.event, openTab: $event.openTab});"
+		(onClose)="onCloseShiftTooltip($event, tooltipRef)"
+		[showProcessStatusIcon]="showProcessStatusIcon"
+		[quickAssignmentTemplate]="quickAssignmentTemplate"
+		[linkedCourseInfoTemplate]="linkedCourseInfoTemplate"
+		[processInfoTemplate]="null"
+		[illnessShiftExchangesListTemplate]="null"
+	></p-shift-item-tooltip>
+</popper-content>

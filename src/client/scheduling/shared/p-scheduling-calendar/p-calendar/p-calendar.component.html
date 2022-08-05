@@ -1,0 +1,183 @@
+<ng-template [ngIf]="calendarMode !== undefined && !isLoading" [ngIfElse]="spinnerTemplate">
+	<ng-template [ngIf]="simpleListMode" [ngIfElse]="noSimpleList">
+		<ng-template [ngIf]="api.isLoaded() && shifts">
+
+			<div #topAnchor>
+				<p-list-view
+					[startOfDay]="selectedStartOfDay"
+					[calendarMode]="calendarMode"
+					[shifts]="shifts"
+					[shiftTemplate]="dayShiftTemplate"
+				></p-list-view>
+			</div>
+
+			<ng-template #dayShiftTemplate let-shift>
+				<ng-container
+					[ngTemplateOutlet]="shiftTemplate ? shiftTemplate : defaultShiftTemplate"
+					[ngTemplateOutletContext]="{$implicit: shift, viewStyle: monthShiftStyle, showAsList: true, delayIsActive: delayIsActive(shift.start)}"
+				></ng-container>
+			</ng-template>
+		</ng-template>
+	</ng-template>
+	<ng-template #noSimpleList>
+		<ng-template [ngIf]="api.isLoaded() && calendarMode === CalendarModes.MONTH">
+			<ng-template [ngIf]="selectedStartOfDay !== undefined" [ngIfElse]="noDateTemplate">
+				<div #topAnchor>
+					<p-calendar-month-view
+						[viewDate]="selectedStartOfDayAsDate"
+						(beforeViewRender)="beforeMonthViewRender($event)"
+						[cellTemplate]="customCellTemplate"
+						[weekStartsOn]="1"
+						[headerTemplate]="headerTemplate"
+						[locale]="CONFIG.LOCALE_ID"
+					></p-calendar-month-view>
+				</div>
+			</ng-template>
+			<ng-template
+				#headerTemplate
+				let-days="days"
+				let-locale="locale"
+			></ng-template>
+			<ng-template #customCellTemplate let-day="day" let-locale="locale">
+				<p-month-cell
+					[day]="day"
+					[shifts]="shifts"
+					[absences]="absences"
+					[holidays]="holidays"
+					[birthdays]="birthdays"
+					[selectedDate]="selectedStartOfDay"
+					[neverShowDayTools]="neverShowDayTools(day)"
+					(onDayClick)="onDayClick($event)"
+					[shiftTemplate]="monthShiftTemplate"
+					[readMode]="readMode"
+					[delayIsActive]="delayIsActive(day)"
+				></p-month-cell>
+
+				<ng-template #monthShiftTemplate let-shift let-delayIsActive="delayIsActive">
+
+					<ng-container
+						[ngTemplateOutlet]="shiftTemplate ? shiftTemplate : defaultShiftTemplate"
+						[ngTemplateOutletContext]="{$implicit: shift, viewStyle: monthShiftStyle, showAsList: showAsList, delayIsActive: delayIsActive}"
+					></ng-container>
+				</ng-template>
+
+
+				<ng-template [ngIf]="!api.isLoaded()">
+					<div class="cal-cell-top d-flex justify-content-between align-items-center">
+						<span class="cal-day-number">{{ day.date | calendarDate:'monthViewDayNumber':'de' }}</span>
+					</div>
+				</ng-template>
+			</ng-template>
+		</ng-template>
+		<ng-template [ngIf]="api.isLoaded() && calendarMode === CalendarModes.WEEK">
+			<ng-template [ngIf]="selectedStartOfDay !== undefined" [ngIfElse]="noDateTemplate">
+				<ng-template [ngIf]="!showAsList && weekShiftStyle !== ShiftItemViewStyles.BUTTON && !CONFIG.IS_MOBILE" [ngIfElse]="weekListView">
+					<p-timeline-week
+						[shifts]="shifts"
+						[timestamp]="selectedStartOfDay"
+						[selectable]="shiftIsSelectable"
+					></p-timeline-week>
+				</ng-template>
+
+				<ng-template #weekListView>
+					<div #topAnchor>
+
+					<p-week-view
+						[viewDate]="selectedStartOfDay"
+						[shifts]="shifts"
+						[absences]="absences"
+						[holidays]="holidays"
+						[birthdays]="birthdays"
+						(onShiftClick)="onShiftClick.observers.length ? onShiftClick.emit($event) : undefined"
+						[shiftTemplate]="weekShiftTemplate"
+						[readMode]="readMode"
+					></p-week-view>
+
+					</div>
+					<ng-template #weekShiftTemplate let-shift>
+						<ng-container
+							[ngTemplateOutlet]="shiftTemplate ? shiftTemplate : defaultShiftTemplate"
+							[ngTemplateOutletContext]="{$implicit: shift, viewStyle: weekShiftStyle, showAsList: showAsList}"
+						></ng-container>
+					</ng-template>
+
+				</ng-template>
+			</ng-template>
+		</ng-template>
+		<ng-template [ngIf]="api.isLoaded() && calendarMode === CalendarModes.DAY">
+			<ng-template [ngIf]="selectedStartOfDay !== undefined" [ngIfElse]="noDateTemplate">
+				<div class="mode-day" #topAnchor>
+					<ng-template [ngIf]="!showAsList" [ngIfElse]="showDayAsListOnDesktopTemplate">
+						<div
+							[class.cal-past]="isBeforeToday(selectedStartOfDay)"
+							class="cal-cell pb-tawk border-left pr-2 pl-2"
+						>
+							<p-timeline-day
+								class="pr-2 pl-2"
+								[shifts]="shifts"
+								[insideWeekView]="false"
+								[timestamp]="selectedStartOfDay"
+								[selectable]="shiftIsSelectable"
+							></p-timeline-day>
+						</div>
+					</ng-template>
+					<ng-template #showDayAsListOnDesktopTemplate>
+						<p-calendar-absences-day-bar
+							*ngIf="!CONFIG.IS_MOBILE && (!!absences.getByDay(selectedStartOfDay).length || !!holidays.getByDay(selectedStartOfDay).length || !!birthdays.getByDay(selectedStartOfDay).length)"
+							class="mb-3"
+							[startOfDay]="selectedStartOfDay"
+							[readMode]="readMode"
+							[holidays]="holidays"
+							[absences]="absences"
+							[birthdays]="birthdays"
+						></p-calendar-absences-day-bar>
+
+						<p-list-view
+							[startOfDay]="selectedStartOfDay"
+							[calendarMode]="calendarMode"
+							[shifts]="shifts"
+							[shiftTemplate]="showAsListDayShiftTemplate"
+						></p-list-view>
+
+						<ng-template #showAsListDayShiftTemplate let-shift>
+							<ng-container
+								[ngTemplateOutlet]="shiftTemplate ? shiftTemplate : defaultShiftTemplate"
+								[ngTemplateOutletContext]="{$implicit: shift, viewStyle: dayShiftStyle, showAsList: showAsList}"
+							></ng-container>
+						</ng-template>
+					</ng-template>
+				</div>
+			</ng-template>
+		</ng-template>
+		<ng-template #noDateTemplate>
+			<p-spinner [size]="BootstrapSize.LG" class="h-100"></p-spinner>
+		</ng-template>
+	</ng-template>
+</ng-template>
+<ng-template #spinnerTemplate>
+	<p-spinner [size]="BootstrapSize.LG" class="m-5"></p-spinner>
+</ng-template>
+
+<ng-template #defaultShiftTemplate let-shift let-viewStyle="viewStyle" let-showAsList="showAsList" let-delayIsActive="delayIsActive">
+	<ng-template [ngIf]="viewStyle === ShiftItemViewStyles.SMALL && delayIsActive" [ngIfElse]="noSkeleton">
+		<div class="card m-0 rounded-0 pl-2 mt--1">
+			<p-color-marker [isLoading]="true"></p-color-marker>
+			<p-basic-info class="m-1 ml-2 mr-2 title" [showDate]="false"></p-basic-info>
+		</div>
+	</ng-template>
+
+	<ng-template #noSkeleton>
+		<p-shift-item
+			[readMode]="readMode"
+			[shift]="shift"
+			[emptyMemberSlots]="shift.emptyMemberSlots"
+			[selectable]="shiftIsSelectable"
+			(onClick)="onShiftClick.observers.length ? onShiftClick.emit($event) : undefined"
+			[viewStyle]="viewStyle"
+			[showAsList]="showAsList"
+			[selected]="markShiftItemAsSelected(shift)"
+			(selectedChange)="onSelectedChange(shift)"
+			[isLoading]="delayIsActive"
+		></p-shift-item>
+	</ng-template>
+</ng-template>

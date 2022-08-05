@@ -1,0 +1,29 @@
+@import "variables";
+
+:host {
+	display: block;
+}
+
+.card-options {
+	position: absolute;
+	top: 0;
+	right: 0;
+	z-index: 1;
+}
+
+:host .card-options .hidden-without-hover {
+	display: none;
+}
+
+@media (hover: hover) {
+	:host:hover .card-options .hidden-without-hover {
+		display: block;
+	}
+}
+
+.btn-outline-secondary {
+	background-color: $light;
+	&:hover {
+		background-color: $dark;
+	}
+}

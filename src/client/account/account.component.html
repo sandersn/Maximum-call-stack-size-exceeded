@@ -1,0 +1,55 @@
+<p-page>
+	<h2 i18n>Einstellungen für Account & Standort</h2>
+	<div *ngIf="formGroup">
+		<form [formGroup]="$any(formGroup)">
+			<p-tabs>
+				<p-tab
+					label="Account" i18n-label
+					[hasDanger]="formGroup.controls['account']!.invalid"
+					urlName="basics"
+					[size]="PTabSizeEnum.FRAMELESS"
+				>
+					<p-account
+						[group]="formGroup.controls['account']!"
+						[turnIntoRealAccountForm]="false"
+					></p-account>
+				</p-tab>
+				<p-tab
+					label="Standort" i18n-label
+					[hasDanger]="formGroup.controls['location']!.invalid"
+					urlName="location"
+					[size]="PTabSizeEnum.FRAMELESS"
+				>
+					<p-location
+						[group]="formGroup.controls['location']!"
+						[turnIntoRealAccountForm]="false"
+					></p-location>
+				</p-tab>
+				<p-tab
+					label="Rechnung" i18n-label
+					[hasDanger]="formGroup.controls['billing']!.invalid"
+					urlName="billing"
+					[size]="PTabSizeEnum.FRAMELESS"
+				>
+					<p-billing
+						[group]="formGroup.controls['billing']!"
+						[turnIntoRealAccountForm]="false"
+						(initFormGroup)="initFormGroup()"
+					></p-billing>
+				</p-tab>
+				<p-tab
+					label="Bezahlung" i18n-label
+					[hasDanger]="formGroup.controls['payment']!.invalid"
+					urlName="payment"
+					[size]="PTabSizeEnum.FRAMELESS"
+				>
+					<p-payment
+						[group]="formGroup.controls['payment']!"
+						[turnIntoRealAccountForm]="false"
+					></p-payment>
+				</p-tab>
+			</p-tabs>
+
+		</form>
+	</div>
+</p-page>

@@ -1,0 +1,14 @@
+@import "variables";
+
+.modal-footer .btn {
+	margin-bottom: inherit;
+}
+
+// .stopwatch .btn {
+// 	padding: map-get($spacers, 3) map-get($spacers, 3);
+// 	margin-bottom: map-get($spacers, 3);
+
+// 	&:last-child {
+// 		margin-bottom: inherit;
+// 	}
+// }

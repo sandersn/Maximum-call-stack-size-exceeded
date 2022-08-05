@@ -1,0 +1,51 @@
+@import "variables";
+
+:host {
+	display: block;
+}
+
+.shift-item-timeline {
+	font-size: $font-size-xs;
+}
+
+p-multi-select-checkbox.show-on-hover {
+	display: none;
+}
+
+@media (hover: hover) {
+	:host:hover {
+		p-multi-select-checkbox.show-on-hover {
+			display: flex !important;
+		}
+	}
+}
+
+.card {
+	background: $gray-100;
+	height: 100%;
+
+	.card-body {
+		padding: map-get($spacers, 1) map-get($spacers, 2);
+	}
+}
+
+@media (hover: hover) {
+	.card.clickable:hover {
+		background: $gray-200;
+	}
+}
+
+/* stylelint-disable */
+.shift-comment {
+	font-size: $font-size-xs;
+	font-style: italic;
+	line-height: 16px;
+	word-wrap: normal;
+	overflow: hidden;
+	text-overflow: ellipsis;
+
+	display: -webkit-box;
+	-webkit-line-clamp: 4;
+	-webkit-box-orient: vertical;
+}
+/* stylelint-enable */

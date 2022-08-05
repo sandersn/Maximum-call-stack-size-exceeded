@@ -1,0 +1,17 @@
+<p-collapsible
+	[size]="BootstrapSize.SM"
+	[collapsed]="isCollapsed"
+	(collapsedChange)="onClick.emit($event.event)"
+>
+	<label trigger class="flex-grow-1 d-flex justify-content-between align-items-center m-0 title">
+		<small class="title" [class.text-skeleton-animated]="!isLoaded">{{ label }}</small>
+		<code *ngIf="courseCode" [class.text-skeleton-animated]="!isLoaded" [class.shifts-removed]="hasClassShiftsRemoved" class="p-0 pl-2 pr-2 nowrap" style="line-height: 0;">{{ courseCode }}</code>
+		<div
+			*ngIf="isLoaded && !!bookingsService.searchString"
+			[class.text-skeleton-animated]="!isLoaded"
+			class="badge badge-primary ml-2 mr-2"
+			title="Suchtreffer" i18n-title
+		><fa-icon [fixedWidth]="true" icon="search"></fa-icon>&nbsp;{{bookings.length}}</div>
+		<small *ngIf="date" class="ml-auto" [class.text-skeleton-animated]="!isLoaded" [class.shifts-removed]="hasClassShiftsRemoved">{{ date | date:'EE' }} {{ date | date:'veryShortDate' }}, {{ date | date:'shortTime' }}</small>
+	</label>
+</p-collapsible>

@@ -1,0 +1,146 @@
+<div class="card" *ngIf="showAssignmentProcessesCard">
+	<section>
+		<list-headline
+			[text]="listHeadline"
+			[textTooltipHtml]="listHeadlineTooltip"
+		>
+			<button type="button"
+				*ngIf="showAddButton"
+				class="card-option btn btn-sm btn-outline-secondary pt-1 pb-1 d-flex align-items-center justify-content-center"
+				[disabled]="!api.isLoaded()"
+				(click)="createNewAssignmentProcess(modalContent)"
+			><fa-icon [icon]="PlanoFaIconPool.ADD"></fa-icon></button>
+		</list-headline>
+	</section>
+	<section>
+		<div class="card-body p-0 position-relative">
+			<p-spinner [size]="BootstrapSize.LG" *ngIf="!api.isLoaded() || !meService.isLoaded() || api.isLoadOperationRunning" class="area-blocking-spinner"></p-spinner>
+
+			<ng-template [ngIf]="!noItemsYet" [ngIfElse]="noItemsYetTemplate">
+				<p-assignment-process
+					*ngFor="let assignmentProcess of assignmentProcessesForList.iterable()"
+					class="m-2"
+					[process]="assignmentProcess"
+					(selectProcess)="toggleRelatedShifts($event)"
+					(onClickProcess)="onClickProcess($event)"
+				></p-assignment-process>
+			</ng-template>
+			<ng-template #noItemsYetTemplate>
+				<div class="flex-grow-1 text-center text-muted small p-2">
+					<span *ngIf="showAddButton" i18n>☝️ Klicke auf <fa-icon [icon]="PlanoFaIconPool.ADD"></fa-icon> um eine neue Schichtverteilung zu beginnen.</span>
+					<span *ngIf="!showAddButton" i18n>Aktuell keine Schichtverteilungen vorhanden.</span>
+				</div>
+			</ng-template>
+
+			<div class="m-2" *ngIf="showRemainingProcessesButton">
+				<button type="button"
+					*ngIf="api.isLoaded()"
+					class="btn w-100 p-2"
+					style="white-space: normal;"
+					[class.btn-primary]="allShiftsRemainingWithEmptyMemberSlotsSelected"
+					[class.btn-outline-primary]="!allShiftsRemainingWithEmptyMemberSlotsSelected"
+					[class.text-dark]="!allShiftsRemainingWithEmptyMemberSlotsSelected"
+					[class.affected]="!allShiftsRemainingWithEmptyMemberSlotsSelected && someShiftsRemainingWithEmptyMemberSlotsSelected"
+					(click)="toggleShiftsRemainingWithEmptyMemberSlots()"
+				>
+					<ng-template [ngIf]="remainingEmptySlotsCounter">
+						<div i18n class="mb-2"><strong>Unbesetzt & in keinem Vorgang</strong></div>
+						<div class="d-flex">
+							<div class="flex-fill">
+								<span style="vertical-align: middle;">
+									<span i18n>Stunden&ngsp;<code>{{remainingEmptySlotsHoursCounter}}</code></span> | <span i18n>Schichtplätze</span>
+								</span>
+							</div>
+							<p-member-badge class="flex" [text]="remainingEmptySlotsCounter.toString()" size="small"></p-member-badge>
+						</div>
+					</ng-template>
+					<ng-template [ngIf]="!remainingEmptySlotsCounter">
+						<span i18n>Alle Schichtplätze besetzt oder im Verteilungsvorgang <fa-icon icon="check-circle" class="fa-2x ml-2" style="color: #6c757d;"></fa-icon></span>
+					</ng-template>
+				</button>
+			</div>
+		</div>
+	</section>
+</div>
+
+<ng-template #modalContent let-c="close" let-d="dismiss">
+	<p-modal-header
+		title="Neue Schichtverteilung" i18n-title
+		(onClose)="d('Cross click')"
+	></p-modal-header>
+	<div class="modal-body">
+		<p-form-group
+			label="Name des Vorgangs" i18n-label
+		>
+			<input
+				type="text"
+				autocomplete="off"
+				class="form-control"
+				[(ngModel)]="newProcessName"
+				name="newProcessName"
+			>
+		</p-form-group>
+		<p-form-group
+			label="Art der Verteilung" i18n-label
+		>
+			<p-radios
+				class="mb-2"
+				[(ngModel)]="newProcessType"
+				[inline]="false"
+			>
+				<p-radios-radio
+					[value]="TYPES.DR_PLANO"
+					label="Automatische Verteilung durch Dr.&nbsp;Plano" i18n-label
+					icon="magic"
+				></p-radios-radio>
+				<p-radios-radio
+					[value]="TYPES.EARLY_BIRD"
+					label="Der Frühe Vogel fängt den Wurm" i18n-label
+					icon="early-bird"
+				></p-radios-radio>
+				<p-radios-radio
+					[value]="TYPES.MANUAL"
+					label="Schichtwunschabfrage & manuelle Verteilung" i18n-label
+					[icon]="['far','hand-point-up']"
+				></p-radios-radio>
+			</p-radios>
+
+			<ng-template [ngIf]="newProcessType !== undefined && newProcessType !== null">
+				<p-alert
+					[theme]="PThemeEnum.INFO"
+					[dismissable]="false"
+				>
+					<h5 class="d-inline text-white">{{ titleForType(newProcessType) | localize }}</h5>
+					<p class="m-0" [innerHTML]="textForType(newProcessType) | localize"></p>
+					<ng-template [ngIf]="newProcessType===TYPES.DR_PLANO">
+						<div class="mt-3">
+							<small>
+								<fa-icon class="text-white ml-2" [fixedWidth]="true" [icon]="PlanoFaIconPool.SUCCESS"></fa-icon>&nbsp;<ng-container i18n>Wunsch- und Maximallöhne</ng-container>
+								<br>
+								<fa-icon class="text-white ml-2" [fixedWidth]="true" [icon]="PlanoFaIconPool.SUCCESS"></fa-icon>&nbsp;<ng-container i18n>Schichtwünsche der Mitarbeitenden</ng-container>
+								<br>
+								<fa-icon class="text-white ml-2" [fixedWidth]="true" [icon]="PlanoFaIconPool.SUCCESS"></fa-icon>&nbsp;<ng-container i18n>Eingetragene Urlaubs- und Krankheitszeiten</ng-container>
+								<br>
+								<fa-icon class="text-white ml-2" [fixedWidth]="true" [icon]="PlanoFaIconPool.SUCCESS"></fa-icon>&nbsp;<ng-container i18n>Gesetzliche Ruhezeiten</ng-container>
+								<br>
+								<fa-icon class="text-white ml-2" [fixedWidth]="true" [icon]="PlanoFaIconPool.SUCCESS"></fa-icon>&nbsp;<ng-container i18n>Zuweisung von beieinander liegenden kurzen Schichten (z.B. Kursen) an dieselben Mitarbeitenden</ng-container>
+								<br>
+								<fa-icon class="text-white ml-2" [fixedWidth]="true" [icon]="PlanoFaIconPool.SUCCESS"></fa-icon>&nbsp;<ng-container i18n>Zuweisung von Schicht-Paketen (z.B. Kursen) an dieselben Mitarbeitenden</ng-container>
+							</small>
+						</div>
+					</ng-template>
+				</p-alert>
+			</ng-template>
+		</p-form-group>
+
+	</div>
+	<div class="modal-footer">
+		<button type="button" class="btn btn-outline-secondary" (click)="d('Close click')" i18n>Abbrechen</button>
+		<button type="button" class="btn ml-auto"
+			[disabled]="!newProcessName!.length"
+			[class.btn-outline-secondary]="!newProcessName!.length"
+			[class.btn-outline-primary]="newProcessName!.length"
+			(click)="c('Started');"
+		><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon>&nbsp;<ng-container i18n>Anlegen</ng-container></button>
+	</div>
+</ng-template>

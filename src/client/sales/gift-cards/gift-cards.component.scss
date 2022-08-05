@@ -1,0 +1,151 @@
+@import "variables";
+@import "~bootstrap/scss/mixins/breakpoints";
+
+@mixin hideLevel1() {
+	.code {
+		display: none;
+	}
+}
+@mixin hideLevel2() {
+	.bookingNumber,
+	.bookingPersonName {
+		display: none;
+	}
+}
+
+.dateOfBooking {
+	min-width: 110px;
+}
+
+.value {
+	text-align: right;
+}
+
+.gift-cards-list-headlines,
+.gift-cards-list-tupel {
+	display: flex;
+	@extend .p-overflow-ellipsis;
+
+	> * {
+		flex-grow: 1;
+		flex-shrink: 0;
+		flex-basis: 100px;
+
+		margin-left: map-get($map: $spacers, $key: 3);
+
+		&:first-child {
+			margin-left: 0;
+		}
+	}
+
+	.dateOfBooking {
+		flex-grow: 0;
+		flex-shrink: 0;
+		flex-basis: 110px;
+	}
+
+	.bookingNumber {
+		flex-grow: 0;
+		flex-shrink: 0;
+		flex-basis: 70px;
+	}
+
+	.value {
+		flex-basis: 150px;
+	}
+
+	.code {
+		flex-basis: 80px;
+	}
+
+	.paymentStatus {
+		flex-grow: 0;
+		flex-shrink: 0;
+		flex-basis: 70px;
+	}
+}
+
+.bookingPersonName {
+	@extend .p-overflow-ellipsis;
+}
+
+.gift-cards-list-tupel {
+	font-size: $font-size-sm;
+
+	.dateOfBooking {
+		font-family: $font-family-monospace;
+	}
+
+	.code {
+		font-family: $font-family-monospace;
+	}
+
+	.value {
+		font-family: $font-family-monospace;
+	}
+}
+
+@include media-breakpoint-down(lg) {
+	.bookingPersonName,
+	.dateOfBooking,
+	.value {
+		min-width: auto;
+	}
+}
+
+@include media-breakpoint-down(md) {
+	@include hideLevel1();
+
+	.dateOfBooking,
+	.value {
+		min-width: auto;
+	}
+}
+
+@include media-breakpoint-down(xs) {
+	@include hideLevel2();
+}
+
+@mixin removePrice() {
+	.price {
+		display: none;
+	}
+
+	.gift-cards-list-headlines,
+	.gift-cards-list-tupel {
+		.value {
+			flex-basis: 80px;
+		}
+	}
+}
+
+@include media-breakpoint-down(xxs) {
+
+	@include removePrice();
+
+}
+
+.value-no-initial-value-label {
+	display: none;
+}
+
+@include media-breakpoint-down(xxs) {
+	.value-no-initial-value-label {
+		display: block;
+	}
+	.initial-value-label {
+		display: none;
+	}
+}
+
+:host.sidebar-is-visible {
+	.gift-cards-list-headlines,
+	.gift-cards-list-tupel {
+		@include media-breakpoint-down(lg) {
+			@include hideLevel1();
+		}
+		@include media-breakpoint-down(md) {
+			@include hideLevel2();
+		}
+	}
+}

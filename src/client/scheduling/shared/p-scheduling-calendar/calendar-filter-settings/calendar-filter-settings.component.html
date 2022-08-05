@@ -1,0 +1,67 @@
+<p-dropdown
+	class="ml-2 d-flex"
+	*ngIf="!config.IS_MOBILE || showShiftsFilterBtn"
+	[size]="config.IS_MOBILE ? null : BootstrapSize.SM"
+	label="Filter" i18n-label
+	[itemsFilterTitle]="itemsFilterTitle"
+	[dropdownType]="DropdownTypeEnum.FILTER"
+	[icon]="PlanoFaIconPool.FILTER"
+	[hideTriggerLabel]="course.bookingsVisible || config.IS_MOBILE"
+	[hideBadge]="config.IS_MOBILE"
+>
+	<!-- ICU selection messages marked for translation -->
+	<div hidden><span #translatedHolydayFilterLabel i18n>Geburtstage, Feiertage {!!hasSchulferienData, select, true {& Schulferien}}</span></div>
+	<p-dropdown-item
+		*ngIf="!config.IS_MOBILE"
+		[label]="translatedHolydayFilterLabel.textContent!"
+		(onClick)="hideAllHolidaysAndBirthdays()"
+		[active]="!schedulingFilterService.hideAllHolidays && !schedulingFilterService.hideAllBirthdays"
+		[attributeInfo]="null"
+	></p-dropdown-item>
+
+	<ng-template [ngIf]="showShiftsFilterBtn">
+		<p-dropdown-item
+			label="Schichten" i18n-label
+			(onClick)="schedulingFilterService.hideAllShifts=!schedulingFilterService.hideAllShifts"
+			[active]="!schedulingFilterService.hideAllShifts"
+			[attributeInfo]="null"
+		></p-dropdown-item>
+		<ng-template [ngIf]="showShowOnlyMemberBtn">
+			<!-- ICU selection messages marked for translation -->
+			<div hidden><span #translatedLabelForFromOthers>➡ <ng-container i18n="Shifts from others|Filter settings for calendar">von Andern</ng-container></span></div>
+			<p-dropdown-item
+				[label]="translatedLabelForFromOthers.textContent!"
+				(onClick)="schedulingFilterService.hideAllShiftsFromOthers=!schedulingFilterService.hideAllShiftsFromOthers"
+				[active]="!schedulingFilterService.hideAllShiftsFromOthers"
+				[isLoading]="!meService.isLoaded() || !api.isLoaded()"
+				[attributeInfo]="null"
+			></p-dropdown-item>
+			<!-- ICU selection messages marked for translation -->
+			<div hidden><span #translatedLabelForFromMe>➡ <ng-container i18n="Shifts from me|Filter settings for calendar">von Mir</ng-container></span></div>
+			<p-dropdown-item
+				[label]="translatedLabelForFromMe.textContent!"
+				(onClick)="schedulingFilterService.hideAllShiftsFromMe=!schedulingFilterService.hideAllShiftsFromMe"
+				[active]="!schedulingFilterService.hideAllShiftsFromMe"
+				[isLoading]="!meService.isLoaded() || !api.isLoaded()"
+				[attributeInfo]="null"
+			></p-dropdown-item>
+		</ng-template>
+	</ng-template>
+	<p-dropdown-item
+		*ngIf="!config.IS_MOBILE"
+		label="Abwesenheiten" i18n-label
+		(onClick)="schedulingFilterService.hideAllAbsences=!schedulingFilterService.hideAllAbsences"
+		[active]="!schedulingFilterService.hideAllAbsences"
+		[attributeInfo]="null"
+	></p-dropdown-item>
+	{{showCourseViewOptionsDropdown}}
+	<!-- [icon]="PlanoFaIconPool.ITEMS_SALES" -->
+	<p-dropdown-item
+		*ngIf="showCourseViewOptionsDropdown"
+		label="Status buchbarer Angebote" i18n-label
+		(onClick)="toggleCourseVisible()"
+		[active]="courseService.courseVisible"
+		[attributeInfo]="null"
+	></p-dropdown-item>
+</p-dropdown>
+

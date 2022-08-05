@@ -1,0 +1,97 @@
+<div class="stopwatch card mb-5">
+	<div class="card-body">
+		<p-grid>
+			<div class="col-4 pt-3 pb-3 d-flex align-items-center justify-content-center">
+				<p-stopwatch-image></p-stopwatch-image>
+			</div>
+			<div class="col-8 d-flex flex-column justify-content-between">
+
+				<p-form-group>
+					<p-input-date
+						[size]="BootstrapSize.LG"
+						[showTimeInput]="true"
+						[disabled]="startButtonDisabled"
+						[ngModel]="api.data.start"
+						(ngModelChange)="onStart($event)"
+						class="{{!startButtonDisabled ? 'btn-primary' : ''}}"
+						label="Einstempeln"
+						[readMode]="false"
+						[suggestionTimestamp]="suggestionTimestampForStart"
+						suggestionLabel="Geplante Zeit" i18n-suggestionLabel
+						[icon]="PlanoFaIconPool.AREA_TIME_STAMP"
+						[min]="minStart"
+						[max]="maxStart"
+					></p-input-date>
+				</p-form-group>
+				<p-form-group>
+					<div class="input-group input-group-lg w-100">
+						<div class="input-group-prepend" (click)="!pauseButtonDisabled ? addPause(modalContent) : undefined">
+							<span class="input-group-text"><fa-icon [fixedWidth]="true" [icon]="'mug-hot'"></fa-icon></span>
+						</div>
+						<ng-template [ngIf]="isAddPauseMode" [ngIfElse]="noAddPauseMode">
+							<button type="button"
+								class="align-items-center btn clickable d-flex form-control formatted px-2 p-0 btn-secondary show-time"
+								[class.btn-secondary]="pauseButtonDisabled"
+								[class.btn-primary]="!pauseButtonDisabled"
+								[disabled]="pauseButtonDisabled"
+								(click)="!pauseButtonDisabled ? addPause(modalContent) : undefined"
+							><span [style.font-size.rem]="1"><ng-container i18n>{!api.data.completedRegularPausesDuration, select, true {Pause hinzufügen} other {Pause bearbeiten}}</ng-container></span></button>
+						</ng-template>
+						<ng-template #noAddPauseMode>
+							<button type="button"
+								class="align-items-center btn clickable d-flex form-control formatted px-2 p-0 btn-secondary show-time"
+								[class.btn-secondary]="pauseButtonDisabled"
+								[class.btn-primary]="!pauseButtonDisabled"
+								[disabled]="pauseButtonDisabled"
+								(click)="!pauseButtonDisabled ? togglePause() : undefined"
+							><span [style.font-size.rem]="1"><ng-container i18n>{api.isPausing, select, true {Pause beenden} other {Pause machen}}</ng-container></span></button>
+						</ng-template>
+					</div>
+				</p-form-group>
+				<p-form-group>
+					<p-input-date
+						[size]="BootstrapSize.LG"
+						[showTimeInput]="true"
+						[disabled]="stopButtonDisabled"
+						[ngModel]="api.data.end"
+						(ngModelChange)="onStop($event)"
+						class="{{!stopButtonDisabled ? 'btn-primary' : ''}}"
+						label="Ausstempeln"
+						[readMode]="false"
+						[min]="minEnd"
+						[max]="maxEnd"
+						[suggestionTimestamp]="suggestionTimestampForEnd"
+						suggestionLabel="Geplante Zeit" i18n-suggestionLabel
+						[icon]="PlanoFaIconPool.AREA_TIME_STAMP"
+					></p-input-date>
+				</p-form-group>
+			</div>
+		</p-grid>
+	</div>
+</div>
+
+<ng-template #modalContent let-c="close" let-d="dismiss">
+	<p-modal-header
+		title="Pause hinzufügen" i18n-title
+		(onClose)="d()"
+	></p-modal-header>
+	<div class="modal-body">
+		<p-form-group
+			*ngIf="!!formGroup"
+			label="Dauer in Minuten" i18n-label
+			[control]="formGroup.controls['duration']!"
+		>
+			<p-input
+				[formControl]="formGroup.controls['duration']!"
+				[type]="PApiPrimitiveTypes.Duration"
+				[durationUIType]="PApiPrimitiveTypes.Minutes"
+				[inputGroupAppendIcon]="'mug-hot'"
+				placeholder="z.B. »30«" i18n-placeholder
+			></p-input>
+		</p-form-group>
+	</div>
+	<div class="modal-footer">
+		<button type="button" class="btn btn-outline-secondary" (click)="d('Close click')" i18n>Abbrechen</button>
+		<button type="button" class="btn btn-primary ml-auto" [disabled]="formGroup!.controls['duration']!.invalid" [class.disabled]="formGroup!.controls['duration']!.invalid" (click)="c()" i18n>OK</button>
+	</div>
+</ng-template>

@@ -1,0 +1,16 @@
+@import "variables";
+
+// fr-view should both be in edit and non-edit mode "display: block" to have same layouting.
+:host {
+	display: block;
+}
+
+img {
+	max-width: 100%;
+}
+
+.deco-icon {
+	/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+	font-size: 5em;
+	margin: map-get($map: $spacers, $key: 4);
+}

@@ -1,0 +1,78 @@
+<p-modal-content
+	modalTitle="Kommentar" i18n-modalTitle
+	(onDismiss)="dismissModal()"
+	(onClose)="closeModal()"
+>
+	<p-modal-content-body>
+		<p-shift-comment-meta
+			class="mb-2"
+			[name]="shift?.name ?? null"
+			[start]="start"
+			[end]="end"
+			[assignedMembers]="assignedMembers"
+		></p-shift-comment-meta>
+
+		<ng-template [ngIf]="!!shift">
+			<ng-template
+				[ngIf]="!userCanWrite"
+				[ngIfElse]="textarea"
+			>
+				<blockquote class="m-0">
+					<span class="pt-3" [innerHTML]="commentAsBlockquote"
+						*ngIf="!!shift"
+					></span>
+				</blockquote>
+
+			</ng-template>
+			<ng-template #textarea>
+				<textarea
+					*ngIf="!!shift"
+					style="min-height: 10em;"
+					class="form-control"
+					[(ngModel)]="shift.description"
+					[disabled]="!userCanWrite"
+				></textarea>
+				<span class="form-text" i18n>Möchtest du die Kommentar-Änderung auf andere Bereiche übertragen, nutze bitte das <a class="clickable" (click)="dismissModal();navToShiftForm()">Schicht-Formular</a>.</span>
+			</ng-template>
+		</ng-template>
+	</p-modal-content-body>
+	<p-modal-content-footer>
+		<ng-template
+			[ngIf]="userCanWrite"
+			[ngIfElse]="justClose"
+		>
+			<button type="button" class="btn btn-outline-secondary mr-auto"
+				(click)="dismissModal();"
+				i18n
+			>Abbrechen</button>
+			<button type="button" class="btn btn-danger"
+				*ngIf="!!shift && !shift.isNewItem()"
+				(click)="onRemoveItem(removeDescriptionModalContent)"
+			><fa-icon [fixedWidth]="true" icon="trash"></fa-icon><ng-template [ngIf]="!CONFIG.IS_MOBILE">&nbsp;</ng-template><ng-container i18n>{!CONFIG.IS_MOBILE, select, true {Löschen}}</ng-container></button>
+			<button type="button" class="btn"
+				[class.btn-light]="!shift"
+				[class.btn-primary]="!!shift"
+				(click)="closeModal()"
+			><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.SUCCESS"></fa-icon>&nbsp;<ng-container i18n>Speichern</ng-container></button>
+		</ng-template>
+		<ng-template #justClose>
+			<button type="button" class="btn btn-outline-secondary ml-auto" (click)="dismissModal();"
+				i18n
+			>OK</button>
+		</ng-template>
+	</p-modal-content-footer>
+</p-modal-content>
+
+<ng-template #removeDescriptionModalContent let-c="close" let-d="dismiss">
+	<p-modal-content
+		[theme]="PThemeEnum.DANGER"
+		modalTitle="Schichtkommentar löschen?" i18n-modalTitle
+		closeBtnLabel="Ja, löschen" i18n-closeBtnLabel
+		(onDismiss)="d('Cross click')"
+		(onClose)="c();"
+	>
+		<p-modal-content-body>
+			<p *ngIf="!!shift!.name && !!start" i18n>Soll der Kommentar für die Schicht {{ shift!.name }}, am {{ start | date:'fullDate' }}, um {{ start | date:'shortTime' }} wirklich gelöscht werden?</p>
+		</p-modal-content-body>
+	</p-modal-content>
+</ng-template>

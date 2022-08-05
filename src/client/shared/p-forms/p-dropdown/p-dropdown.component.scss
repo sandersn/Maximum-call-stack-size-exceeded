@@ -1,0 +1,14 @@
+@import "variables";
+
+:host {
+	position: relative;
+	display: block;
+}
+
+.dropdown-toggle {
+	&:disabled,
+	&.disabled,
+	&[readonly] {
+		background-color: $input-disabled-bg;
+	}
+}

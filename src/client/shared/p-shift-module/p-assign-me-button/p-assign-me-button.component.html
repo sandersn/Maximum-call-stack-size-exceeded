@@ -1,0 +1,51 @@
+<button type="button" class="btn btn-primary btn-sm btn-frameless border-right"
+	(click)="assignMe($event, assignMeModalContent)"
+>
+	<div class="d-flex justify-content-between align-items-center title">
+		<p-assignment-process-icon
+			class="text-white"
+			[state]="states.EARLY_BIRD_SCHEDULING"
+			[isOwner]="!!rightsService.isOwner"
+		></p-assignment-process-icon>
+	</div>
+</button>
+<ng-template #assignMeModalContent let-c="close" let-d="dismiss">
+	<div hidden><span i18n #translated>{!!otherPacketShifts, select, true {Schicht-Paket} other {Schicht}} übernehmen</span></div>
+	<p-modal-content
+		[modalTitle]="translated.textContent!"
+		(onDismiss)="d('Cross click')"
+		(onClose)="c('Started');"
+	>
+		<p-modal-content-body>
+			<div class="mb-3"><p-shift-comment-meta
+				[name]="shift.name"
+				[start]="shift.start"
+				[end]="shift.end"
+				[assignedMembers]="shift.assignedMembers"
+			></p-shift-comment-meta></div>
+			<div *ngIf="otherPacketShifts" class="mb-3">
+				<ng-container i18n>Zu der gewählten Schicht gehören noch weitere:</ng-container>
+				<ul>
+					<li *ngFor="let packetShift of otherPacketShifts.iterable()">{{ packetShift.start | date:'shortDate' }}</li>
+				</ul>
+			</div>
+			<ng-template
+				ngFor let-error
+				[ngForOf]="errors"
+			>
+				<p-alert [theme]="error.type" [icon]="error.icon">{{ error.text }}</p-alert>
+			</ng-template>
+			<p i18n>Möchtest du {!!otherPacketShifts, select, true {das gesamte Schicht-Paket} other {diese Schicht}} wirklich übernehmen? Das kannst du nicht mehr rückgängig machen.</p>
+		</p-modal-content-body>
+		<p-modal-content-footer>
+			<button type="button" class="btn btn-outline-secondary mr-auto"
+				(click)="d('Started');"
+				i18n
+			>Abbrechen</button>
+			<button type="button" class="btn btn-primary ml-auto"
+				(click)="c()"
+				i18n
+			>Ja</button>
+		</p-modal-content-footer>
+	</p-modal-content>
+</ng-template>

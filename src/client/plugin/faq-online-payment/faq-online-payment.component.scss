@@ -1,0 +1,9 @@
+@import "variables";
+
+li::marker {
+	font-weight: bold;
+}
+
+li > p {
+	margin-block: map-get($spacers, 2);
+}

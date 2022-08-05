@@ -1,0 +1,114 @@
+<scroll-shadow-box class="flex-grow-1">
+	<div class="container-sm pb-tawk px-sm-3">
+		<h2 i18n>Benachrichtigungen</h2>
+
+		<!-- Web Notification settings for this device -->
+		<div *ngIf="!CONFIG.IS_MOBILE && pushNotifications.thisDeviceState" class="card">
+			<div class="card-header large">
+				<span><fa-icon [fixedWidth]="true" icon="desktop"></fa-icon>&nbsp;<span i18n>Browser Push-Nachrichten</span></span>
+			</div>
+			<div *ngIf="CONFIG.ANGULAR_FIRE_MESSAGING_ENABLED" class="card-body">
+				<p i18n>Mit Browser Push-Nachrichten wirst du am schnellsten über wichtige Änderungen informiert. Wir empfehlen dir, sie einzuschalten.</p>
+				<p *ngIf="pushNotifications.thisDeviceState !== 'blocked_in_browser'; else blockedTextTemplate"><fa-icon [fixedWidth]="true" [icon]="pushNotifications.thisDeviceState === 'receiving' ? 'bell' : 'bell-slash'" [class.text-primary]="pushNotifications.thisDeviceState === 'receiving'"></fa-icon>&nbsp;<ng-container i18n>In diesem Browser sind Push-Nachrichten {pushNotifications.thisDeviceState === 'receiving', select, true {eingeschaltet} other {ausgeschaltet}}.</ng-container></p>
+				<ng-template #blockedTextTemplate>
+					<p i18n>Leider sind für diesen Browser Push-Nachrichten deaktiviert.</p>
+					<p i18n>Ändere deine Browser-Einstellungen, um wichtige Nachrichten von Dr.&nbsp;Plano zu erhalten.</p>
+				</ng-template>
+
+				<button
+					class="btn btn-light ml-auto mt-2"
+					type="button"
+					(click)="toggleThisDeviceFromPushNotifications()"
+					[disabled]="pushNotifications.thisDeviceState === 'blocked_in_browser'"
+					[class.disabled]="pushNotifications.thisDeviceState === 'blocked_in_browser'"
+					i18n
+				>{pushNotifications.thisDeviceState === 'receiving', select, true {Push-Nachrichten ausschalten} other {Push-Nachrichten einschalten}}</button>
+			</div>
+			<div *ngIf="!CONFIG.ANGULAR_FIRE_MESSAGING_ENABLED" class="card-body" i18n>Dein Browser unterstützt leider keine Browser Push-Nachrichten.</div>
+		</div>
+
+		<!-- Notification settings for device types -->
+		<h4 class="mt-5" i18n>Worüber möchtest du benachrichtigt werden?</h4>
+		<div *ngFor="let title of notificationGroupTitles; index as i">
+			<p-collapsible *ngIf="notificationGroups[i] && notificationGroups[i].length > 0">
+				<div trigger class="large">
+					<fa-icon [fixedWidth]="true" [icon]="getTitleIcon(title)" class="mr-2"></fa-icon>
+					<span class="mb-0">{{getTitleLabel(title)}}</span>
+					<!-- <div class="form-text small mt-0">Lorem Ipsum</div> -->
+				</div>
+				<div content class="card-body">
+					<p-grid>
+						<div
+							class="col d-flex justify-content-center"
+							[class.offset-6]="i === 0"
+							*ngFor="let settingsForDeviceType of api.data.notificationSettings.settingsForDeviceTypes.iterable(); let i = index"
+						>
+							<span class="text-center"><fa-icon
+								class="d-block"
+								[icon]="getDeviceTypeIcon(settingsForDeviceType.deviceType)"
+								[title]="getDeviceTypeLabel(settingsForDeviceType.deviceType)"
+							></fa-icon><div class="!CONFIG.IS_MOBILE"> {{ getDeviceTypeLabel(settingsForDeviceType.deviceType) }}</div></span>
+						</div>
+					</p-grid>
+					<div *ngFor="let notificationGroup of notificationGroups[i]; let i = index" class="pt-2 pb-2" [class.border-top]="i !== 0">
+						<p-grid>
+							<div class="col-6 d-flex flex-column align-items-stretch justify-content-center">
+								<strong class="d-flex align-items-center mr-2">
+									<fa-icon
+										class="mr-1"
+										*ngIf="getNotificationGroupIcon(notificationGroup)"
+										[icon]="getNotificationGroupIcon(notificationGroup)!"
+									></fa-icon>
+									{{getNotificationGroupLabel(notificationGroup)}}
+								</strong>
+								<div *ngIf="getNotificationGroupDescription(notificationGroup) && !CONFIG.IS_MOBILE" class="form-text">
+									<span [innerHTML]="getNotificationGroupDescription(notificationGroup)"></span>
+								</div>
+							</div>
+							<div
+								class="col d-flex justify-content-center align-items-center"
+								*ngFor="let settingsForDeviceType of api.data.notificationSettings.settingsForDeviceTypes.iterable()"
+							>
+								<p-checkbox
+									class="large"
+									[hasButtonStyle]="false"
+									[ngModel]="findNotificationGroupItem(settingsForDeviceType, notificationGroup)!.enabled"
+									(ngModelChange)="findNotificationGroupItem(settingsForDeviceType, notificationGroup)!.enabled=$event;api.save()"
+								></p-checkbox>
+							</div>
+							<div
+								*ngIf="getNotificationGroupDescription(notificationGroup) && CONFIG.IS_MOBILE"
+								class="form-text notification-group-description-mobile"
+							>
+								<span [innerHTML]="getNotificationGroupDescription(notificationGroup)"></span>
+							</div>
+						</p-grid>
+
+						<div
+							[@slideVertical]
+							*ngIf="showIsRecommendedToReceiveWarning(notificationGroup)"
+						>
+							<p-alert
+								[theme]="PThemeEnum.WARNING"
+								styles="padding-top: 8px; padding-bottom: 8px;"
+								i18n
+							>Wir empfehlen dringend, diese Benachrichtigung <strong>einzuschalten</strong>, um extrem relevante Änderungen nicht zu verpassen.</p-alert>
+						</div>
+
+						<div
+							*ngIf="showIsRecommendedToReceiveMailWarning(notificationGroup)"
+						>
+						<p-alert
+							[theme]="PThemeEnum.WARNING"
+							styles="padding-top: 8px; padding-bottom: 8px;"
+							i18n
+						>Ein wichtiger Teil dieser Nachrichtengruppe wird nur per <strong>Email</strong> verschickt.</p-alert>
+						</div>
+
+					</div>
+				</div>
+			</p-collapsible>
+
+		</div>
+	</div>
+</scroll-shadow-box>

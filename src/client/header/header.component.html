@@ -1,0 +1,264 @@
+<div class="navbar navbar-expand navbar-dark bg-primary">
+	<div class="d-flex align-items-center w-100" >
+		<a class="logo d-lg-none navbar-brand text-white" routerLink="/client/">
+			<img alt="Dr.&nbsp;Plano App" i18n-alt src="images/plano-logo/p-bg-dark.svg">
+		</a>
+		<a class="logo d-none d-lg-flex align-items-center navbar-brand text-white" routerLink="/client/">
+			<img alt="Dr.&nbsp;Plano App" i18n-alt src="images/plano-logo/logo-bg-primary.svg">
+		</a>
+		<span
+			*ngIf="Config.IS_MOBILE && meService.isLoaded()"
+			class="text-white title"
+			i18n
+		>Hi {{meService.data.firstName}}</span>
+
+		<ul class="navbar-nav flex-row mt-0 d-flex align-items-stretch justify-content-center flex-grow-1">
+			<ng-template [ngIf]="!Config.IS_MOBILE && !meService.showExpiredClientView">
+				<li class="nav-item p-0 mr-1 d-flex align-items-stretch">
+					<a
+						class="nav-link btn btn-primary d-flex align-items-center justify-content-center nowrap"
+						routerLink="/client/scheduling"
+						routerLinkActive="active"
+					><fa-icon
+						class="header-fa-icon"
+						[fixedWidth]="true" [icon]="PlanoFaIconPool.AREA_SCHEDULING"
+					></fa-icon><span class="ml-1 d-none d-lg-inline" i18n>Kalender</span></a>
+				</li>
+				<li class="nav-item p-0 mr-1 d-flex align-items-stretch">
+					<a
+						class="nav-link btn btn-primary d-flex align-items-center justify-content-center nowrap"
+						routerLink="/client/time-stamp"
+						routerLinkActive="active"
+					>
+						<span class="stopwatch-image"><p-stopwatch-image [invertedColors]="true"></p-stopwatch-image></span><span class="ml-1 d-none d-lg-inline" i18n>Stempeluhr</span>
+					</a>
+				</li>
+				<li class="nav-item p-0 mr-1 d-flex align-items-stretch">
+					<a
+						class="nav-link btn btn-primary d-flex align-items-center justify-content-center nowrap"
+						routerLink="/client/report"
+						routerLinkActive="active"
+					><span class="report-icon"><img alt="Auswertung" i18n-alt src="images/icons/report.png"></span><span class="ml-1 d-none d-lg-inline" i18n>Auswertung</span></a>
+				</li>
+				<li class="nav-item p-0 mr-1 d-flex align-items-stretch" *ngIf="showSalesBtn">
+					<a
+						class="nav-link btn btn-primary d-flex align-items-center justify-content-center nowrap"
+						routerLink="/client/sales"
+						routerLinkActive="active"
+					><fa-icon
+						class="header-fa-icon shopping-cart text-right"
+						[fixedWidth]="true" [icon]="PlanoFaIconPool.ITEMS_SALES"
+					></fa-icon><span class="ml-1 d-none d-lg-inline" i18n>Verkäufe</span></a>
+				</li>
+				<li class="nav-item p-0 mr-1 d-flex align-items-stretch mr-auto">
+					<a
+						class="nav-link btn btn-primary d-flex align-items-center justify-content-center nowrap"
+						routerLink="/client/tutorials"
+						routerLinkActive="active"
+					><fa-icon
+						class="header-fa-icon text-right"
+						[fixedWidth]="true" [icon]="PlanoFaIconPool.AREA_TUTORIALS"
+					></fa-icon><span class="ml-1 d-none d-lg-inline" i18n>Tutorial-Videos</span></a>
+				</li>
+			</ng-template>
+			<li class="d-none d-sm-flex align-items-center nav-item ml-auto"
+				[class.ml-auto]="meService.isLoaded() && meService.data.isOwner"
+				*ngIf="meService.isLoaded() && meService.data.isOwner && meService.data.clientType === AuthenticatedApiClientType.TEST"
+			>
+				<a
+					class="btn btn-primary nowrap"
+					routerLink="/client/testaccount"
+					routerLinkActive="active"
+				>
+					<fa-icon [fixedWidth]="true" icon="hourglass-half"></fa-icon>
+					<span class="ml-1 d-none d-xl-inline">{{ testaccountButtonText }}</span>
+				</a>
+			</li>
+			<li class="d-none d-sm-flex align-items-center nav-item ml-auto badge badge-danger p-3"
+				*ngIf="meService.isLoaded() && meService.data.isOwner && meService.data.clientType === AuthenticatedApiClientType.TERMINATED"
+			>
+				❌ Gekündigt
+			</li>
+
+
+
+			<li *ngIf="meService.showExpiredClientView; else notExpiredTemplate" class="nav-item ml-auto">
+				<button type="button" class="nav-link btn clickable" [routerLink]="Config.LOGOUT_PATH" i18n>Abmelden</button>
+			</li>
+			<ng-template #notExpiredTemplate>
+				<ng-template [ngIf]="Config.IS_MOBILE" [ngIfElse]="notMobileTemplate">
+					<li class="nav-item p-0 mr-1 ml-auto">
+						<button
+							type="button"
+							class="btn btn-primary d-flex align-items-center justify-content-center nowrap"
+							(click)="toggleMobileMenu($event)"
+							routerLink="/client/menu"
+							routerLinkActive="active"
+							#rla="routerLinkActive"
+						><fa-icon
+							class="header-fa-icon"
+							[fixedWidth]="true" [icon]="rla.isActive ? PlanoFaIconPool.DISMISS : PlanoFaIconPool.MOBILE_MENU"
+						></fa-icon><span class="ml-1 d-none d-lg-inline" i18n>Menü</span></button>
+					</li>
+				</ng-template>
+
+				<ng-template #notMobileTemplate>
+					<li class="nav-item d-flex align-items-stretch"
+						[class.ml-auto]="!meService.data.isOwner || !meService.isTestAccount"
+						*ngIf="meService.isLoaded()"
+					>
+						<div
+							class="d-flex align-items-stretch"
+							dropdown
+							[autoClose]="true"
+							(click)="$event.preventDefault()"
+						>
+							<a
+								class="dropdown-toggle btn btn-primary text-white nowrap d-flex align-items-center"
+								dropdownToggle>
+								<span class="mr-2"><strong>{{ meService.data.firstName }}</strong></span>
+								<span class="d-none d-xl-inline"> @ <span style="overflow: hidden; text-overflow: ellipsis;">{{ locationName }}</span></span>
+							</a>
+							<ul
+								*dropdownMenu
+								role="menu"
+								class="dropdown-menu dropdown-menu-right"
+							>
+								<li role="menuitem" class="d-flex text-right"
+									*ngIf="!Config.IS_MOBILE"
+								>
+									<button
+										type="button"
+										class="flex-grow-1 btn btn-frameless text-right nowrap"
+										routerLink="/client/member/{{meService.data.id}}"
+										routerLinkActive
+										#rla="routerLinkActive"
+										[class.btn-primary]="rla.isActive"
+										[class.btn-outline-secondary]="!rla.isActive"
+										i18n
+									>Mein Profil</button>
+								</li>
+
+								<li role="menuitem" class="d-flex"
+									*ngIf="!Config.IS_MOBILE && meService.isLoaded() && meService.data.isOwner"
+								>
+									<button
+										type="button"
+										class="flex-grow-1 btn btn-frameless text-right nowrap"
+										routerLink="/client/account"
+										routerLinkActive
+										#rla="routerLinkActive"
+										[class.btn-primary]="rla.isActive"
+										[class.btn-outline-secondary]="!rla.isActive"
+										i18n
+									>Account & Standort</button>
+								</li>
+								<li role="menuitem" class="d-flex"
+									*ngIf="!Config.IS_MOBILE && meService.isLoaded() && meService.data.isOwner"
+								>
+									<button
+										type="button"
+										class="flex-grow-1 btn btn-frameless text-right nowrap"
+										routerLink="/client/rightgroups"
+										routerLinkActive
+										#rla="routerLinkActive"
+										[class.btn-primary]="rla.isActive"
+										[class.btn-outline-secondary]="!rla.isActive"
+										i18n
+									>Rechteverwaltung</button>
+								</li>
+								<li role="menuitem" class="d-flex"
+									*ngIf="!Config.IS_MOBILE && meService.isLoaded()"
+								>
+									<button
+										type="button"
+										class="flex-grow-1 btn btn-frameless text-right nowrap"
+										routerLink="/client/ical"
+										routerLinkActive
+										#rla="routerLinkActive"
+										[class.btn-primary]="rla.isActive"
+										[class.btn-outline-secondary]="!rla.isActive"
+										i18n
+									>Kalender-Synchronisation</button>
+								</li>
+								<li role="menuitem" class="d-flex"
+									*ngIf="!Config.IS_MOBILE && meService.isLoaded()"
+								>
+									<button
+										type="button"
+										class="flex-grow-1 btn btn-frameless text-right nowrap"
+										routerLink="/client/notifications"
+										routerLinkActive
+										#rla="routerLinkActive"
+										[class.btn-primary]="rla.isActive"
+										[class.btn-outline-secondary]="!rla.isActive"
+										i18n
+									>Benachrichtigungs-Einstellungen</button>
+								</li>
+								<li role="menuitem" class="d-flex"
+									*ngIf="!Config.IS_MOBILE && meService.isLoaded() && meService.data.isOwner"
+								>
+									<button
+										type="button"
+										class="flex-grow-1 btn btn-frameless text-right nowrap"
+										routerLink="/client/devices"
+										routerLinkActive
+										#rla="routerLinkActive"
+										[class.btn-primary]="rla.isActive"
+										[class.btn-outline-secondary]="!rla.isActive"
+										i18n
+									>Stempeluhr-Einstellungen</button>
+								</li>
+								<li role="menuitem" class="d-flex"
+									*ngIf="showBookingSystemBtn"
+								>
+									<button
+										type="button"
+										class="flex-grow-1 btn btn-frameless text-right nowrap"
+										routerLink="/client/plugin"
+										routerLinkActive
+										#rla="routerLinkActive"
+										[class.btn-primary]="rla.isActive"
+										[class.btn-outline-secondary]="!rla.isActive"
+										i18n
+									>Buchungssystem-Einstellungen</button>
+								</li>
+
+								<ng-template [ngIf]="devToolsVisible">
+									<li role="menuitem" class="d-block"><hr class="m-0" /></li>
+									<li role="menuitem" class="d-flex">
+										<button
+											type="button"
+											class="flex-grow-1 btn btn-outline-secondary btn-frameless text-right nowrap"
+											(click)="navBack()"
+										><fa-icon icon="bug"></fa-icon> Simulate Android‘s Back-Button</button>
+									</li>
+									<li role="menuitem" class="d-flex">
+										<button
+											type="button"
+											class="flex-grow-1 btn btn-outline-secondary btn-frameless text-right nowrap"
+											(click)="debugToggleLocalizeLanguage()"
+										><fa-icon icon="bug"></fa-icon> Set Language to {{otherLanguage}} in LocalizePipe</button>
+									</li>
+								</ng-template>
+
+								<li *ngIf="!Config.IS_MOBILE" role="menuitem" class="d-block"><hr class="m-0" /></li>
+								<li role="menuitem" class="d-flex">
+									<button
+										type="button"
+										class="flex-grow-1 btn btn-outline-secondary btn-frameless text-right nowrap"
+										routerLink="/client/logout"
+										i18n
+									>Abmelden</button>
+								</li>
+							</ul>
+						</div>
+
+					</li>
+				</ng-template>
+
+			</ng-template>
+
+		</ul>
+	</div>
+</div>

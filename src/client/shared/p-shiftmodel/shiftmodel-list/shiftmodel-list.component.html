@@ -1,0 +1,27 @@
+<ng-template [ngIf]="shiftModels">
+	<div class="list-group">
+		<ng-template ngFor let-parentName [ngForOf]="parentNames">
+			<list-headline
+				*ngIf="getShiftModelsIterableByParentName(parentName).length"
+				[text]="parentName"
+			><span class="pr-2 nowrap">{{label}}</span></list-headline>
+			<p-shiftmodel-list-item
+				*ngFor="let shiftModel of getShiftModelsIterableByParentName(parentName)"
+				class="list-group-item p-0 pr-2"
+				[class.active]="isSelected(shiftModel)"
+				[label]="shiftModel.name"
+				[color]="shiftModel.color"
+				[isPacket]="!!shiftModel.isPacket"
+				(onClick)="onClickItem(shiftModel)"
+				[hasOnClickBinding]="hasOnItemClickBinding"
+			>
+				<ng-template [ngIf]="contentTemplate">
+					<ng-template
+						[ngTemplateOutlet]="contentTemplate"
+						[ngTemplateOutletContext]="{$implicit : shiftModel}"
+					></ng-template>
+				</ng-template>
+			</p-shiftmodel-list-item>
+		</ng-template>
+	</div>
+</ng-template>

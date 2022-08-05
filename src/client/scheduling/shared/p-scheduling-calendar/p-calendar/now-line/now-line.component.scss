@@ -1,0 +1,10 @@
+@import "variables";
+
+hr {
+	padding: 0;
+	/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+	margin: -1px 0 0 0;
+	border-style: dashed;
+	border-color: $primary;
+	opacity: 0.8;
+}

@@ -1,0 +1,120 @@
+<p-main-sidebar
+	*ngIf="!config.IS_MOBILE"
+	[shifts]="api.data.shifts"
+></p-main-sidebar>
+<div class="flex-grow-1 d-flex flex-column">
+	<nav class="pl-4 pr-4 navbar navbar-light bg-light border-bottom d-block">
+		<div class="d-flex justify-content-between">
+			<div class="d-flex align-items-center mr-2">
+				<button type="button" class="btn btn-sm btn-outline-secondary mr-4" (click)="navBack()">
+					<fa-icon
+						[fixedWidth]="true"
+						[icon]="PlanoFaIconPool.NAV_BACK"
+					></fa-icon>&nbsp;<ng-container i18n>Zurück</ng-container>
+				</button>
+			</div>
+			<div class="d-flex align-items-center justify-content-center flex-grow-1">
+				<label class="m-0 mr-2" i18n>Zeitraum der Schichten</label>
+				<p-dropdown
+					class="mr-2"
+					[(ngModel)]="defineCustomDateRange"
+					[disabled]="!api.isLoaded()"
+					[size]="config.IS_MOBILE ? BootstrapSize.LG : null"
+				>
+					<p-dropdown-item
+						label="Alle Zukünftigen" i18n-label
+						[value]="false"
+						[attributeInfo]="null"
+						></p-dropdown-item>
+					<p-dropdown-item
+						label="Benutzerdefiniert" i18n-label
+						[value]="true"
+						[attributeInfo]="null"
+						></p-dropdown-item>
+				</p-dropdown>
+				<ng-template [ngIf]="defineCustomDateRange">
+					<div class="mr-2 d-flex justify-content-center align-items-center">
+						<label class="mr-2 mb-0 nowrap"><span class="d-none d-lg-inline" i18n>vom</span></label>
+						<p-input-date
+							style="max-width: 180px;"
+							[(ngModel)]="start"
+							[max]="end ? end - 1 : null"
+							[size]="config.IS_MOBILE ? BootstrapSize.LG : null"
+						></p-input-date>
+					</div>
+					<div class="mr-2 d-flex justify-content-center align-items-center">
+						<label class="mr-2 mb-0" i18n>bis</label>
+						<p-input-date
+							style="max-width: 180px;"
+							[(ngModel)]="end"
+							[min]="start"
+							[size]="config.IS_MOBILE ? BootstrapSize.LG : null"
+							[isExclusiveEnd]="true"
+						></p-input-date>
+					</div>
+				</ng-template>
+			</div>
+		</div>
+	</nav>
+	<scroll-shadow-box
+		class="flex-grow-1 position-relative"
+		[class.bg-light]="!!highlightService.highlightedItem"
+		[backgroundStyle]="!!highlightService.highlightedItem ? PThemeEnum.LIGHT : null"
+	>
+		<div class="pl-4 pr-4 pt-4 pb-tawk position-relative">
+			<div class="content-inner">
+				<div class="d-flex align-items-center justify-content-between mb-3">
+					<div class="align-self-center">
+						<!-- -->
+					</div>
+					<div class="d-flex align-items-center justify-content-end">
+
+						<div class="d-none d-lg-block">
+							<button
+								type="button"
+								name="button"
+								class="btn btn-sm btn-outline-secondary"
+								(click)="createNewShiftExchange()">
+								<span><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon>&ngsp;<span class="d-none d-lg-inline ml-1" i18n>Neuer Eintrag</span></span>
+							</button>
+						</div>
+						<div
+							class="d-none d-sm-block ml-2"
+							*ngIf="exportShiftExchangeStatisticsExcelApi.data.attributeInfoThis.show"
+							[tooltip]="tooltipDATEV"
+							#pop="bs-tooltip"
+							placement="bottom"
+						>
+							<button
+								type="button"
+								name="button"
+								class="btn btn-sm btn-outline-secondary"
+								(click)="exportShiftExchangeStatistics()"
+								[disabled]="!defineCustomDateRange || start===undefined || end===undefined || !exportShiftExchangeStatisticsExcelApi.data.attributeInfoThis.canEdit">
+								<span><fa-icon [fixedWidth]="true" [icon]="exportIsRunning ? PlanoFaIconPool.SYNCING : PlanoFaIconPool.EXPORT" [spin]="exportIsRunning"></fa-icon><span class="d-none d-lg-inline ml-1"> <span class="d-none d-xl-inline" i18n>Statistik</span></span></span>
+							</button>
+							<ng-template #tooltipDATEV>
+								<div class="d-block clickable card m-0 text-left o-hidden"
+									(click)="pop.hide()"
+								>
+									<div class="card-body p-1 px-2">
+										<span *ngIf="!defineCustomDateRange || start===undefined || end===undefined" i18n>Bitte erst oben bei »Zeitraum der Schichten« auf »benutzerdefiniert« umstellen und ein Start- sowie Enddatum festlegen.</span>
+										<span *ngIf="!(!defineCustomDateRange || start===undefined || end===undefined)" i18n>Statistik exportieren</span>
+									</div>
+								</div>
+							</ng-template>
+						</div>
+					</div>
+				</div>
+			</div>
+			<p-spinner [size]="BootstrapSize.LG" *ngIf="api.isLoadOperationRunning" class="area-blocking-spinner"></p-spinner>
+			<p-shift-exchange-list
+				[addItemIds]="true"
+				[showOnlyItemsForDesk]="false"
+				[shiftExchanges]="shiftExchangesForList"
+				[showDetails]="true"
+				(calendarBtnClick)="pShiftExchangeService.onCalendarBtnClick($event)"
+			></p-shift-exchange-list>
+		</div>
+	</scroll-shadow-box>
+</div>

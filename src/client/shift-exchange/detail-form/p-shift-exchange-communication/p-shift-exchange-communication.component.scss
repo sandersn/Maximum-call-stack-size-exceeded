@@ -1,0 +1,63 @@
+@import "variables";
+
+:host {
+	margin-bottom: map-get($spacers, 4);
+	display: block;
+}
+
+.communication-card {
+	position: relative;
+	/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+	margin-top: -4px;
+}
+
+.last-action-time {
+	position: absolute;
+	top: -14px;
+	right: 20px;
+}
+
+.todo-badge {
+	position: absolute;
+	top: -3px;
+	z-index: 500;
+	font-size: $font-size-xs;
+	/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+	padding: 0.05rem;
+	min-width: 0.785rem;
+
+	box-shadow: 0 1px 3px 0 $darken-04;
+
+	&.align-left {
+		left: -3px;
+		border-top-right-radius: 0;
+		border-bottom-left-radius: 0;
+	}
+
+	&.align-right {
+		right: -3px;
+		border-top-left-radius: 0;
+		border-bottom-right-radius: 0;
+	}
+
+	&.align-center {
+		left: 50%;
+		transform: translate(-50%, 0);
+	}
+}
+
+.too-long-list-shadow {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 1;
+	background: linear-gradient(to right, transparent, rgba(255, 255, 255, 1));
+	height: 100%;
+	width: 6px;
+}
+
+.lastActionTime-spacer {
+	/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+	margin-right: 11em;
+}

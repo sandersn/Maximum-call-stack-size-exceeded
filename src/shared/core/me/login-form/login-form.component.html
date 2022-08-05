@@ -1,0 +1,97 @@
+<form class="text-center" novalidate name="form" *ngIf="view === VIEW.LOGIN" (ngSubmit)="onLoginSubmit()">
+	<!-- error message -->
+	<p-alert *ngIf="meService.previousLoginHadInvalidCredentials" [theme]="PThemeEnum.DANGER">
+		<span i18n>Ups. Email-Adresse oder Passwort falsch.</span>
+		<a class="mt-1 d-block clickable" (click)="view = VIEW.FORGOT_PASSWORD"><u i18n>Passwort zurücksetzen?</u></a>
+	</p-alert>
+
+	<p-alert *ngIf="meService.showExpiredClientViewForDefaultMember" [theme]="PThemeEnum.DANGER" i18n>Login nicht möglich, da der Test&#8209;Account deines Betriebs abgelaufen ist.</p-alert>
+
+	<!-- input fields -->
+	<input
+		#emailInputRef
+		autocomplete="off"
+		type="email"
+		class="form-control"
+		[(ngModel)]="email"
+		(change)="fixAutoFillIssue()"
+		name="email"
+		placeholder="Email-Adresse" i18n-placeholder />
+
+	<div class="input-group mb-3">
+		<input
+			#passwordInputRef
+			autocomplete="off"
+			[type]="passwordFieldType"
+			class="form-control"
+			[(ngModel)]="password"
+			name="password"
+			placeholder="Passwort" i18n-placeholder
+		/>
+		<div class="input-group-append">
+			<button class="btn" type="button"
+				[class.btn-light]="hidePassword || CONFIG.IS_MOBILE"
+				[class.btn-primary]="!hidePassword && !CONFIG.IS_MOBILE"
+				(click)="hidePassword=!hidePassword"
+			><fa-icon [fixedWidth]="true" [icon]="hidePassword ? PlanoFaIconPool.VISIBLE : PlanoFaIconPool.INVISIBLE"></fa-icon></button>
+		</div>
+	</div>
+
+	<!-- [class.progress-bar-striped]="isLoading"
+	[class.progress-bar-animated]="isLoading" -->
+	<button type="submit" class="btn btn-lg mt-2"
+		[class.btn-outline-light]="CONFIG.IS_MOBILE"
+		[class.btn-primary]="!CONFIG.IS_MOBILE"
+	><fa-icon *ngIf="!isLoading" style="min-height: 22px;" class="d-inline-block" [fixedWidth]="true" [icon]="PlanoFaIconPool.SUCCESS"></fa-icon><p-spinner *ngIf="isLoading" style="min-height: 22px;" class="d-inline-block"></p-spinner>&nbsp;<ng-container i18n>Einloggen</ng-container></button>
+
+	<a
+		*ngIf="!hideForgotPassword"
+		class="mt-4 clickable text-white"
+		(click)="view = VIEW.FORGOT_PASSWORD"
+		i18n
+	>Passwort zurücksetzen</a>
+</form>
+
+<div class="justify-content-center align-items-center mb-5" *ngIf="view !== VIEW.LOGIN">
+	<!-- New password Successfully send -->
+	<div *ngIf="view === VIEW.FORGOT_PASSWORD_NEW_PASSWORD_SEND">
+		<a *ngIf="CONFIG.IS_MOBILE" class="mb-4 d-block mr-auto text-white" (click)="view = VIEW.LOGIN">
+			<i class="fa fa-arrow-left"></i>&nbsp;<ng-container i18n>Login</ng-container>
+		</a>
+		<p-alert [theme]="PThemeEnum.SUCCESS" i18n>Falls die Email-Adresse <mark>{{ forgotPasswordEmail }}</mark> bei uns registriert ist, haben wir dir soeben ein neues Passwort an die Adresse geschickt.</p-alert>
+	</div>
+
+	<!-- Forgot password form -->
+	<div *ngIf="view === VIEW.FORGOT_PASSWORD">
+		<form novalidate name="form" (ngSubmit)="onForgotPasswordSubmit()">
+			<a *ngIf="CONFIG.IS_MOBILE" class="mb-4 mr-auto text-white" (click)="view = VIEW.LOGIN">
+				<i class="fa fa-arrow-left"></i>&nbsp;<ng-container i18n>Zurück</ng-container>
+			</a>
+
+			<div class="form-group w-100"
+				[class.has-danger]="!forgotPasswordFormGroup.controls['email']!.valid"
+			>
+				<label *ngIf="forgotPasswordEmail" i18n>Deine Email-Adresse</label>
+				<input
+					[(ngModel)]="forgotPasswordEmail"
+					[formControl]="forgotPasswordFormGroup.controls['email']!"
+					class="form-control"
+					type="email"
+					autocomplete="off"
+					placeholder="Deine Email-Adresse" i18n-placeholder
+				/>
+			</div>
+
+			<!-- submit button -->
+			<!-- cspell:ignore UAAAAA, Lokww -->
+			<button type="submit"
+				class="btn btn-lg g-recaptcha"
+				[class.btn-outline-light]="CONFIG.IS_MOBILE"
+				[class.btn-primary]="!CONFIG.IS_MOBILE"
+				data-sitekey="6LdUtCoUAAAAAMx6tz7hLokwwTmQxw_voMRuNFOk"
+				data-callback="registerTestAccount"
+				i18n
+			>Passwort zurücksetzen</button>
+		</form>
+	</div>
+</div>

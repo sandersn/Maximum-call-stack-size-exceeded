@@ -1,0 +1,354 @@
+<scroll-shadow-box *ngIf="!!formGroup" class="flex-grow-1">
+	<div class="container pb-5">
+		<h2 i18n>Account in Echt&#8209;Account umwandeln</h2>
+
+		<div *ngIf="meService.showExpiredClientView" class="card bg-dark text-white bg-primary">
+			<div class="card-body">
+				<div class="row mb-4 mt-4">
+					<div class="col-md-2 offset-md-1 d-flex align-items-center">
+						<div class="logo-wrapper ml-auto mr-auto mb-4">
+							<img alt="Dr.&nbsp;Plano Logo" i18n-alt src="images/dr_plano.png" class="logo">
+						</div>
+					</div>
+					<div class="col-md-7 offset-md-1 d-flex align-items-center flex-column">
+						<h2 class="text-center text-white" i18n>Danke!</h2>
+						<div class="thank-you-message">
+							<p i18n>…dafür, dass du mir 14 Tage lang die Chance gegeben hast dir Arbeit abzunehmen. Wenn ich dir helfen konnte, ist es nun an der Zeit deinen Test&#8209;Account in einen echten umzuwandeln. Fülle dazu einfach das untenstehende Formular aus.</p>
+							<p i18n>Hattest du Probleme oder bist unzufrieden mit meinen Leistungen? Dann freut sich <a href="#team" target="_blank" rel="noopener" class="test-primary">unser Team</a> über dein ehrliches Feedback im Chat oder per Email an <a href="mailto:service@dr-plano.com" class="text-primary">service@dr-plano.com</a>. Dr.&nbsp;Plano verkraftet das und ist lernfähig ;)</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div *ngIf="formGroup">
+			<form [formGroup]="$any(formGroup)">
+
+				<p-account
+					[group]="formGroup.controls['account']!"
+					[turnIntoRealAccountForm]="true"
+				></p-account>
+				<p-location
+					[group]="formGroup.controls['location']!"
+					[turnIntoRealAccountForm]="true"
+				></p-location>
+				<hr>
+				<p-billing
+					[group]="formGroup.controls['billing']!"
+					[turnIntoRealAccountForm]="true"
+					(initFormGroup)="initFormGroup()"
+				></p-billing>
+				<hr>
+				<p-payment
+					[group]="formGroup.controls['payment']!"
+					[turnIntoRealAccountForm]="true"
+				></p-payment>
+				<hr>
+
+				<p-section *ngIf="api.data.type === AccountApiType.TEST">
+					<p-form-group [control]="formGroup.controls['discountCode']!">
+						<label><span i18n>Rabatt-Code</span> <p-info-circle [class.ml-2]="Config.IS_MOBILE" placement="top" i18n>Gebe hier deinen Rabatt-Code ein. Wir berücksichtigen ihn bei der Rechnungsstellung.</p-info-circle></label>
+						<p-input
+							[(ngModel)]="api.data.discountCode"
+							[formControl]="formGroup.controls['discountCode']!"
+							placeholder="z.B. »AA1234«" i18n-placeholder
+						></p-input>
+					</p-form-group>
+				</p-section>
+			</form>
+		</div>
+
+		<div
+			[pEditable]="true"
+			class="input-group"
+			[api]="api"
+			[valid]="!formGroup.invalid"
+			[saveChangesHook]="convertIntoRealAccount(submitModal, submitSuccessModal)"
+		>
+			<div
+				*ngIf="api.data.type === AccountApiType.TEST || api.data.type === AccountApiType.TEST_EXPIRED"
+				class="input-group"
+			>
+				<button
+					type="button"
+					pEditableInstantSaveButton
+					(triggerClick)="api.data.type=AccountApiType.PAID"
+					[disabled]="!formGroup.valid"
+					class="btn btn-primary btn-lg mt-5 mb-5 d-block ml-auto"
+					i18n
+				>Weiter</button>
+			</div>
+		</div>
+	</div>
+</scroll-shadow-box>
+
+<ng-template #submitModal let-c="close" let-d="dismiss">
+	<p-modal-header
+		title="Zusammenfassung" i18n-title
+		(onClose)="dismissConfirmModal(d)"
+	></p-modal-header>
+	<div class="modal-body p-0">
+		<p-section label="Account" i18n-label class="p-4">
+			<p-grid>
+				<div class="col">
+					<div class="form-group">
+						<label i18n>Kundennummer</label>
+						<p>{{ api.data.customerId }}</p>
+					</div>
+				</div>
+			</p-grid>
+		</p-section>
+		<p-section ngbAutofocus label="Standort" i18n-label class="p-4">
+			<p-grid>
+				<div class="col">
+					<div class="form-group">
+						<label i18n>Standortname für eure Kunden</label>
+						<p-info-circle placement="bottom">
+							<div style="max-width: 200px;" class="ml-2" i18n>Dieser Name wird euren Kunden im Buchungsplugin und bei der Bezahlung angezeigt. Hier muss also nicht die Firmenbezeichnung stehen, die für die Dr.&nbsp;Plano-Rechnungen genutzt werden soll, sondern ein euren Kunden bekannter Name.</div>
+						</p-info-circle>
+						<p>{{ api.data.locationName }}</p>
+					</div>
+				</div>
+				<div class="col">
+					<div class="form-group">
+						<label i18n>Geschäftsführende Person</label>
+						<p>{{ api.data.ceoFirstName }} {{ api.data.ceoLastName }}</p>
+					</div>
+				</div>
+			</p-grid>
+			<p-grid>
+				<div class="col">
+					<div class="form-group">
+						<label i18n>Anschrift</label>
+						<p>
+							{{ api.data.locationStreetAndHouseNumber }}<br>
+							{{ api.data.locationPostalCode }} {{ api.data.locationCity }}<br>
+							{{ api.data.locationCountry | pTranslateCountryKey }}
+						</p>
+					</div>
+				</div>
+			</p-grid>
+		</p-section>
+		<p-section label="Ansprechperson für Personalplanung" i18n-label class="p-4">
+			<p-grid>
+				<div class="col">
+					<div class="form-group">
+						<label i18n>Name</label>
+						<p>{{ api.data.hrmContactFirstName }} {{ api.data.hrmContactLastName }}</p>
+					</div>
+				</div>
+				<div class="col">
+					<div class="form-group">
+						<label i18n>Email-Adresse</label>
+						<p>{{ api.data.hrmContactEmail }}</p>
+					</div>
+				</div>
+				<div class="col">
+					<div class="form-group">
+						<label i18n>Telefonnummer</label>
+						<p>{{ api.data.hrmContactPhone }}</p>
+					</div>
+				</div>
+			</p-grid>
+		</p-section>
+
+		<p-section label="Ansprechperson fürs Buchungssystem" i18n-label class="p-4">
+			<p-grid>
+				<div class="col">
+					<div class="form-group">
+						<label i18n>Name</label>
+						<p>{{ api.data.bookingSystemContactFirstName }} {{ api.data.bookingSystemContactLastName }}</p>
+					</div>
+				</div>
+				<div class="col">
+					<div class="form-group">
+						<label i18n>Email-Adresse</label>
+						<p>{{ api.data.bookingSystemContactEmail }}</p>
+					</div>
+				</div>
+				<div class="col">
+					<div class="form-group">
+						<label i18n>Telefonnummer</label>
+						<p>{{ api.data.bookingSystemContactPhone }}</p>
+					</div>
+				</div>
+			</p-grid>
+		</p-section>
+		<p-section label="Firma" i18n-label class="p-4">
+			<p-grid>
+				<div class="col">
+					<div class="form-group">
+						<label i18n>Name der Firma</label>
+						<p>{{ api.data.companyName }}</p>
+					</div>
+				</div>
+				<div class="col">
+					<div class="form-group">
+						<label i18n>UST-IDNR.</label>
+						<p>{{ api.data.billing.vatNumber }}</p>
+					</div>
+				</div>
+			</p-grid>
+
+			<p-grid>
+				<div class="col">
+					<div class="form-group">
+						<label i18n>Rechnungsanschrift</label>
+						<p>
+							{{ api.data.billing.streetAndHouseNumber }}<br>
+							{{ api.data.billing.postalCode }} {{ api.data.billing.city }}<br>
+							{{ api.data.billing.country | pTranslateCountryKey }}
+						</p>
+					</div>
+				</div>
+			</p-grid>
+		</p-section>
+
+		<p-section label="Ansprechperson für Rechnungen" i18n-label class="p-4">
+			<p-grid>
+				<div class="col">
+					<div class="form-group">
+						<label i18n>Name</label>
+						<p>{{ api.data.billing.contactFirstName }} {{ api.data.billing.contactLastName }}</p>
+					</div>
+				</div>
+				<div class="col">
+					<div class="form-group">
+						<label i18n>Email-Adresse</label>
+						<p>{{ api.data.billing.contactEmail }}</p>
+					</div>
+				</div>
+				<div class="col">
+					<div class="form-group">
+						<label i18n>Telefonnummer</label>
+						<p>{{ api.data.billing.contactPhone }}</p>
+					</div>
+				</div>
+			</p-grid>
+		</p-section>
+
+		<p-section label="Zahlungsinformationen" i18n-label class="p-4">
+			<p-grid>
+				<div class="col">
+					<div class="form-group">
+						<label i18n>Kontoinhaber</label>
+						<p>{{ api.data.billing.bankAccountOwner }}</p>
+					</div>
+				</div>
+				<div class="col">
+					<div class="form-group">
+						<label i18n>IBAN</label>
+						<p>{{ api.data.billing.bankAccountIban }}</p>
+					</div>
+				</div>
+				<div class="col">
+					<div class="form-group">
+						<label i18n>BIC</label>
+						<p>{{ api.data.billing.bankAccountBic }}</p>
+					</div>
+				</div>
+			</p-grid>
+			<p-form-group
+				*ngIf="!!api.data.discountCode"
+				label="Rabatt-Code" i18n-label
+			>
+				<div>{{ api.data.discountCode }}</div>
+			</p-form-group>
+			<div class="mb-5">
+				<ng-container *ngTemplateOutlet="sepaAgreementTemplate; context: {disabled: false}"></ng-container>
+			</div>
+		</p-section>
+
+		<p-section label="Kosten & Bezahlung" i18n-label class="p-4">
+			<p i18n>Unsere aktuellen Preise für die Personalplanung & das Buchungssystem samt Online-Zahlung findest du <a href="#pricing" rel="noopener" target="_blank">hier</a>.</p>
+			<h5 class="mt-5" i18n>Personalplanung</h5>
+			<p i18n>Dein persönlicher Staffelpreis wird jeden Monat neu ermittelt. Maßgeblich dafür ist die höchste Anzahl deiner User im abzurechnenden Monat.</p>
+			<h5 class="mt-5" i18n>Buchungssystem</h5>
+			<p i18n>Pro Buchung (Gutscheine, Kurse, Events usw.) berechnen wir dir einen variablen Preis (zzgl. MwSt.). So weit die Buchung Teilnehmer enthält, fällt des Weiteren ein Festpreis an. Der Festpreis ist pro teilnehmende Person zu zahlen. Der variable Preis ist ein Prozentsatz von dem in einer Buchung angegebenen Bruttobetrag, den dein Endkunde zu zahlen hat. Dabei bieten wir dir gestaffelte feste sowie variable Preise an, die sich an der Gesamtteilnehmerzahl und dem Gesamtbruttovolumen deines Betriebs pro Monat orientieren. Die für dich geltenden Preisstaffeln ermitteln wir jeden Monat neu. Falls dein Unternehmen mehrere Standorte hat, werden die Gesamtteilnehmerzahl und das Gesamtbruttovolumen jeweils pro Standort betrachtet und nicht über alle Standorte hinweg summiert. Dementsprechend erfolgt die Ermittlung der jeweils geltenden Preisstaffeln pro Standort, wodurch es also zu unterschiedlichen Preisstaffeln für die unterschiedlichen Standorte kommen kann. Anhand der ermittelten Preisstaffeln berechnen wir deine angefallenen Gebühren. Bei Angeboten wie Kursen geschieht dies immer nach Abschluss eines Kurses (bzw. des ersten Termins) – und zwar auch für stornierte Buchungen.</p>
+			<h5 class="mt-5" i18n>Online-Zahlung</h5>
+			<p i18n>Dr.&nbsp;Plano berechnet dir für jede Zahlung eine Gebühr von <mark class="nowarp">2,39 % + 0,35 €</mark>&nbsp;(zuzüglich Umsatzsteuer). Unter einer »Zahlung« sind sowohl Online-Einzahlungen durch Kunden als auch Online-Rückzahlung an deine Kunden zu verstehen. Es können noch weitere Gebühren hinzukommen. <span class="nowrap"><a routerLink="/online-payment-pricing" target="_blank" rel="noopener">Alle Gebühren anzeigen<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.NAV_FORWARD" class="ml-1"></fa-icon></a></span></p><p i18n>Dr.&nbsp;Plano zieht die angefallene Gebühr direkt von deinem Online-Guthaben ab, sodass du in der Regel keine monatliche Rechnungsbegleichung vornehmen musst. Das spart Zeit und sorgt für Zahlungssicherheit. Natürlich erhältst du monatlich eine Abrechnung mit der Übersicht, wie viel Gebühr insgesamt im Abrechnungszeitraum angefallenen ist.</p>
+			<p-alert [theme]="PThemeEnum.LIGHT" class="d-block" i18n>Aktionsrabatte oder dauerhafte Rabatte, die allgemein auf den Rechnungsbetrag von Dr.&nbsp;Plano Anwendung finden, <strong>gelten nicht</strong> für die Gebühren der Online-Zahlung – es sei denn, sie werden explizit auf die Online-Zahlungsgebühren gewährt.</p-alert>
+			<h5 class="mt-5" i18n>Rechnungsstellung & Bezahlung</h5>
+			<p i18n>Die Rechnung für einen Monat schicken wir spätestens am 15. des Folgemonats an deine hinterlegte Email-Adresse. Anschließend wird der Rechnungsbetrag per SEPA-Lastschriftverfahren eingezogen.</p>
+		</p-section>
+
+		<p-section label="AGB & Datenschutz" i18n-label class="p-4">
+			<p-form-group>
+				<label><a routerLink="/terms" rel="noopener" target="_blank" i18n>Allgemeine Geschäftsbedingungen</a> & <a routerLink="/privacy" rel="noopener" target="_blank" i18n>Datenschutzerklärung</a></label>
+				<p-checkbox
+					[(ngModel)]="agreedToTerms"
+					[required]="true"
+					valueText="Ich erkläre mich mit den Allgemeinen Geschäftsbedingungen sowie der Datenschutzerklärung einverstanden" i18n-valueText
+				></p-checkbox>
+				<p class="mt-3" i18n>Wenn du mit uns einen <strong>Auftragsverarbeitungsvertrag (AVV)</strong> abschließen möchtest, dann klicke bitte <a rel="noopener" routerLink="/personal-data-protection-regulation" target="_blank">hier</a>.</p>
+			</p-form-group>
+			<p-form-group>
+				<label><a rel="noopener" routerLink="/data-processing-agreement" target="_blank" i18n>Einwilligungserklärung</a></label>
+				<p-checkbox
+					[(ngModel)]="agreedToDataUsage"
+					[required]="true"
+					valueText="Ich erkläre mich mit der Einwilligungserklärung zur Verarbeitung meiner personenbezogenen Daten und zur Nutzung von Dr.&nbsp;Plano einverstanden." i18n-valueText
+				></p-checkbox>
+			</p-form-group>
+		</p-section>
+
+	</div>
+	<div class="modal-footer">
+		<button type="button" class="btn btn-outline-secondary" (click)="dismissConfirmModal(d)" i18n>Abbrechen</button>
+		<div
+			class="ml-auto"
+			[tooltip]="!agreedToTerms || !agreedToDataUsage ? tooltipSubscribe : undefined!"
+			#pop="bs-tooltip"
+			placement="top"
+		>
+			<button type="button" class="btn btn-primary btn-lg" (click)="c('Close click')"
+				[disabled]="!agreedToTerms || !formGroup!.controls['payment']!.controls['sepaAgreement'].value || !agreedToDataUsage"
+				i18n
+			>Zahlungspflichtig Bestellen</button>
+		</div>
+		<ng-template
+			#tooltipSubscribe
+		>
+			<div class="d-block clickable card m-0 text-left o-hidden"
+				(click)="pop.hide()"
+			>
+				<div class="card-body p-1 pl-2 pr-2">
+					<span i18n>Bitte erteile das Lastschriftmandat und bestätige die AGB und Einwilligungserklärung zur Datennutzung.</span>
+				</div>
+			</div>
+		</ng-template>
+	</div>
+</ng-template>
+
+<ng-template #sepaAgreementTemplate let-disabled="disabled">
+	<p-form-group
+		[control]="formGroup!.controls['payment']!.controls['sepaAgreement']!"
+	>
+		<div class="card card-body"
+			[class.border-success]="formGroup!.controls['payment']!.controls['sepaAgreement'].value"
+			[class.border-danger]="!formGroup!.controls['payment']!.controls['sepaAgreement'].value"
+		>
+			<p-checkbox
+				class="mb-3"
+				[disabled]="disabled"
+				[formControl]="formGroup!.controls['payment']!.controls['sepaAgreement']!"
+				valueText="Ich stimme dem folgenden SEPA-Basislastschrift-Mandat zu" i18n-valueText
+			></p-checkbox>
+			<div>
+				<p i18n>Ich ermächtige die <strong>emscon GmbH, Hilpertstraße 31, 64295 Darmstadt, Deutschland</strong>, Zahlungen von meinem Konto mittels Lastschrift einzuziehen. Zugleich weise ich mein Kreditinstitut an, die von der <strong>emscon GmbH</strong> auf mein Konto gezogenen Lastschriften einzulösen.</p>
+				<label i18n>Gläubiger-Identifikationsnummer</label>
+				<p><code>DE94ZZZ00002420464</code></p>
+				<label i18n>Mandatsreferenz</label>
+				<p i18n>{{ api.data.customerId }}</p>
+				<p class="m-0" i18n>Hinweis: Ich kann innerhalb von 8 Wochen, beginnend mit dem Belastungsdatum, die Erstattung des belasteten Betrages verlangen. Es gelten dabei die mit meinem Kreditinstitut vereinbarten Bedingungen.</p>
+			</div>
+		</div>
+	</p-form-group>
+</ng-template>
+
+<ng-template #submitSuccessModal let-c="close" let-d="dismiss">
+	<img alt="Party! Party!" i18n-alt width="100%" [src]="'images/party-party.png' | pLocalizeFile">
+	<div class="modal-footer">
+		<button type="button" class="btn btn-primary btn-lg ml-auto" (click)="onYeah();c('Close click')" i18n>Yeah!</button>
+	</div>
+</ng-template>

@@ -1,0 +1,23 @@
+<!-- NOTE: Do not remove d-inline-block from fa-icon. It will break the tooltip/popover position. -->
+<fa-icon
+	[class]="(theme ? 'text-' + theme : '') + ' d-inline-block ' + (isMobile ? 'btn btn-sm' : 'px-2')"
+	[icon]="icon"
+	[tooltip]="!isMobile ? tooltipTemplate : undefined!"
+	#pop="bs-tooltip"
+	[placement]="placement"
+	(click)="onClickIcon(pop)"
+></fa-icon>
+<ng-template #tooltipTemplate>
+	<div class="d-block clickable m-0 text-left o-hidden card {{theme ? 'bg-' + theme : ''}}"
+		(click)="pop.hide()"
+	>
+		<div *ngIf="label" class="card-header pl-2 pr-2 pt-1 pb-1">
+			<span class="title">{{ label }}</span>
+		</div>
+		<div class="card-body p-1 pl-2 pr-2">
+			<span [innerHTML]="ngContentRef?.innerHTML"></span>
+		</div>
+	</div>
+</ng-template>
+
+<span #ngContentRef class="d-none"><ng-content></ng-content></span>

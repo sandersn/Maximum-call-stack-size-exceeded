@@ -1,0 +1,56 @@
+<!-- <p-dropdown
+	class="w-100"
+	[dropdownType]="'toggle'"
+	[formControl]="control"
+	[disabled]="disabled"
+	label="{{(control.value ? control.value / 100 : control.value) | percent:'1.0-1'}}"
+>
+	<p-dropdown-item
+		*ngFor="let possibleTax of possibleTaxes.iterable()"
+		(onClick)="control.setValue(possibleTax)"
+		label="{{(possibleTax ? possibleTax / 100 : possibleTax) | percent:'1.0-1'}}"
+	></p-dropdown-item>
+</p-dropdown> -->
+
+<div
+	class="w-100"
+	dropdown
+	[autoClose]="true"
+	(click)="$event.preventDefault()"
+	[isDisabled]="disabled"
+>
+	<p-button
+		class="w-100"
+		[attributeInfo]="null"
+		dropdownToggle
+	>
+		<div class="d-flex align-items-center justify-content-between w-100">
+			<div class="flex-grow-1 d-flex align-items-center">
+				<ng-template [ngIf]="isLoading" [ngIfElse]="loaded">
+					<p-spinner class="p-1"></p-spinner>
+				</ng-template>
+				<ng-template #loaded>
+					<div
+						*ngIf="control.value === undefined"
+						i18n
+					>Bitte wählen…</div>
+					<div
+						*ngIf="control.value !== undefined"
+					>{{(control.value ? control.value / 100 : control.value) | percent:'1.0-1'}}</div>
+				</ng-template>
+			</div>
+			<fa-icon [fixedWidth]="true" [icon]="'caret-down'"></fa-icon>
+		</div>
+	</p-button>
+	<ul
+		*dropdownMenu
+		role="menu"
+		class="dropdown-menu dropdown-menu-right"
+	>
+		<li role="menuitem" *ngFor="let possibleTax of possibleTaxes.iterable()">
+			<a class="dropdown-item clickable"
+				(click)="control.setValue(possibleTax)"
+			>{{(possibleTax ? possibleTax / 100 : possibleTax) | percent:'1.0-1'}}</a>
+		</li>
+	</ul>
+</div>

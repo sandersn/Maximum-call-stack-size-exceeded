@@ -1,0 +1,105 @@
+<div class="mb-2 d-flex justify-content-start align-items-center">
+	<p-calendar-nav
+		class="mr-2"
+		[size]="BootstrapSize.SM"
+		[hideLabels]="true"
+		[calendarMode]="CalendarModes.MONTH"
+		(selectedDateChange)="onChangeDate($event)"
+		[selectedDate]="timestamp"
+		[disabled]="disabled"
+	></p-calendar-nav>
+	<h3 class="m-0 title" [class.text-muted]="disabled">{{ timestamp | calendarTitle:CalendarModes.MONTH:true }}</h3>
+	<span
+		[class.muted-item]="disabled || isLoading"
+		class="badge badge-light border position-relative rounded o-hidden ml-auto"
+		[style.background-color]="events && events.length ? events[0].color!.primary : undefined"
+	>
+		<!-- linthtml-configure class-no-dup="false" -->
+		<span
+			class="{{ (!isLoading && events && events.length ? events[0].color!.primary : undefined) | contrastTextColor }}"
+		>{{ isLoading ? '•' : (events ? events.length : '0') }}</span>
+	</span>
+</div>
+
+<div class="position-relative">
+	<div *ngIf="isLoading" class="area-blocking-spinner">
+		<p-spinner [size]="BootstrapSize.LG"></p-spinner>
+	</div>
+	<div *ngIf="disabled" class="area-blocking-spinner">
+	</div>
+
+	<mwl-calendar-month-view
+		[viewDate]="viewDate"
+		[events]="events"
+		(beforeViewRender)="beforeMonthViewRender($event)"
+		(dayClicked)="dayClicked($event.day)"
+		[activeDayIsOpen]="activeDayIsOpen"
+		[cellTemplate]="customCellTemplate"
+		[openDayEventsTemplate]="openDayEventsTemplate"
+	></mwl-calendar-month-view>
+</div>
+
+<ng-template #openDayEventsTemplate let-day="day" let-locale="locale" let-isOpen="isOpen" let-events="events">
+	<div *ngIf="isOpen" class="bg-secondary p-3">
+		<div class="list-group o-hidden shadow">
+			<div *ngFor="let event of events"
+				class="list-group-item p-0 position-relative pl-2 o-hidden"
+			>
+				<p-color-marker
+					[isLoading]="!event.color"
+					[title]="event.title"
+					[hexColor]="event.color.primary"
+					[isPacket]="event.meta.isPacket"
+				></p-color-marker>
+				<div class="d-flex align-items-center justify-content-between">
+					<p-basic-info
+						class="m-1 ml-2 mr-2"
+						[name]="event.title"
+						[start]="+event.start"
+						[end]="+event.end"
+						[showDate]="false"
+						[showTime]="true"
+						[showEndTime]="true"
+						[dateTimeHasDanger]="false"
+						[oneLine]="false"
+					></p-basic-info>
+					<p-member-badges
+						class="mr-1 ml-1"
+						[members]="event.meta.assignedMembers"
+						[emptyMemberSlots]="event.meta.emptyMemberSlots"
+						[myId]="myId"
+					></p-member-badges>
+				</div>
+				<div *ngIf="event.meta.isCourse" class="d-flex align-items-center justify-content-center">
+					<p-course-info
+						class="mr-1 ml-1"
+						[readMode]="true"
+						[isCourse]="event.meta.isCourse"
+						[courseType]="event.meta.courseType"
+						[onlyWholeCourseBookable]="event.meta.onlyWholeCourseBookable"
+						[isCourseOnline]="event.meta.isCourseOnline"
+						[isCourseCanceled]="event.meta.isCourseCanceled"
+						[minCourseParticipantCount]="event.meta.minCourseParticipantCount"
+						[currentCourseParticipantCount]="event.meta.currentCourseParticipantCount"
+						[maxCourseParticipantCount]="event.meta.maxCourseParticipantCount"
+					></p-course-info>
+				</div>
+			</div>
+		</div>
+	</div>
+</ng-template>
+
+<ng-template #customCellTemplate let-day="day" let-locale="locale">
+	<div class="cal-cell-top">
+		<span class="cal-day-number">{{ day.date | calendarDate:'monthViewDayNumber':locale }}</span>
+	</div>
+	<div class="cell-totals m-1">
+		<span
+			*ngFor="let group of day.eventGroups"
+			class="badge badge-light border position-relative rounded o-hidden"
+			[style.background-color]="group[0]"
+		>
+			<span class="{{ group[0] | contrastTextColor }}">{{ group[1].event.length }}</span>
+		</span>
+	</div>
+</ng-template>

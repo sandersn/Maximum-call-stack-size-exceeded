@@ -1,0 +1,33 @@
+<div class="form-group">
+	<div class="text-center">
+		<p-form-group [label]="label">
+			<div class="d-flex justify-content-center w-100">
+				<ng-template
+					ngFor let-weekdaysAndTitlesObject
+					[ngForOf]="pShiftAndShiftmodelFormService.weekdaysAndTitlesArray"
+				>
+					<ng-template [ngTemplateOutlet]="weekdayCheckboxTemplate"
+						[ngTemplateOutletContext]="weekdaysAndTitlesObject"
+					></ng-template>
+				</ng-template>
+				<ng-template #weekdayCheckboxTemplate let-key="key" let-title="title">
+					<p-checkbox
+						class="ml-2 mr-2"
+						[readMode]="false"
+						[disabled]="disabled"
+						[ngModel]="weekdayFormGroup.controls[key]?.value"
+						(ngModelChange)="weekdayFormGroup.controls[key]!.setValue($event)"
+						[hasButtonStyle]="false"
+						[valueText]="title | localize"
+					></p-checkbox>
+				</ng-template>
+			</div>
+		</p-form-group>
+	</div>
+	<div *ngIf="weekdayFormGroup.errors?.['min']" class="d-flex justify-content-center align-items-center">
+		<div class="form-control-feedback text-danger" i18n>Du musst mindestens {{ weekdayFormGroup.errors!['min'].min }} {weekdayFormGroup.errors!['min'].min, plural, one {Wochentag} other {Wochentage}} auswählen.</div>
+	</div>
+	<div *ngIf="weekdayFormGroup.errors?.['max']" class="d-flex justify-content-center align-items-center">
+		<div class="form-control-feedback text-danger" i18n>Du kannst maximal {{ weekdayFormGroup.errors!['max'].max }} {weekdayFormGroup.errors!['max'].max, plural, one {Wochentag} other {Wochentage}} auswählen.</div>
+	</div>
+</div>

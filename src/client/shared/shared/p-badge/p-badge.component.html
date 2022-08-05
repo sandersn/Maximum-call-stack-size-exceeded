@@ -1,0 +1,13 @@
+<ng-template [ngIf]="isLoading" [ngIfElse]="isLoadedTemplate">
+	<span>{{!!content ? content : '██'}}</span>
+</ng-template>
+<ng-template #isLoadedTemplate>
+	<ng-template [ngIf]="!!content">
+		<ng-template [ngIf]="!!icon" [ngIfElse]="textTemplate">
+			<fa-icon class="icon" [fixedWidth]="true" [icon]="icon"></fa-icon>
+		</ng-template>
+		<ng-template #textTemplate>
+			<span [innerHTML]="text"></span>
+		</ng-template>
+	</ng-template>
+</ng-template>

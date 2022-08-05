@@ -1,0 +1,14 @@
+@import "p-variables";
+
+.highlight {
+	background-color: theme-color-level("primary", -4);
+}
+
+table tr td:nth-child(2) {
+	font-family: $font-family-monospace;
+	text-align: right;
+}
+
+.table td {
+	border-color: $gray-300;
+}

@@ -1,0 +1,26 @@
+<section
+	class="wrapper"
+	[class.collapsed]="collapsed"
+	[class.expanded]="!collapsed"
+>
+	<div class="title m-0 bg-dark">
+		<a class="sidebar-menu-item d-flex align-items-center d-block clickable rounded p-2"
+			(click)="collapsed=!collapsed;collapsedChange.emit(collapsed)"
+		>
+			<h2 class="title p-0 w-100 mt-0 mb-0 ml-1 d-flex"><fa-icon
+				class="text-white"
+				[fixedWidth]="true" [icon]="!collapsed ? PlanoFaIconPool.COLLAPSIBLE_OPEN : PlanoFaIconPool.COLLAPSIBLE_CLOSE"></fa-icon> <ng-template [ngTemplateOutlet]="headerTemplate"></ng-template></h2>
+			<ng-template [ngTemplateOutlet]="optionsTemplate"></ng-template>
+		</a>
+	</div>
+	<div *ngIf="!collapsed" class="content">
+		<scroll-shadow-box
+			backgroundStyle="darker"
+			class="d-block content-inner"
+		>
+			<div class="pb-2 pr-2 pl-2 pt-0">
+				<ng-template [ngTemplateOutlet]="contentTemplate"></ng-template>
+			</div>
+		</scroll-shadow-box>
+	</div>
+</section>

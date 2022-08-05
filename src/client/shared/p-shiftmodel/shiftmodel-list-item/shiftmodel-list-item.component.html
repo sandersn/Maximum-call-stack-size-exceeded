@@ -1,0 +1,7 @@
+<p-color-marker
+	[hexColor]="hexColor"
+	[title]="label"
+	[isPacket]="isPacket"
+></p-color-marker>
+<div (click)="onClick.emit()" class="flex-grow-1 ml-3 title label">{{ label }}</div>
+<ng-content></ng-content>

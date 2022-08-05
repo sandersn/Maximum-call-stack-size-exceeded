@@ -1,0 +1,23 @@
+<div>
+	<div class="card bg-light">
+		<div class="card-header">
+			<span i18n>Eingestempelte User</span>
+		</div>
+		<table class="table">
+			<tr *ngIf="!api.data.stampedMembers.length">
+				<td i18n>Sei Erste/Erster! :-)</td>
+			</tr>
+			<tr *ngFor="let stampedMember of api.data.stampedMembers.iterable()">
+				<td>
+					<span>{{ stampedMember.firstName }} {{ stampedMember.lastName | pLimitTo : '1' }}.</span>
+				</td>
+				<td class="text-right text-monospace">
+					<span [innerHTML]="stampedMember.activityDuration | pDurationTime:null"></span>
+				</td>
+				<td>
+					<p-stopwatch-image [stampedMember]="stampedMember"></p-stopwatch-image>
+				</td>
+			</tr>
+		</table>
+	</div>
+</div>

@@ -1,0 +1,18 @@
+<p-section [label]="label"
+	[whitespace]="SectionWhitespace.NONE"
+>
+	<div class="justify-content-between align-items-center"
+		[class.d-flex]="!CONFIG.IS_MOBILE"
+	>
+		<div
+			[class.mb-3]="CONFIG.IS_MOBILE"
+		><ng-content></ng-content></div>
+		<p-delete-button
+			class="{{!CONFIG.IS_MOBILE ? 'ml-3' : ''}}"
+			[modalText]="modalText"
+			(onModalSuccess)="onRemove.emit($event)"
+			[label]="btnLabel"
+			[disabled]="disabled"
+		></p-delete-button>
+	</div>
+</p-section>

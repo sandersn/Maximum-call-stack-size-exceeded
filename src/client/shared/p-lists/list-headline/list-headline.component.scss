@@ -1,0 +1,35 @@
+@import "variables";
+
+:host {
+	display: block;
+}
+
+h6 {
+	margin-bottom: 0;
+	overflow: hidden;
+	position: relative;
+
+	&> span {
+		vertical-align: text-top;
+	}
+}
+
+li {
+	margin-bottom: 0;
+	overflow: hidden;
+	/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+	padding: 3px 1.5rem;
+	position: relative;
+	text-align: center;
+}
+
+.card-option {
+	border-color: transparent;
+}
+
+.list-group-item:first-child {
+	border-bottom-left-radius: 0;
+	border-bottom-right-radius: 0;
+	border-top-right-radius: 0;
+	border-top-left-radius: 0;
+}

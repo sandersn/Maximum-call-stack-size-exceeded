@@ -1,0 +1,63 @@
+<ng-template [ngIf]="!!item && !!item.rawData">
+	<div class="card-options">
+		<button
+			*ngIf="userCanWrite"
+			type="button"
+			class="hidden-without-hover card-option btn btn-sm btn-light btn-outline-danger ml-auto"
+			[disabled]="!api.isLoaded()"
+			(click)="removeDescriptionPrompt(removeDescriptionModalContent)"
+		><fa-icon [fixedWidth]="true" icon="trash"></fa-icon></button>
+	</div>
+	<div class="clickable pl-2 d-block btn-light"
+
+		pShiftCommentModal
+		[shift]="item"
+		[userCanWrite]="userCanWrite"
+	>
+	<!-- [beforeSaveChangesHook]="beforeSaveChangesHook" -->
+		<div class="card-body p-0">
+			<div class="p-2">
+				<p-color-marker
+					[item]="shiftModel"
+					[hexColor]="shiftModel ? '#' + shiftModel.color : null"
+					[title]="shiftModel ? shiftModel.name : undefined"
+				></p-color-marker>
+				<div class="mb-1 d-flex align-items-center">
+					<p-shift-comment-meta
+						*ngIf="todaysShiftDescription; else shiftMetaTemplate"
+						class="flex-grow-1"
+						[name]="todaysShiftDescription.name"
+						[start]="todaysShiftDescription.shiftStart"
+						[end]="todaysShiftDescription.shiftEnd"
+					></p-shift-comment-meta>
+					<ng-template #shiftMetaTemplate>
+						<p-shift-comment-meta
+							class="flex-grow-1"
+							[name]="shift!.name"
+							[start]="shift!.start"
+							[end]="shift!.end"
+							[assignedMembers]="shift!.assignedMembers"
+						></p-shift-comment-meta>
+					</ng-template>
+				</div>
+				<blockquote class="m-0" [class.text-muted]="!api.isLoaded()">
+					<span [innerHTML]="innerHTML(true)"></span>
+				</blockquote>
+			</div>
+		</div>
+	</div>
+</ng-template>
+
+<ng-template #removeDescriptionModalContent let-c="close" let-d="dismiss">
+	<p-modal-content
+		[theme]="PThemeEnum.DANGER"
+		modalTitle="Schichtkommentar löschen?" i18n-modalTitle
+		closeBtnLabel="Ja, löschen" i18n-closeBtnLabel
+		(onDismiss)="d('Cross click')"
+		(onClose)="c();"
+	>
+		<p-modal-content-body>
+			<p *ngIf="!!title && !!start" i18n>Soll der Kommentar für die Schicht {{ title }}, am {{ start | date:'fullDate' }}, um {{ start | date:'shortTime' }} wirklich gelöscht werden?</p>
+		</p-modal-content-body>
+	</p-modal-content>
+</ng-template>

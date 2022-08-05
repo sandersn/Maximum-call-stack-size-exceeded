@@ -1,0 +1,208 @@
+<div *ngIf="!courseTariffsForList.length && (!value || value === null)">
+	<div class="card">
+		<div class="card-body p-3 text-center text-muted">
+			<p class="m-0" i18n>{{ booking.model.name }} ist ein kostenloses Angebot.</p>
+		</div>
+	</div>
+</div>
+
+<ng-template [ngIf]="tariffsAreCustomizable" [ngIfElse]="tariffsAreNotCustomizable">
+	<ng-template
+		ngFor let-formGroup
+		[ngForOf]="formArray!.controls"
+		let-i="index"
+	>
+		<div class="mb-3">
+			<div class="d-flex align-items-stretch justify-content-start">
+				<div class="flex-grow-1">
+					<p-radio
+						[pEditable]="pEditable"
+						[api]="api"
+						[valid]="valid"
+						[saveChangesHook]="saveChangesHook"
+						(onSaveStart)="onSaveStart.emit($event)"
+						(onSaveSuccess)="onSaveSuccess.emit($event)"
+						(onDismiss)="onDismiss.emit($event)"
+						(onLeaveCurrent)="onLeaveCurrent.emit($event)"
+						(editMode)="editMode.emit($event)"
+
+						(checkedChange)="onClickTariffRadio(formGroup.controls['reference']!.value)"
+						[checked]="formGroup.controls['id']!.value.equals(value)"
+						[card]="true"
+						[disabled]="disabled || formGroup.controls['reference']!.disabled"
+						[required]="true"
+
+						[popover]="!(disabled || formGroup.controls['reference']!.disabled) && !booking.isNewItem() && !formGroup.controls['id']!.value.equals(value) && !(participant && participant.isNewItem()) ? popTemplateChange : undefined"
+					>
+						<!-- needsPopover(formGroup.controls['reference']!.value) -->
+						<div
+							class="d-flex justify-content-between"
+							[class.align-items-center]="!CONFIG.IS_MOBILE"
+							[class.flex-column]="CONFIG.IS_MOBILE"
+						>
+							<p class="m-0">{{ formGroup.controls['name']!.value }} <code>{{ formGroup.controls['reference']!.value.getTotalFee(participantCount) | currency }}</code></p>
+							<span class="d-flex align-items-center">
+								<p-tariff-meta-info
+									*ngIf="hasCourseDatesData(formGroup.get('reference')!.value)"
+									[negateForCourseDatesInterval]="formGroup.controls['negateForCourseDatesInterval']!.value"
+									[forCourseDatesFrom]="formGroup.controls['forCourseDatesFrom']!.value"
+									[forCourseDatesUntil]="formGroup.controls['forCourseDatesUntil']!.value"
+									isInternalLabel="Interner Tarif" i18n-isInternalLabel
+									[isInternal]="formGroup.controls['isInternal']!.value"
+								></p-tariff-meta-info>
+								<p-info-circle
+									*ngIf="tariffNotAvailableThatTime(formGroup.controls['reference']!.value)"
+									icon="exclamation-triangle"
+									textStyle="warning"
+									i18n
+								>Dieser Tarif gilt nicht zum gewählten Angebotsdatum.</p-info-circle>
+							</span>
+						</div>
+					</p-radio>
+				</div>
+				<p-button
+					[attributeInfo]="null"
+					*ngIf="showEditTariffBtn"
+
+					[popover]="!booking.isNewItem() && !(participant && participant.isNewItem()) && formGroup.controls['id']!.value.equals(value) ? popTemplateChange : (itsNotPossibleToCreateCustomTariff ? tariffsHackPopoverTemplate : undefined)"
+					placement="left"
+
+					class="ml-2 d-flex align-items-stretch"
+					(triggerClick)="toggleTariff(formGroup.controls['reference']!.value)"
+					[disabled]="editTariffBtnIsDisabled(formGroup.controls['id']!.value)"
+					[theme]="formGroup.invalid ? PThemeEnum.DANGER : null"
+				><fa-icon [fixedWidth]="true" icon="pen"></fa-icon></p-button>
+			</div>
+			<div [@slideVertical] *ngIf="isUncollapsedTariff(formGroup.controls['reference']!.value)" style="height: 0; overflow: hidden;">
+
+				<div class="mt-2 mb-5 card bg-light card-body">
+
+					<p-alert *ngIf="!!booking">
+						<span *ngIf="!!participant; else noParticipant" i18n>Du änderst gerade den Tarif für diese Person. Alle anderen Teilnehmenden bleiben davon unberührt.</span>
+						<ng-template #noParticipant>
+							<span i18n>Du änderst gerade den Tarif für diese Buchung. Alle anderen Buchungen bleiben davon unberührt.</span>
+						</ng-template>
+					</p-alert>
+
+					<p-form-group [control]="formGroup.controls['isInternal']!">
+						<p-checkbox
+							[formControl]="formGroup.controls['isInternal']!"
+							[disabled]="true"
+							[readMode]="false"
+							valueText="Nur für interne Nutzung / nicht sichtbar für Kunden bei der Online-Buchung" i18n-valueText
+						></p-checkbox>
+					</p-form-group>
+					<p-form-group [control]="formGroup.controls['isInternal']!">
+						<p-editable-modal-box
+							[disabled]="true"
+						>
+							<p-editable-modal-box-header class="pl-3 pr-3">
+								<p-tariff-meta-info
+									[negateForCourseDatesInterval]="formGroup.controls['negateForCourseDatesInterval']!.value"
+									[forCourseDatesFrom]="formGroup.controls['forCourseDatesFrom']!.value"
+									[forCourseDatesUntil]="formGroup.controls['forCourseDatesUntil']!.value"
+								></p-tariff-meta-info>
+							</p-editable-modal-box-header>
+							<p-editable-modal-box-form>
+								<p-radios
+									[formControl]="formGroup.controls['negateForCourseDatesInterval']!"
+								>
+									<p-radios-radio
+										label="Tarif gilt im folgenden Zeitraum" i18n-label
+										[icon]="PlanoFaIconPool.CALENDAR_SELECT_RELATED_SHIFTS"
+										[value]="false"
+									></p-radios-radio>
+									<p-radios-radio
+										label="Tarif gilt nicht im folgenden Zeitraum" i18n-label
+										icon="calendar-times"
+										[value]="true"
+									></p-radios-radio>
+								</p-radios>
+								<p-grid>
+									<div class="col-12 col-md-6">
+										<p-form-group
+											label="Start" i18n-label
+											[control]="formGroup.controls['forCourseDatesFrom']!"
+										>
+											<p-input-date
+												[formControl]="formGroup.controls['forCourseDatesFrom']!"
+												eraseValueBtnLabel="Ohne Begrenzung" i18n-eraseValueBtnLabel
+												[placeholder]="forCourseDatesPlaceholder(formGroup.controls['forCourseDatesFrom']!.value)"
+											></p-input-date>
+										</p-form-group>
+									</div>
+									<div class="col-12 col-md-6">
+										<p-form-group
+											label="Ende" i18n-label
+											[control]="formGroup.controls['forCourseDatesUntil']!"
+										>
+											<p-input-date
+												[formControl]="formGroup.controls['forCourseDatesUntil']!"
+												eraseValueBtnLabel="Ohne Begrenzung" i18n-eraseValueBtnLabel
+												[placeholder]="forCourseDatesPlaceholder(formGroup.controls['forCourseDatesUntil']!.value)"
+												[isExclusiveEnd]="true"
+											></p-input-date>
+										</p-form-group>
+									</div>
+								</p-grid>
+							</p-editable-modal-box-form>
+						</p-editable-modal-box>
+					</p-form-group>
+					<p-tariff-form
+						[formGroup]="$any(formGroup)"
+						[shiftModel]="booking.model"
+						[booking]="booking"
+						[api]="api"
+					></p-tariff-form>
+					<!-- (dismissFeeBox)="initFormGroup()" -->
+
+				</div>
+
+			</div>
+		</div>
+	</ng-template>
+</ng-template>
+
+<ng-template #tariffsAreNotCustomizable>
+	<p-radios
+		[pEditable]="pEditable"
+		[api]="api"
+		[valid]="valid"
+		[saveChangesHook]="saveChangesHook"
+		(onSaveStart)="onSaveStart.emit($event)"
+		(onSaveSuccess)="onSaveSuccess.emit($event)"
+		(onDismiss)="onDismiss.emit($event)"
+		(onLeaveCurrent)="onLeaveCurrent.emit($event)"
+		(editMode)="editMode.emit($event)"
+
+		[formControl]="formControl!"
+		[(ngModel)]="value"
+	>
+		<ng-template
+			ngFor let-courseTariff
+			[ngForOf]="courseTariffsForList.iterable()"
+		>
+			<p-radios-radio
+				[popover]="!tariffRadioIsDisabled(courseTariff) && !booking.isNewItem() && !courseTariff.id.equals(value!) ? popTemplateChange : undefined"
+
+				label="{{courseTariff.name}} {{courseTariff.getTotalFee(participantCount) | currency }}"
+				[value]="courseTariff.id"
+				[active]="courseTariff.id.equals(value!)"
+				[disabled]="tariffRadioIsDisabled(courseTariff)"
+			></p-radios-radio>
+		</ng-template>
+	</p-radios>
+
+</ng-template>
+
+<ng-template #popTemplateChange>
+	<div class="p-3"><ng-container *ngTemplateOutlet="popTemplateChangeText"></ng-container></div>
+</ng-template>
+
+<ng-template #tariffsHackPopoverTemplate>
+	<div class="p-3" i18n>Du musst die Buchung erstellen, bevor du den Tarif editieren kannst.</div>
+</ng-template>
+
+<ng-template #popTemplateChangeText>
+	<span i18n><strong>Änderst du das,</strong> werden buchende & teilnehmende Personen informiert, <strong>falls</strong> du automatische Emails aktiviert hast.</span>
+</ng-template>

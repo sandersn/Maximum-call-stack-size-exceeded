@@ -1,0 +1,77 @@
+<div
+	[class.card]="card"
+	[class.bg-light]="card"
+	[class.border-primary]="participant && participant.isBookingPerson"
+>
+	<ng-template
+		[ngIf]="!participant"
+		[ngIfElse]="isParticipant"
+	>
+		<div class="card-body" *ngIf="hasHeadlineData || hasAdvancedData(booking)">
+			<ng-container *ngTemplateOutlet="name; context: {$implicit: booking}"></ng-container>
+			<hr *ngIf="hasAdvancedData(booking)">
+			<div *ngIf="booking.company">{{ booking.company }}</div>
+			<div *ngIf="booking.dateOfBirth" i18n>Geburtsdatum: {{ booking.dateOfBirth | date:'mediumDate' }} <ng-template [ngIf]="bookingPersonAgeLimitWarning"><ng-container *ngTemplateOutlet="birthDateLimitWarningTemplate; context: {$implicit: bookingPersonAgeLimitWarning}"></ng-container></ng-template></div>
+			<div *ngIf="booking.phoneMobile" i18n>Mobil: {{ booking.phoneMobile }}</div>
+			<div *ngIf="booking.phoneLandline" i18n>Festnetz: {{ booking.phoneLandline }}</div>
+			<div *ngIf="email" i18n>Email: <a [href]="'mailto:' + email">{{ email }}</a></div>
+		</div>
+	</ng-template>
+	<ng-template #isParticipant>
+		<ng-container *ngTemplateOutlet="name; context: {$implicit: participant}"></ng-container>
+		<div class="card-body pt-3 pb-3"
+			[class.p-0]="!card"
+		>
+			<div *ngIf="email" i18n>Email: <a [href]="'mailto:' + email">{{ email }}</a></div>
+		</div>
+		<div *ngIf="tariffName" class="card-footer d-flex justify-content-between small">
+			<span i18n>Tarif: {{ tariffName }}</span>
+			<span class="text-monospace">{{ tariffFee | currency }}</span>
+		</div>
+	</ng-template>
+</div>
+
+<ng-template #name let-person>
+	<div class="card-options"
+		[class.card-header]="card"
+	>
+		<div class=" mr-auto d-flex justify-content-between align-items-center title"
+			[class.p-3]="card"
+			[class.w-100]="!!participant"
+		>
+			<ng-template
+				[ngIf]="!(hasHeadlineData)"
+				[ngIfElse]="showName"
+			>
+				<span class="title">-</span>
+			</ng-template>
+			<ng-template #showName>
+				<span class="title w-100 d-flex align-items-center justify-content-between"><span>{{ firstName }} {{ lastName }}</span><small class="text-primary" *ngIf="person.isBookingPerson">(<ng-container i18n>Buchende Person</ng-container>)</small></span>
+			</ng-template>
+		</div>
+			<!-- TODO: [PLANO-4467] onCopy() -->
+		<!-- <button class="btn btn-outline-secondary card-option" (click)="onCopy(participant)"><fa-icon [fixedWidth]="true" icon="clipboard"></fa-icon></button> -->
+		<button type="button"
+			*ngIf="card && onClickEdit.observers.length > 0"
+			class="btn btn-outline-secondary card-option" (click)="onClickEdit.emit(participant!)"><fa-icon [fixedWidth]="true" icon="pen"></fa-icon></button>
+
+		<button type="button"
+			[popover]="popTemplate"
+			placement="top"
+
+			*ngIf="!!participant && card && onClickRemove.observers.length > 0"
+			class="btn btn-danger card-option"
+			(click)="onClickRemove.emit(participant)"
+		><fa-icon [fixedWidth]="true" icon="trash"></fa-icon></button>
+	</div>
+
+	<ng-template #popTemplate><ng-container i18n><strong>Klickst du hierauf,</strong> ändern sich die Teilnehmendenzahl und womöglich auch der Buchungspreis. Darüber werden buchende & teilnehmende Personen informiert, <strong>falls</strong> du automatische Emails aktiviert hast.</ng-container></ng-template>
+
+</ng-template>
+
+<ng-template #birthDateLimitWarningTemplate let-text>
+	<p-info-circle
+		icon="exclamation-triangle"
+		[theme]="PThemeEnum.WARNING"
+	>{{text}}</p-info-circle>
+</ng-template>

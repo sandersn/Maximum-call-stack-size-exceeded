@@ -1,0 +1,29 @@
+@import "variables";
+
+:host {
+
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	z-index: $z-index-color-marker;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: transparent;
+	flex-direction: column;
+	width: 8px;
+}
+
+.color-marker {
+	flex-grow: 1;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	overflow: hidden;
+}
+
+.rounded-top-left {
+	border-radius: $card-border-radius 0 0 0;
+}

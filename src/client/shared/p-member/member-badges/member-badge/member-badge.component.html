@@ -1,0 +1,19 @@
+<span
+	[title]="memberName"
+	class="badge badge-pill badge-info {{size}}"
+	[class.shadow]="shadow"
+	[class.is-me]="isMe"
+	[class.is-empty]="isEmpty"
+	[class.border-primary]="borderStyle === PThemeEnum.PRIMARY"
+	[class.border-danger]="borderStyle === PThemeEnum.DANGER"
+	[class.border-warning]="borderStyle === PThemeEnum.WARNING"
+	[class.bg-primary]="backgroundStyle === PThemeEnum.PRIMARY"
+	[class.text-white]="!!backgroundStyle"
+><fa-icon
+	*ngIf="!!icon"
+	[class.mr-1]="!!badgeText"
+	[class.text-primary]="iconStyle === PThemeEnum.PRIMARY"
+	[class.text-warning]="iconStyle === PThemeEnum.WARNING"
+	[class.text-danger]="iconStyle === PThemeEnum.DANGER"
+	[icon]="icon"
+></fa-icon>{{ badgeText }}</span>

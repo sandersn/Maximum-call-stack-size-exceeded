@@ -1,0 +1,25 @@
+<div class="container-sm pb-5">
+	<h2 class="text-white" i18n>Gelöschte User-Accounts</h2>
+
+	<div
+		class="ml-auto mr-auto"
+	>
+		<ng-template
+			ngFor let-member
+			[ngForOf]="membersForList.iterable()"
+		>
+			<p-member-list-item
+				[member]="member"
+			></p-member-list-item>
+		</ng-template>
+		<ng-template [ngIf]="!membersForList.length">
+			<ng-template [ngIf]="!api.isLoaded()">
+				<p-spinner [size]="BootstrapSize.LG" class="p-4"></p-spinner>
+			</ng-template>
+			<ng-template [ngIf]="api.isLoaded()">
+				<p i18n>Keine gelöschten User-Accounts vorhanden.</p>
+			</ng-template>
+		</ng-template>
+	</div>
+
+</div>

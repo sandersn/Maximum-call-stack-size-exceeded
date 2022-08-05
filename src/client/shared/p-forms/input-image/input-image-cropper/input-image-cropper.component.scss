@@ -1,0 +1,18 @@
+@import "variables";
+
+:host {
+	display: block;
+}
+
+img {
+	width: 100%;
+}
+
+.cropper {
+	display: block !important;
+}
+
+.cropped-image-placeholder {
+	background: $dark;
+	width: 100%;
+}

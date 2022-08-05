@@ -1,0 +1,66 @@
+@import "variables";
+
+.earnings-bar-wrap {
+	width: 100%;
+	position: relative;
+}
+
+.earnings-bar {
+	height: 9px;
+	width: 100%;
+	background: rgba(0, 0, 0, 0.1);
+}
+
+.value-bar {
+	z-index: 0;
+	background: #7aba98;
+}
+
+.dot {
+	background: $darken-05;
+	border-radius: 10em;
+	height: 3px;
+	width: 3px;
+
+	.extract & {
+		background: $primary;
+		height: 5px;
+		width: 5px;
+	}
+}
+
+.value-bar,
+.desired-marker,
+.max-overlay,
+.min-overlay {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+}
+
+.desired-marker,
+.max-overlay,
+.min-overlay {
+	z-index: 1;
+}
+
+.max-overlay {
+	right: 0;
+	background: linear-gradient(90deg, $darken-02, rgba(0, 0, 0, 0.1));
+	border-left: $border-width * 2 solid $darken-03;
+
+	.extract & {
+		border-color: $primary;
+		border-width: $border-width * 4;
+	}
+}
+
+.min-overlay {
+	border-right: $border-width * 2 solid $darken-03;
+	left: 0;
+
+	.extract & {
+		border-color: $primary;
+		border-width: $border-width * 4;
+	}
+}

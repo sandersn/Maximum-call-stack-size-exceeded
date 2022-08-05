@@ -1,0 +1,63 @@
+@import "variables";
+
+:host {
+	display: flex;
+	align-items: stretch;
+
+	& > div {
+		flex-shrink: 0;
+		display: flex;
+	}
+}
+
+@media (hover: hover) {
+	:host:hover .keep-opacity-on-hover {
+		opacity: 0.5;
+	}
+}
+
+button[disabled] {
+	.checkbox-label {
+		opacity: 0.7;
+		transition: opacity 1s;
+	}
+
+	&:hover {
+		.checkbox-label {
+			opacity: 1;
+		}
+	}
+}
+
+label {
+	white-space: normal;
+}
+
+button {
+	line-height: 1.5rem;
+}
+
+.btn-outline-secondary,
+.btn-secondary {
+	&.checked fa-icon {
+		color: $primary;
+	}
+}
+
+:host.btn-group > .btn,
+:host.btn-group > .btn-group > .btn {
+	border-top-left-radius: 0.25rem;
+	border-bottom-left-radius: 0.25rem;
+	border-top-right-radius: 0.25rem;
+	border-bottom-right-radius: 0.25rem;
+}
+:host.btn-group > .btn:not(:nth-last-child(2)):not(.dropdown-toggle),
+:host.btn-group > .btn-group:not(:nth-last-child(2)) > .btn {
+	border-top-right-radius: 0;
+	border-bottom-right-radius: 0;
+}
+:host.btn-group > .btn:not(:first-child),
+:host.btn-group > .btn-group:not(:first-child) > .btn {
+	border-top-left-radius: 0;
+	border-bottom-left-radius: 0;
+}

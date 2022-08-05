@@ -1,0 +1,525 @@
+<div
+	class="card mb-1 mt-1 o-hidden"
+	[class.shadow-sm]="!process.collapsed"
+	[class.is-closed]="process.collapsed"
+>
+	<div class="card-header p-2 d-flex align-items-center justify-content-start"
+		[class.shadow-sm]="!process.collapsed"
+		[class.is-closed]="process.collapsed"
+		[class.border-bottom-0]="process.collapsed"
+		[class.clickable]="true"
+		[class.btn-light]="userCanEditAssignmentProcess"
+
+		[selected]="process.selected"
+		[affected]="process.affected"
+
+		(click)="onClickProcess.emit(process)"
+	>
+		<fa-icon
+			*ngIf="isCollapsible"
+			class="ml-1 mr-3"
+			[fixedWidth]="true"
+			[icon]="!process.collapsed ? PlanoFaIconPool.COLLAPSIBLE_OPEN : PlanoFaIconPool.COLLAPSIBLE_CLOSE"
+		></fa-icon>
+		<div style="word-break: break-word;"
+			[class.mr-1]="process.missingAssignmentsCount && process.shiftRefs.length && userCanEditAssignmentProcess"
+		>
+			<h6 class="mb-0">{{process && process.rawData ? process.name : '?'}}</h6>
+			<div *ngIf="!userCanEditAssignmentProcess || process.collapsed" class="small pt-1 d-flex align-items-start">
+				<p-assignment-process-icon
+					class="mr-1"
+					[process]="process"
+					[state]="process.state !== states.NEEDING_APPROVAL ? process.state : states.APPROVE"
+					[isOwner]="!!rightsService.isOwner"
+				></p-assignment-process-icon>
+				<div class="flex-grow-1">
+					<div class="mb-0 text-left text-style-reset-to-body">{{ processTitleForState(process) | localize }}</div>
+					<div class="text-style-reset-to-body" *ngIf="(!userCanEditAssignmentProcess || process.collapsed) && !!process.deadline"><ng-container i18n>Frist</ng-container>: {{ process.deadline | date:'shortDate' }}</div>
+				</div>
+			</div>
+		</div>
+		<ng-template [ngIf]="process.missingAssignmentsCount && process.shiftRefs.length && userCanEditAssignmentProcess">
+			<p-member-badge
+				class="ml-auto"
+				popover="Unbesetzte Schichtplätze in diesem Vorgang" i18n-popover
+				placement="top"
+
+				[text]="process.missingAssignmentsCount?.toString()"
+				size="small"
+			></p-member-badge>
+		</ng-template>
+		<ng-template [ngIf]="!process.missingAssignmentsCount && process.shiftRefs.length">
+			<fa-icon
+				class="fa-2x ml-auto"
+				icon="check-circle" style="color: #6c757d;"
+
+				popover="Alle Schichtplätze in diesem Vorgang besetzt" i18n-popover
+				placement="top"
+			></fa-icon>
+		</ng-template>
+	</div>
+
+	<!-- For performance optimization we also added *ngIf -->
+	<div
+		class="collapse"
+		[class.show]="!process.collapsed"
+		*ngIf="userCanEditAssignmentProcess && !process.collapsed"
+	>
+		<ng-container *ngTemplateOutlet="contentTemplate"></ng-container>
+	</div>
+</div>
+
+<ng-template #contentTemplate>
+	<section>
+		<p-assignment-process-type-caption
+			[process]="process"
+			[type]="process.type"
+			[state]="process.state"
+		></p-assignment-process-type-caption>
+	</section>
+
+	<section class="card-options">
+		<button
+			type="button"
+			class="btn p-2 clickable flex-grow-1 text-left border-0 rounded-0 d-block title btn-light"
+			[selected]="process.selected"
+			[affected]="process.affected"
+			(click)="selectProcess.emit(process)"
+		>
+			<div hidden><span i18n #translatedProcessButtonTitle>{!!process.shiftRefs, select, true {{{process.shiftRefs.length}}}} Schichten im Kalender anzeigen</span></div>
+			<div
+				style="line-height: 1.8;"
+				class="title"
+				[title]="translatedProcessButtonTitle.textContent!"
+			>{{ selectShiftRefsBtnLabel }}</div>
+		</button>
+
+		<div
+			[pEditable]="true"
+			class="d-flex align-items-stretch"
+			[api]="api"
+			[valid]="true"
+
+			[popover]="addAndRemovePopover!"
+			placement="top"
+		>
+			<button
+				type="button"
+				pEditableInstantSaveButton
+				class="card-option clickable btn btn-frameless d-block w-100"
+				style="min-width: 56px;"
+				(triggerClick)="onAddSelectedShifts(noShiftsHint, addShiftsWarnings)"
+				[class.btn-outline-secondary]="!someSelectedShiftsAreAddable"
+				[class.btn-primary]="someSelectedShiftsAreAddable"
+				[disabled]="showYouHaveNoRightToDoThisAlert"
+			>
+				<span
+					style="line-height: 1.7;"
+					class="nowrap"
+				><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon><span
+					*ngIf="addableSelectedShiftsAmount"
+					class="text-monospace"
+				> {{addableSelectedShiftsAmount}}</span></span>
+			</button>
+
+		</div>
+
+		<div
+			[pEditable]="true"
+			class="d-flex align-items-stretch"
+			[api]="api"
+			[valid]="true"
+			[saveChangesHook]="removeSelectedShiftsRequest(removeShiftsWarnings)!"
+
+			[popover]="addAndRemovePopover!"
+			placement="top"
+		>
+			<button
+				type="button"
+				pEditableInstantSaveButton
+				class="card-option clickable btn btn-frameless d-block w-100"
+				style="min-width: 56px;"
+				(triggerClick)="removeSelectedShifts(noShiftsHint)"
+				[class.btn-outline-secondary]="!someSelectedShiftsAreRemovable"
+				[class.btn-primary]="someSelectedShiftsAreRemovable"
+				[disabled]="showYouHaveNoRightToDoThisAlert"
+			>
+			<!-- [class.disabled]="!someSelectedShiftsAreRemovable" -->
+				<span
+					style="line-height: 1.7;"
+					class="nowrap"
+				><fa-icon [fixedWidth]="true" icon="minus"></fa-icon><span
+					*ngIf="removableSelectedShiftsAmount"
+					class="text-monospace"
+				> {{removableSelectedShiftsAmount}}</span></span>
+			</button>
+		</div>
+	</section>
+
+		<ng-template [ngIf]="!!missingPrefsMemberIdsLength && (
+			process.state === states.NEEDING_APPROVAL || process.state === states.ASKING_MEMBER_PREFERENCES
+		)">
+			<section class="p-3">
+				<div class="text-right">
+					<p class="mb-0" style="text-overflow: ellipsis; overflow: hidden;" i18n>Bei {missingPrefsMemberIdsLength > 1, select, true {diesen {{missingPrefsMemberIdsLength}} Personen} other {dieser Person}} ist die Wunschabgabe unvollständig: {{namesOfMembersThatMissedToSetWishes}}</p>
+				</div>
+			</section>
+		</ng-template>
+
+		<ng-template [ngIf]="showErneutAnfordernBtn">
+			<section class="p-3">
+				<ng-template #popoverReopenEarlyBird>
+					<span i18n>Alle Schichten dieses Verteilungsvorgangs sind bereits verteilt.</span>
+				</ng-template>
+				<div
+					[popover]="(process.state === states.EARLY_BIRD_FINISHED && assignmentStateIsAllAssigned) ? popoverReopenEarlyBird : undefined!"
+					placement="bottom"
+				>
+					<button
+						type="button"
+						class="clickable btn w-100 pl-2 pr-2"
+						(click)="onStartProcess(modalContent)"
+						[class.btn-outline-secondary]="!missingPrefsMemberIdsLength"
+						[class.btn-primary]="missingPrefsMemberIdsLength"
+						[disabled]="!process.shiftRefs.length || (process.state === states.EARLY_BIRD_FINISHED && assignmentStateIsAllAssigned)"
+					>
+						<span *ngIf="process.state === states.EARLY_BIRD_FINISHED"><svg width="1.1em" height="1.1em" viewBox="0 0 433 337" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+							<!-- Generator: Sketch 51.2 (57519) - http://www.bohemiancoding.com/sketch -->
+							<title>Früher Vogel</title>
+							<desc>Created with Sketch.</desc>
+							<defs>
+								<style>
+									.cls-1 { fill: currentColor; }
+									.cls-2,.cls-3,.cls-4,.cls-5,.cls-6 { fill: none; }
+									.cls-2,.cls-3,.cls-4,.cls-5 { stroke: #000; stroke-linecap: round; stroke-linejoin: round; }
+									.cls-2 { stroke-width: 14px; }
+									.cls-3,.cls-6 { stroke-width: 7px; }
+									.cls-4 { stroke-width: 8px; }
+									.cls-5 { stroke-width: 9px; }
+									.cls-6 { stroke: #050505; stroke-miterlimit: 10; }
+									.cls-7 { fill: #fff; }
+								</style>
+							</defs>
+							<g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+								<g id="kiwi-bird-solid-(1)" transform="translate(0.871150, 0.792120)" fill="#000000" fill-rule="nonzero">
+									<path
+										id="Shape"
+										class="cls-1"
+										d="M431.335123,139.316278 C431.55985,143.646034 431.454977,323.608088 431.454977,323.608088 C431.454977,329.083956 427.739477,333.870659 422.428409,335.219026 C421.447098,335.473718 420.450804,335.593572 419.469493,335.593572 C415.162209,335.593572 411.087144,333.263894 408.944739,329.346139 L353.204744,227.139917 C347.931131,227.491991 355.02504,227.72421 335.938155,227.72421 C295.037688,227.72421 256.242173,242.144246 221.978668,264.474702 C212.644972,270.557336 202.427346,275.299093 191.760265,279.089503 L191.760265,323.608088 C191.760265,330.230068 186.39676,335.593572 179.77478,335.593572 L167.789295,335.593572 C161.167315,335.593572 155.803811,330.230068 155.803811,323.608088 L155.803811,286.767704 C151.818637,287.104796 147.893391,287.651634 143.818326,287.651634 C131.383385,287.651634 119.367937,285.92872 107.861872,282.962313 L107.861872,323.608088 C107.861872,330.230068 102.498367,335.593572 95.8763869,335.593572 L83.8909022,335.593572 C77.2689219,335.593572 71.9054175,330.230068 71.9054175,323.608088 L71.9054175,268.182712 C28.9749093,243.30534 0.0299637118,196.973951 2.81568693e-14,143.825817 C-0.0599274236,34.6380509 96.8576985,6.8317263 110.34886,3.79040955 C153.174495,-5.88786937 193.66296,3.59564542 225.117367,25.2893728 C257.695413,47.7546657 296.221255,59.9274236 335.788337,59.9274236 L342.807336,59.9274236 C388.239814,59.9274236 428.960498,93.9437275 431.335123,139.316278 Z M143.299279,35.2993925 C85.0325631,35.2993925 35.1076431,82.5970718 35.1076431,143.313467 C35.1076431,204.029863 83.3518105,251.327542 143.299279,251.327542 C162.611438,251.327542 184.749864,245.940863 202.553406,233.94851 C245.265291,205.178056 290.075657,191.401167 338.87315,191.401167 C373.537593,191.217292 396.433346,168.39017 394.689504,141.060687 C392.945663,113.731203 370.059809,94.8325804 338.87315,94.7427287 C288.129749,94.7427287 242.130467,81.4393038 203.553406,54.3823964 C186.04073,42.0994789 164.960953,35.2993925 143.299279,35.2993925 Z M407.484008,276.602515 L407.484008,202.397382 C399.146605,210.922058 388.951452,217.491602 377.625169,221.858813 L407.484008,276.602515 Z M347.556584,165.39969 C335.646008,165.39969 325.982711,155.736393 325.982711,143.825817 C325.982711,131.906252 335.646008,122.251943 347.556584,122.251943 C359.46716,122.251943 369.130458,131.906252 369.130458,143.825817 C369.130458,155.736393 359.46716,165.39969 347.556584,165.39969 Z"
+									></path>
+								</g>
+							</g>
+						</svg>&nbsp;<span i18n>Erneut freigeben</span></span>
+						<span *ngIf="process.state === states.NEEDING_APPROVAL || process.state === states.MANUAL_SCHEDULING"><fa-icon icon="heart"></fa-icon>&nbsp;<span i18n>Erneut anfordern</span></span>
+					</button>
+				</div>
+			</section>
+		</ng-template>
+
+
+	<ng-template [ngIf]="(
+		process.state === states.ASKING_MEMBER_PREFERENCES ||
+		process.state === states.EARLY_BIRD_SCHEDULING
+	)">
+		<section class="card-body p-0">
+			<div class="d-flex justify-content-between card-options">
+				<div class="p-2 text-left" i18n>Frist</div><div class="p-2 ml-auto">{{ process.deadline | date:'shortDate' }}</div>
+				<button
+					type="button"
+					*ngIf="userCanEditAssignmentProcess"
+					class="btn btn-outline-secondary card-option border-left border-bottom-0"
+					style="line-height: 1.7;"
+					(click)="onEditDeadline(modalContent)"
+				><fa-icon [fixedWidth]="true" icon="pen"></fa-icon></button>
+			</div>
+		</section>
+	</ng-template>
+
+	<section class="card-body p-2">
+		<div class="d-flex">
+			<p-delete-button
+				class="mr-2"
+				modalText="Willst du diesen Vorgang wirklich löschen? Dieser Schritt ist unwiderruflich." i18n-modalText
+				(onModalSuccess)="removeProcess()"
+			></p-delete-button>
+
+			<ng-template [ngIf]="process.state === states.NOT_STARTED">
+				<div
+					class="flex-grow-1"
+					[popover]="!processHasWishesMode && assignmentStateIsAllAssigned ? 'Du kannst die Verteilung noch nicht freigeben, da alle Plätze der in diesem Vorgang enthaltenen Schichten bereits besetzt sind.' : undefined!"
+				>
+					<button
+						type="button"
+						class="clickable btn w-100 pl-2 pr-2"
+						(click)="onStartProcess(modalContent)"
+						[class.btn-outline-secondary]="!process.shiftRefs.length"
+						[class.btn-primary]="process.shiftRefs.length"
+						[disabled]="!process.shiftRefs.length || !processHasWishesMode && assignmentStateIsAllAssigned"
+					>
+						<span><p-assignment-process-icon
+							[process]="process"
+							[state]="process.type === types.EARLY_BIRD ? states.EARLY_BIRD_SCHEDULING : states.ASKING_MEMBER_PREFERENCES"
+							[isOwner]="!!rightsService.isOwner"
+						></p-assignment-process-icon>&nbsp;<ng-container i18n>{process.type === types.EARLY_BIRD, select, true {Schichten freigeben} other {Wünsche anfordern}}</ng-container></span>
+					</button>
+				</div>
+			</ng-template>
+			<div
+				[class.d-none]="!(
+					process.state === states.ASKING_MEMBER_PREFERENCES ||
+					process.state === states.EARLY_BIRD_SCHEDULING ||
+					process.state === states.NEEDING_APPROVAL ||
+					process.state === states.APPROVE ||
+					process.state === states.MANUAL_SCHEDULING ||
+					process.state === states.EARLY_BIRD_FINISHED
+				)"
+				[pEditable]="process.state !== states.EARLY_BIRD_FINISHED"
+				class="w-100"
+				[api]="api"
+				[valid]="!(process.state === states.ASKING_MEMBER_PREFERENCES || process.state === states.EARLY_BIRD_SCHEDULING)"
+
+				[saveChangesHook]="modalService.getEditableHook(publishWarning)"
+			>
+				<div
+					[tooltip]="process.state === states.ASKING_MEMBER_PREFERENCES || process.state === states.EARLY_BIRD_SCHEDULING ? tooltipPublish : undefined!"
+					#pop="bs-tooltip"
+					placement="bottom"
+				>
+					<button
+						type="button"
+						class="clickable btn w-100 pl-2 pr-2"
+						[class.btn-outline-secondary]="missingPrefsMemberIdsLength"
+						[class.btn-primary]="!missingPrefsMemberIdsLength"
+						[disabled]="process.state === states.ASKING_MEMBER_PREFERENCES || process.state === states.EARLY_BIRD_SCHEDULING"
+
+						pEditableInstantSaveButton
+						(triggerClick)="confirmProcess()"
+					>
+						<span *ngIf="process.state === states.EARLY_BIRD_FINISHED || process.state === states.EARLY_BIRD_SCHEDULING"><fa-icon [icon]="PlanoFaIconPool.SUCCESS"></fa-icon>&nbsp;<ng-container i18n>Abschließen</ng-container> </span>
+						<span *ngIf="!(process.state === states.EARLY_BIRD_FINISHED || process.state === states.EARLY_BIRD_SCHEDULING)"><fa-icon icon="bullhorn"></fa-icon>&nbsp;<ng-container i18n>Veröffentlichen</ng-container> </span>
+					</button>
+				</div>
+
+				<ng-template #tooltipPublish>
+					<div class="d-block clickable card m-0 text-left o-hidden"
+						(click)="pop.hide()"
+					>
+						<div class="card-body p-1 pl-2 pr-2">
+							<div [ngSwitch]="process.type">
+								<div *ngSwitchCase="types.EARLY_BIRD" i18n>Den Vorgang kannst du erst abschließen, wenn die Eintragungsfrist für deine Angestellten abgelaufen ist.</div>
+								<div *ngSwitchCase="types.MANUAL" i18n>Die Schichten kannst du erst veröffentlichen, wenn die Wunschabgabe beendet ist und du die Schichten besetzt hast.</div>
+								<div *ngSwitchDefault i18n>Die Schichten kannst du erst veröffentlichen, wenn die Wunschabgabe beendet ist und Dr.&nbsp;Plano alles verteilt hat.</div>
+							</div>
+						</div>
+					</div>
+				</ng-template>
+
+			</div>
+		</div>
+	</section>
+</ng-template>
+
+<ng-template #publishWarning let-c="close" let-d="dismiss">
+	<p-modal-header
+		title="Beachte!" i18n-title
+		(onClose)="d('Cross click')"
+	></p-modal-header>
+	<section class="modal-body">
+		<div class="p-3">
+			<p i18n>Wenn du <code>{{process && process.rawData ? process.name : '?'}}</code> veröffentlichst, wird die Schichtverteilung für alle an diesem Vorgang beteiligten Personen sichtbar und es können per Stempeluhr Arbeitszeiten erfasst werden.</p>
+			<p i18n><code>{{process && process.rawData ? process.name : '?'}}</code> ist damit abgeschlossen und wird aus deinem Schreibtisch entfernt. Dieser Schritt ist unwiderruflich. Du kannst aber jederzeit neue Vorgänge anlegen.</p>
+		</div>
+		<p-notification-conf-form
+			[(ngModel)]="api.data.notificationsConf.sendEmail"
+			[api]="api"
+			valueText="Die betroffenen Personen informieren" i18n-valueText
+		></p-notification-conf-form>
+	</section>
+	<div class="modal-footer">
+		<button
+			type="button"
+			class="btn btn-outline-secondary" (click)="d('Close click')"
+			i18n
+		>Abbrechen</button>
+		<button type="button"
+			class="btn btn-primary ml-auto"
+			(click)="c('Started');"
+			i18n
+		>OK</button>
+	</div>
+</ng-template>
+
+<ng-template #removeShiftsWarnings let-c="close" let-d="dismiss">
+	<p-modal-header
+		title="Beachte!" i18n-title
+		(onClose)="d('Cross click')"
+	></p-modal-header>
+	<div class="modal-body">
+		<ng-container *ngTemplateOutlet="partOfPaketAlertTemplate"></ng-container>
+	</div>
+	<div class="modal-footer">
+		<button type="button" class="btn btn-outline-secondary" (click)="d('Close click')" i18n>Abbrechen</button>
+		<button type="button"
+			class="btn btn-primary ml-auto"
+			(click)="c('Started');"
+			i18n
+		>OK</button>
+	</div>
+</ng-template>
+
+<ng-template #addShiftsWarnings let-c="close" let-d="dismiss">
+	<p-modal-header
+		title="Beachte!" i18n-title
+		(onClose)="d('Cross click')"
+	></p-modal-header>
+	<div class="modal-body">
+		<div *ngIf="someSlotsAreEmptyButProcessHasEnded(api.data.shifts.selectedItems)">
+			<p-alert>
+				<h5 class="d-inline" i18n>Bereits verteilt</h5>
+				<p i18n>Eine oder mehrere der Schichten, die du hinzufügen möchtest, sind nicht vollständig besetzt. Die Schichten von <mark>{{process && process.rawData ? process.name : '?'}}</mark> sind aber schon verteilt worden.</p>
+			</p-alert>
+		</div>
+		<div *ngIf="someShiftsArePartOfAProcess(api.data.shifts.selectedItems)">
+			<p-alert>
+				<h5 class="d-inline" i18n>Bereits in einem Vorgang</h5>
+				<p i18n>Eine oder mehrere Schichten sind bereits in einem anderen Vorgang enthalten. Wenn du fortfährst, werden sie dort rausgenommen.</p>
+			</p-alert>
+		</div>
+		<ng-container *ngTemplateOutlet="partOfPaketAlertTemplate"></ng-container>
+	</div>
+	<div class="modal-footer">
+		<button type="button" class="btn btn-outline-secondary" (click)="d('Close click')" i18n>Abbrechen</button>
+		<button type="button"
+			class="btn btn-primary ml-auto"
+			(click)="c('Started');"
+			i18n
+		>OK</button>
+	</div>
+</ng-template>
+
+<ng-template #noShiftsHint let-c="close" let-d="dismiss">
+	<p-modal-header
+		title="Schichtumfang ändern" i18n-title
+		(onClose)="d('Cross click')"
+	></p-modal-header>
+	<div class="modal-body">
+		<div class="p-3">
+			<span i18n>Selektiere im Kalender die Schichten, die du diesem Vorgang hinzufügen oder aus ihr rausnehmen möchtest. Klicke anschließend auf <fa-icon [icon]="PlanoFaIconPool.ADD"></fa-icon> oder <fa-icon icon="minus"></fa-icon></span>
+		</div>
+	</div>
+	<div class="modal-footer">
+		<button type="button" class="btn btn-primary ml-auto" (click)="d('Close click')">Ok</button>
+	</div>
+</ng-template>
+
+<ng-template #modalContent let-c="close" let-d="dismiss">
+	<div hidden><span i18n #translatedTitleForModalHeader>Frist {process.state === states.NEEDING_APPROVAL || process.state === states.EARLY_BIRD_FINISHED || process.state === states.MANUAL_SCHEDULING, select, true {erneut }}{process.state === states.ASKING_MEMBER_PREFERENCES, select, true {bearbeiten} other {setzen}}</span></div>
+	<p-modal-header
+		[title]="translatedTitleForModalHeader.textContent!"
+		(onClose)="d('Cross click')"
+	></p-modal-header>
+	<div class="modal-body">
+		<ng-template [ngIf]="showOnlyAskPrefsForUnassignedShiftsFormElement">
+			<section>
+				<p-radio
+					class="d-block mb-3"
+					[checked]="process.onlyAskPrefsForUnassignedShifts!"
+					(checkedChange)="process.onlyAskPrefsForUnassignedShifts=true"
+					[card]="true"
+				>
+					<div style="border-left: 1px solid #dfdfdf;" class="pl-3">
+						<span i18n>Nur für unbesetzte Schichtplätze</span><br>
+						<small i18n>Deine Angestellten geben ihre Schichtwünsche nur für Schichten mit freien Plätzen ab. Besetzte Schichtplätze werden nicht neu verteilt. Eventuell vorhandene Schichtwünsche bleiben erhalten und können korrigiert werden.</small>
+					</div>
+				</p-radio>
+
+				<p-radio
+					class="d-block mb-3"
+					[checked]="!process.onlyAskPrefsForUnassignedShifts"
+					(checkedChange)="process.onlyAskPrefsForUnassignedShifts=false"
+					[card]="true"
+				>
+					<div style="border-left: 1px solid #dfdfdf;" class="pl-3">
+						<span i18n>Für alle Schichten dieses Verteilungsvorgangs</span><br>
+						<small i18n>Deine Angestellten geben ihre Schichtwünsche für alle Schichten ab - egal ob besetzt oder unbesetzt. Eventuell vorhandene Schichtwünsche bleiben erhalten und können korrigiert werden.</small>
+					</div>
+				</p-radio>
+				<p-alert *ngIf="showAllAssignmentsGetLostWarning" [theme]="PThemeEnum.DANGER" i18n>Die aktuelle Besetzung der Schichten in diesem Verteilungsvorgang geht verloren.</p-alert>
+				<p-alert *ngIf="showAssignmentsRemainUntouchedHint" [theme]="PThemeEnum.INFO" i18n>In diesem Vorgang befinden sich besetzte Schichtplätze. Diese bleiben unangetastet.</p-alert>
+			</section>
+		</ng-template>
+		<section *ngIf="allOrNoneAssigned && (assignmentStateIsNoneAssigned || showReAssignmentWarning)">
+			<p-alert *ngIf="assignmentStateIsNoneAssigned">
+				<span i18n>Keine der Schichten in diesem Vorgang ist besetzt.</span>
+				&nbsp;
+				<span i18n>Alle Schichtplätze werden nun verteilt.</span>
+			</p-alert>
+			<p-alert *ngIf="showReAssignmentWarning" [theme]="PThemeEnum.DANGER">
+				<span i18n>Alle Schichten in diesem Vorgang sind vollständig besetzt.</span>&nbsp;<span i18n>Wenn du fortfährst, geht die aktuelle Schichtbesetzung verloren. Bereits abgegebene Schichtwünsche der Mitarbeitenden bleiben allerdings erhalten und können korrigiert werden.</span>
+			</p-alert>
+		</section>
+		<section>
+			<label i18n>Setze eine Frist für deine Mitarbeitenden:</label>
+			<div class="row mb-3">
+				<div class="col d-flex justify-content-center align-items-center">
+					<ngb-datepicker
+						[(ngModel)]="deadlineObject"
+						[startDate]="deadlineObject === '-' ? undefined! : deadlineObject"
+					></ngb-datepicker>
+				</div>
+			</div>
+			<p class="mb-2"><ng-container i18n>Deine Mitarbeitenden bekommen Zeit bis zum {{ deadlineTimestamp | date:'shortDate' }}, {{lastMinuteOfDayInTimeFormat}}.</ng-container>&nbsp;<ng-template [ngIf]="!(daysTillDeadline >= 0)"><span class="text-danger" i18n>Achtung: der ausgewählte Tag liegt in der Vergangenheit!</span>&nbsp;</ng-template><span *ngIf="daysTillDeadline >= 0" i18n>Also insgesamt <code
+				[class.text-danger]="daysTillDeadline <= 0"
+			>{{daysTillDeadlineText}}</code>.</span></p>
+
+			<p-form-group>
+				<p-checkbox
+					[(ngModel)]="process.assignMembersWhenNoPrefAvailable"
+					*ngIf="process.type === types.DR_PLANO"
+					icon="heart"
+					valueText="Mitarbeitende einteilen, wenn sie es trotz Erinnerung versäumen, ihre Schichtwünsche abzugeben" i18n-valueText
+				></p-checkbox>
+			</p-form-group>
+			<p-form-group>
+				<p-notification-conf-form
+					[(ngModel)]="api.data.notificationsConf.sendEmail"
+					[api]="api"
+					valueText="Die betroffenen Personen informieren" i18n-valueText
+				></p-notification-conf-form>
+			</p-form-group>
+		</section>
+	</div>
+	<div class="modal-footer">
+		<button
+			type="button"
+			class="btn btn-outline-secondary" (click)="d('Close click')"
+			i18n
+		>Abbrechen</button>
+		<button type="button"
+			class="btn btn-primary ml-auto"
+			(click)="c('Started');"
+			i18n
+		>Frist setzen</button>
+	</div>
+</ng-template>
+
+<ng-template #partOfPaketAlertTemplate>
+	<div *ngIf="removePackagePromptIsNecessary || addPackagePromptIsNecessary(api.data.shifts.selectedItems)">
+		<p-alert>
+			<h5 class="d-inline" i18n>Teil eines Pakets</h5>
+			<p i18n>Deine aktuelle Selektion beinhaltet Schichten, die Teil eines Pakets sind. Der Rest dieses Pakets liegt möglicherweise außerhalb des im Kalender angezeigten Zeitraums. Soll nur die aktuelle Selektion {removePackagePromptIsNecessary, select, true {aus dem Verteilungsvorgang entfernt}}{addPackagePromptIsNecessary(api.data.shifts.selectedItems), select, true {dem Verteilungsvorgang hinzugefügt}} werden oder das ganze Paket?</p>
+		</p-alert>
+		<p-radios
+			[(ngModel)]="wholePackages"
+		>
+			<p-radios-radio
+				label="Nur selektierte Schichten" i18n-label
+				[value]="false"
+			></p-radios-radio>
+			<p-radios-radio
+				label="Alle Schichten des Pakets" i18n-label
+				[value]="true"
+			></p-radios-radio>
+		</p-radios>
+	</div>
+</ng-template>

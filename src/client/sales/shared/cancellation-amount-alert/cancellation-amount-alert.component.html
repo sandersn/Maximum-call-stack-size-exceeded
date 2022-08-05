@@ -1,0 +1,8 @@
+<ng-container *ngIf="currencyAmount !== null && isAvailable(currencyAmount); else loadingTemplate">
+	<p-alert *ngIf="currencyAmount === 0" [theme]="PThemeEnum.SUCCESS" i18n>Keine Zahlung mehr fällig.</p-alert>
+	<p-alert *ngIf="currencyAmount! < 0" [theme]="PThemeEnum.WARNING"><ng-container i18n>Fällige <mark>Rückerstattung</mark> an Kunden: <mark>{{abs(currencyAmount!) | currency}}</mark></ng-container></p-alert>
+	<p-alert *ngIf="currencyAmount! > 0" [theme]="PThemeEnum.WARNING"><ng-container i18n>Fällige Zahlung durch Kunden: <mark>{{currencyAmount! | currency}}</mark></ng-container></p-alert>
+</ng-container>
+<ng-template #loadingTemplate>
+	<p-alert [theme]="PAlertThemeEnum.PLAIN" [icon]="'coffee'" class="text-muted"><ng-container i18n>Kann gerade nicht errechnet werden.</ng-container></p-alert>
+</ng-template>

@@ -1,0 +1,33 @@
+@import "variables";
+@import "~bootstrap/scss/mixins/breakpoints";
+
+.wish-picker-wrap {
+	height: 100%;
+}
+
+.wishes {
+	display: flex !important;
+	align-items: center;
+	text-align: center;
+	width: 3em;
+
+	& fa {
+		width: 100%;
+	}
+}
+
+@include media-breakpoint-down(md) {
+	.expanded {
+		&.wish-picker-wrap {
+			min-height: 3em;
+		}
+
+		.wishes {
+			width: 3em;
+		}
+	}
+}
+
+button:focus {
+	outline: transparent;
+}

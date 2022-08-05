@@ -1,0 +1,351 @@
+<ng-template [ngIf]="!!item">
+	<div class="card">
+		<div class="card-header">
+			<p-grid>
+				<div class="col-12 my-3">
+					<div class="d-flex flex-column flex-md-row justify-content-between align-items-baseline">
+						<div class="dateTime text-monospace text-muted" *ngIf="item.attributeInfoDateTime.show" title="Datum & Uhrzeit der Transaktion" i18n-title>{{item.dateTime | date:'shortDate'}} | {{item.dateTime | date:'mediumTime'}}</div>
+						<div class="typeLabel"><h3 class="m-0 mr-3" *ngIf="item.attributeInfoType.show" [innerHTML]="item.typeTitle"></h3></div>
+					</div>
+					<span
+						*ngIf="item.attributeInfoType.show"
+						class="text-muted text-style-reset-to-body"
+					><span [innerHTML]="item.typeSubTitle"></span></span>
+				</div>
+			</p-grid>
+		</div>
+		<div class="card-body">
+			<!-- payment failed -->
+			<p-alert [theme]="PThemeEnum.DANGER" *ngIf="item.type === SchedulingApiTransactionType.PAYMENT && item.failedChildId !== null">
+				<ng-container *ngIf="!item.hasChildOfTypeChargeback">
+					<ng-container i18n>Diese Zahlung schlug leider nachträglich fehl. {{ item.failedReason }} Der Betrag wurde deinem Konto wieder abgezogen.</ng-container>
+					<div class="mt-3 d-flex">
+						<p-button
+							[attributeInfo]="null"
+							(triggerClick)="navToTransaction(item.failedChildId)"
+							i18n
+						>Korrektur-Eintrag anzeigen</p-button>
+					</div>
+				</ng-container>
+
+				<ng-container *ngIf="item.hasChildOfTypeChargeback">
+					<span i18n>Für diese Zahlung gab es eine Reklamation (<a routerLink="/client/plugin/faq-online-payment" fragment="chargeback" rel="noopener" target="_blank">Chargeback</a>) durch deinen Kunden oder dessen Bank. Mehr Infos dazu hast du <strong>per Email</strong> erhalten.</span>
+					<p class="mt-3" i18n>Die mit der Reklamation zusammenhängenden Zahlungen kannst du dir hier anzeigen lassen:</p>
+					<div class="chargeback-transactions-flow">
+						<ng-container *ngIf="item.childChargebackId !== null">
+							<p-button
+								[attributeInfo]="null"
+								(triggerClick)="navToTransaction(item.childChargebackId)"
+								i18n
+							>Rückbuchung an Kunden anzeigen</p-button>
+						</ng-container>
+						<ng-container *ngIf="item.childChargebackReversedId !== null">
+							<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.CHARGEBACK_FLOW"></fa-icon>
+							<p-button
+								[attributeInfo]="null"
+								(triggerClick)="navToTransaction(item.childChargebackReversedId)"
+								i18n
+							>Rückbuchung an dich anzeigen</p-button>
+						</ng-container>
+						<ng-container *ngIf="item.childSecondChargebackId !== null">
+							<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.CHARGEBACK_FLOW"></fa-icon>
+							<p-button
+								[attributeInfo]="null"
+								(triggerClick)="navToTransaction(item.childSecondChargebackId)"
+								i18n
+							>2. Rückbuchung an Kunden anzeigen</p-button>
+						</ng-container>
+					</div>
+				</ng-container>
+			</p-alert>
+			<p-alert [theme]="PThemeEnum.WARNING" *ngIf="item.type === SchedulingApiTransactionType.PAYMENT_FAILED">
+				<ng-container i18n>Das ist die Korrektur einer fehlgeschlagenen Einzahlung. {{ item.failedReason }} Mit diesem Korrektur-Eintrag wird der Zahlungsbetrag von deinem Online-Guthaben wieder abgezogen.</ng-container>
+				<div class="mt-3 d-flex">
+					<p-button
+						*ngIf="item.parentId !== null"
+						[attributeInfo]="null"
+						(triggerClick)="navToTransaction(item.parentId)"
+						i18n
+					>Fehlgeschlagene Zahlung anzeigen</p-button>
+				</div>
+			</p-alert>
+
+			<!-- chargeback -->
+			<p-alert [theme]="PThemeEnum.WARNING" *ngIf="item.type === SchedulingApiTransactionType.CHARGEBACK">
+				<ng-container i18n>Das ist die Rückbuchung einer Zahlung, für die es eine Reklamation (<a routerLink="/client/plugin/faq-online-payment" fragment="chargeback" rel="noopener" target="_blank">Chargeback</a>) durch deinen Kunden oder dessen Bank gegeben hat.</ng-container>
+				<div class="mt-3 d-flex">
+					<p-button
+						*ngIf="item.parentId !== null"
+						[attributeInfo]="null"
+						(triggerClick)="navToTransaction(item.parentId)"
+						i18n
+					>Reklamierte Zahlung anzeigen</p-button>
+				</div>
+			</p-alert>
+
+			<!-- chargeback reversed -->
+			<p-alert [theme]="PThemeEnum.INFO" *ngIf="item.type === SchedulingApiTransactionType.CHARGEBACK_REVERSED">
+				<ng-container i18n>Eine Zahlung an dich war aufgrund einer Reklamation (<a routerLink="/client/plugin/faq-online-payment" fragment="chargeback" rel="noopener" target="_blank">Chargeback</a>) durch deinen Kunden oder dessen Bank zurückgebucht worden. Die Rückbuchung wurde angefochten und das Geld durch diesen Eintrag deinem Konto wieder gutgeschrieben.</ng-container>
+				<div class="mt-3 d-flex">
+					<p-button
+						*ngIf="item.parentId !== null"
+						[attributeInfo]="null"
+						(triggerClick)="navToTransaction(item.parentId)"
+						i18n
+					>Reklamierte Zahlung anzeigen</p-button>
+				</div>
+			</p-alert>
+
+			<!-- second chargeback -->
+			<p-alert [theme]="PThemeEnum.WARNING" *ngIf="item.type === SchedulingApiTransactionType.SECOND_CHARGEBACK">
+				<ng-container i18n>Das ist die zweite und damit <strong>nicht anfechtbare</strong> Rückbuchung einer Zahlung, für die es eine Reklamation (<a routerLink="/client/plugin/faq-online-payment" fragment="chargeback" rel="noopener" target="_blank">Chargeback</a>) durch deinen Kunden oder dessen Bank gegeben hat.</ng-container>
+				<div class="mt-3 d-flex">
+					<p-button
+						*ngIf="item.parentId !== null"
+						[attributeInfo]="null"
+						(triggerClick)="navToTransaction(item.parentId)"
+						i18n
+					>Reklamierte Zahlung anzeigen</p-button>
+				</div>
+			</p-alert>
+
+			<!-- failed auto-debit -->
+			<p-alert [theme]="PThemeEnum.DANGER" *ngIf="item.type === SchedulingApiTransactionType.AUTO_DEBIT && item.failedChildId !== null">
+				<ng-container i18n>Diese Guthaben-Aufladung schlug leider nachträglich fehl. {{ item.failedReason }} Der Betrag wurde deinem Konto wieder abgezogen.</ng-container>
+				<div class="mt-3 d-flex">
+					<p-button
+						[attributeInfo]="null"
+						(triggerClick)="navToTransaction(item.failedChildId)"
+						i18n
+					>Korrektur-Eintrag anzeigen</p-button>
+				</div>
+			</p-alert>
+			<p-alert [theme]="PThemeEnum.WARNING" *ngIf="item.type === SchedulingApiTransactionType.AUTO_DEBIT_FAILED">
+				<ng-container i18n>Das ist die Korrektur einer fehlgeschlagenen Guthaben-Aufladung. {{ item.failedReason }} Mit diesem Korrektur-Eintrag wird der Aufladungsbetrag dem Online-Guthaben wieder abgezogen.</ng-container>
+				<div class="mt-3 d-flex">
+					<p-button
+						*ngIf="item.parentId !== null"
+						[attributeInfo]="null"
+						(triggerClick)="navToTransaction(item.parentId)"
+						i18n
+					>Fehlgeschlagene Aufladung anzeigen</p-button>
+				</div>
+			</p-alert>
+
+			<!-- failed refund -->
+			<p-alert [theme]="PThemeEnum.DANGER" *ngIf="item.type === SchedulingApiTransactionType.REFUND && item.failedChildId !== null">
+				<ng-container i18n>Diese Rückerstattung schlug leider fehl. {{ item.failedReason }} Der Betrag wurde deinem Konto wieder gutgeschrieben.</ng-container>
+				<div class="mt-3 d-flex">
+					<p-button
+						[attributeInfo]="null"
+						(triggerClick)="navToTransaction(item.failedChildId)"
+						i18n
+					>Korrektur-Eintrag anzeigen</p-button>
+				</div>
+			</p-alert>
+			<p-alert [theme]="PThemeEnum.WARNING" *ngIf="item.type === SchedulingApiTransactionType.REFUND_FAILED">
+				<ng-container i18n>Das ist die Korrektur einer fehlgeschlagenen Rückerstattung. {{ item.failedReason }} Mit diesem Korrektur-Eintrag wird der Rückerstattungsbetrag deinem Konto wieder gutgeschrieben.</ng-container>
+				<div class="mt-3 d-flex">
+					<p-button
+						*ngIf="item.parentId !== null"
+						[attributeInfo]="null"
+						(triggerClick)="navToTransaction(item.parentId)"
+						i18n
+					>Fehlgeschlagene Zahlung anzeigen</p-button>
+				</div>
+			</p-alert>
+
+			<!-- failed payout -->
+			<p-alert [theme]="PThemeEnum.DANGER" *ngIf="item.type === SchedulingApiTransactionType.PAYOUT && item.failedChildId !== null">
+				<ng-container i18n>Diese Auszahlung schlug leider fehl. {{ item.failedReason }} Der Betrag wurde deinem Online-Buchungskonto wieder gutgeschrieben.</ng-container>
+				<div class="mt-3 d-flex">
+					<p-button
+						[attributeInfo]="null"
+						(triggerClick)="navToTransaction(item.failedChildId)"
+						i18n
+					>Korrektur-Eintrag anzeigen</p-button>
+				</div>
+			</p-alert>
+			<p-alert [theme]="PThemeEnum.WARNING" *ngIf="item.type === SchedulingApiTransactionType.PAYOUT_FAILED">
+				<ng-container i18n>Das ist die Korrektur einer fehlgeschlagenen Auszahlung. {{ item.failedReason }} Mit diesem Korrektur-Eintrag wird der Auszahlungsbetrag deinem Online-Buchungskonto wieder gutgeschrieben.</ng-container>
+				<div class="mt-3 d-flex">
+					<p-button
+						*ngIf="item.parentId !== null"
+						[attributeInfo]="null"
+						(triggerClick)="navToTransaction(item.parentId)"
+						i18n
+					>Fehlgeschlagene Zahlung anzeigen</p-button>
+				</div>
+			</p-alert>
+
+			<p-grid>
+				<div class="col-12 col-md-3" *ngIf="item.attributeInfoAmount.show">
+					<p-form-control-showcase
+						[isLoading]="!api.isLoaded()"
+						label="Zahlungsbetrag" label-i18n
+						[attributeInfo]="item.attributeInfoAmount"
+					></p-form-control-showcase>
+				</div>
+				<div class="col-12 col-md-5" *ngIf="item.attributeInfoDrPlanoFeeNet.show">
+					<div hidden><span i18n #translatedDrPlanoFeeLabel>{!!item.drPlanoFeeVatDeprecated, select, true {Online-Zahlungsgebühr} other {Online-Zahlungsgebühr (Netto)}}</span></div>
+					<p-form-control-showcase
+						[isLoading]="!api.isLoaded()"
+						[label]="translatedDrPlanoFeeLabel.textContent!"
+						[descriptionHTML]="!!item.drPlanoFeeVatDeprecated ? provisionOldTransactionsWithVatDescriptionTemplate : provisionDescriptionTemplate"
+						[content]="!!item.drPlanoFeeNet ? -item.drPlanoFeeNet : 0"
+						[appendContent]="drPlanoFeeDescription(item)"
+						[attributeInfo]="item.attributeInfoDrPlanoFeeNet"
+					></p-form-control-showcase>
+					<ng-template #provisionDescriptionTemplate><ng-container i18n>Falls dein Betrieb umsatzsteuerpflichtig ist, wird jeweils am Ende eines Monats die USt. aller Online-Zahlungsgebühren des Monats berechnet und gesammelt von deinem Online-Guthaben abgezogen. Mehr Infos zur Online-Zahlungsgebühr erhältst du, wenn du oben auf den Button »Aktionen« und dann auf »FAQ Online-Zahlung« klickst.</ng-container></ng-template>
+					<ng-template #provisionOldTransactionsWithVatDescriptionTemplate><ng-container i18n>Bis zum {{Config.NEW_TRANSACTION_STYLE_WITHOUT_VAT_DATE-1 | date:'shortDate'}} wurde die USt. für jede Zahlung ausgewiesen. Ab dem {{Config.NEW_TRANSACTION_STYLE_WITHOUT_VAT_DATE | date:'shortDate'}} wird die USt. jeweils am Monatsende für alle Online-Zahlungen berechnet und die Summe vom Online-Guthaben abzogen. Mehr Infos zur Online-Zahlungsgebühr und der USt.-Abrechnung erhältst du, wenn du oben auf den Button »Aktionen« und dann auf »FAQ Online-Zahlung« klickst.</ng-container></ng-template>
+				</div>
+				<div class="col-12 col-md-4" *ngIf="item.attributeInfoBalanceChange.show">
+					<p-form-control-showcase
+						[isLoading]="!api.isLoaded()"
+						label="Guthaben-Änderung" label-i18n
+						description="Hier siehst du den möglichen Einfluss dieser Zahlung auf dein Online-Guthaben. Dein Guthaben wächst unter anderem, wenn deine Kunden ihre Buchungen per Online-Zahlungsfunktion von Dr.&nbsp;Plano begleichen. Nutzt du für Rückzahlungen an deine Kunden auch die Online-Zahlungsfunktion, dann nimmt dein Guthaben ab. Mehr Infos dazu erhältst du, wenn du oben auf den Button »Aktionen« und dann auf »FAQ Online-Zahlung« klickst." i18n
+						[primitiveType]="PApiPrimitiveTypes.string"
+						[content]="balanceChange"
+						[contentTheme]="balanceChangeTheme"
+						[attributeInfo]="item.attributeInfoBalanceChange"
+						[monospace]="true"
+						></p-form-control-showcase>
+				</div>
+
+				<div class="col-12 col-md-12" *ngIf="item.attributeInfoBalance.show">
+					<p-form-control-showcase
+						[isLoading]="!api.isLoaded()"
+						label="Online-Guthaben nach dieser Zahlung" label-i18n
+						[attributeInfo]="item.attributeInfoBalance"
+						[descriptionHTML]="item.type === SchedulingApiTransactionType.PAYOUT ? balanceDescriptionTemplate : null"
+						[contentTheme]="null"
+					></p-form-control-showcase>
+					<ng-template #balanceDescriptionTemplate><ng-container i18n>Ein Teil deines Guthabens bleibt als Sicherheitsrücklage auf deinem Buchungskonto und wir nicht ausgezahlt. Mehr dazu und zur Höhe der Rücklage erfährst du in unserer FAQ zur Online-Zahlung.</ng-container></ng-template>
+				</div>
+
+				<div class="col-12 col-md-8" *ngIf="item.attributeInfoOfferName.show">
+					<p-form-control-showcase
+						[isLoading]="!api.isLoaded()"
+						label="Gebuchtes Angebot" label-i18n
+						[attributeInfo]="item.attributeInfoOfferName"
+					></p-form-control-showcase>
+				</div>
+				<div class="col-12 col-md-4" *ngIf="item.attributeInfoBookingNumber.show">
+					<p-form-control-showcase
+						[isLoading]="!api.isLoaded()"
+						label="Buchungsnummer" label-i18n
+						[attributeInfo]="item.attributeInfoBookingNumber"
+					></p-form-control-showcase>
+				</div>
+
+				<div class="col-12 col-md-12" *ngIf="item.attributeInfoBankDescription.show">
+					<p-form-control-showcase
+						[isLoading]="!api.isLoaded()"
+						label="Verwendungszweck auf dem Kontoauszug" label-i18n
+						[attributeInfo]="item.attributeInfoBankDescription"
+					></p-form-control-showcase>
+				</div>
+
+				<div class="col-12 col-md-8" *ngIf="item.attributeInfoPaymentMethodName.show">
+					<p-form-control-showcase
+						[isLoading]="!api.isLoaded()"
+						label="Zahlungsart" label-i18n
+						[icon]="paymentMethodIcon"
+						[attributeInfo]="item.attributeInfoPaymentMethodName"
+					></p-form-control-showcase>
+				</div>
+				<div class="col-12 col-md-4">
+					<p-form-control-showcase
+						[isLoading]="!api.isLoaded()"
+						label="Zahlungsnummer" label-i18n
+						[primitiveType]="PApiPrimitiveTypes.Id"
+						[content]="item.id"
+						[attributeInfo]="null"
+					></p-form-control-showcase>
+				</div>
+				<div class="col-12 col-md-12" *ngIf="item.attributeInfoCreatorId.show && !!creatorIdLabel">
+					<p-form-group
+						*ngIf="item.attributeInfoCreatorId.show"
+						[isLoading]="!api.isLoaded()"
+						[label]="creatorIdLabel | localize"
+						[readMode]="true"
+					>
+						<div class="mb-0 mb-md-3 d-flex align-items-center" *ngIf="creatorType === null">-</div>
+						<ng-container *ngIf="creatorType === 'dr-plano'">
+							<div class="mb-0 mb-md-3 d-flex align-items-center">
+								<img alt="Dr.&nbsp;Plano App" title="Dr.&nbsp;Plano" i18n-alt height="32rem" src="images/plano-logo/logo.svg">
+							</div>
+						</ng-container>
+						<div class="mb-0 mb-md-3 d-flex align-items-center" *ngIf="creatorType === 'member'">
+							<p-member-badge
+								[memberId]="creator!.id"
+								[firstName]="creator!.firstName"
+								[lastName]="creator!.lastName"
+								[isMe]="!!rightsService.isMe(creator!)"
+							></p-member-badge>
+							<span
+								class="mr-auto ml-2 text-bold"
+							>{{ creator!.firstName ? creator!.firstName : '' }} {{ creator!.lastName ? creator!.lastName : '' }}</span>
+						</div>
+					</p-form-group>
+				</div>
+
+				<div class="col-12">
+
+					<ng-template [ngIf]="api.isLoaded() && !!formGroup" [ngIfElse]="spinnerTemplate">
+						<form [formGroup]="$any(formGroup)">
+							<p-form-control-switch
+								[pEditable]="true"
+
+								label="Interne Notiz für diese Zahlung" i18n-label
+								description="Interne Notizen werden bei der Zahlung abgespeichert und können nur von Admins oder Usern eingesehen werden, die Buchungen verwalten dürfen. Außerdem werden die Notizen im Excel-Export der Zahlungen mit exportiert und können so für die Kommunikation mit der Buchhaltung verwendet werden." i18n
+								[attributeInfo]="item.attributeInfoInternalComment"
+								[group]="formGroup"
+								[type]="FormControlSwitchType.TEXTAREA"
+							></p-form-control-switch>
+						</form>
+					</ng-template>
+
+				</div>
+			</p-grid>
+		</div>
+
+	</div>
+
+	<div class="px-0 container-sm">
+		<p-grid>
+			<p-form-group
+				class="col-12 col-md-6"
+			>
+				<p-button
+					*ngIf="item.bookingId !== null"
+					[attributeInfo]="null"
+					(triggerClick)="navToBooking()"
+					i18n
+				>Dazugehörige Buchung anzeigen</p-button>
+				<p-button
+					*ngIf="item.voucherId !== null"
+					[attributeInfo]="null"
+					(triggerClick)="navToGiftCard()"
+					i18n
+				>Dazugehörigen Gutschein anzeigen</p-button>
+			</p-form-group>
+			<p-form-group
+				class="col-12 col-md-6 ml-auto"
+			>
+				<!-- TODO: [PLANO-48169] -->
+				<!-- <p-button
+					[icon]="PlanoFaIconPool.EXPORT_AS_PDF"
+					[attributeInfo]="null"
+					(triggerClick)="exportAsPdf()"
+					[theme]="PThemeEnum.DARK"
+					i18n
+				><p-todo Jira="PLANO-48169">Als PDF herunterladen</p-todo></p-button> -->
+			</p-form-group>
+		</p-grid>
+	</div>
+</ng-template>
+
+<ng-template #spinnerTemplate>
+	<p-spinner [size]="BootstrapSize.LG" class="m-3"></p-spinner>
+</ng-template>

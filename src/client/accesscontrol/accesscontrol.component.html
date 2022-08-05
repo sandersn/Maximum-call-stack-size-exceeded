@@ -1,0 +1,209 @@
+<p-page>
+		<!-- *ngIf="formGroup" -->
+		<h2 i18n>Rechteverwaltung</h2>
+
+		<p class="m-3 pb-3" i18n>Unter dem Tab »Eure Rechtegruppen« kannst du eure bestehenden Rechtegruppen editieren oder neue hinzufügen. Unter »Allgemeine Info« findest du eine generelle Darstellung der möglichen Berechtigungen für Rechtegruppen.</p>
+
+		<p-tabs>
+			<p-tab
+				label="Eure Rechtegruppen" i18n-label
+				urlName="settings"
+			>
+				<div class="mb-3" i18n>Hier editierst du deine bestehenden Rechtegruppen oder erstellst neue. In den Profilen der User kannst du sie den Rechtegruppen zuweisen. Dort entscheidest du auch, wer welche Tätigkeiten überhaupt ausüben darf.</div>
+				<ng-container *ngTemplateOutlet="accessgroupTitleBar"></ng-container>
+				<ng-template [ngIf]="api.isLoaded()">
+
+					<div class="card mb-4">
+						<div class="card-header bg-light pl-4 d-flex justify-content-between align-items-center">
+							<h6 class="title m-0 flex-grow-1" i18n>Generelle Rechte</h6>
+						</div>
+						<div class="card-body pt-0 pb-0 pl-0">
+							<ul style="list-style: none;" class="m-0 p-0">
+
+								<li class="p-0 d-flex justify-content-between align-items-center">
+									<div class="position-relative p-3 pl-4">
+										<div>
+											<label class="title m-0" i18n>Buchungssystem-Einstellungen</label>
+										</div>
+										<div class="small text-muted" i18n>Online-Zahlung, Email-Vorlagen, Kassen-Schnittstelle <a routerLink="/client/plugin" target="_blank" rel="noopener">und mehr…</a></div>
+									</div>
+
+
+									<div class="accessgroup-wrapper d-flex justify-content-end flex-grow-1"
+										*ngIf="!!selectedRightGroup"
+									>
+										<div class="w-100"
+											[pEditable]="true"
+											[api]="api"
+											(onSaveSuccess)="openToast()"
+										>
+
+											<button type="button"
+												class="btn col"
+												pEditableInstantSaveButton
+												[class.btn-primary]="selectedRightGroup.canReadAndWriteBookingSystemSettings"
+												[class.btn-outline-secondary]="!selectedRightGroup.canReadAndWriteBookingSystemSettings"
+												[class.border]="!selectedRightGroup.canReadAndWriteBookingSystemSettings"
+												(triggerClick)="selectedRightGroup.canReadAndWriteBookingSystemSettings=!selectedRightGroup.canReadAndWriteBookingSystemSettings"
+												[disabled]="!api.isLoaded() || isOwnerGroup(selectedRightGroup)"
+												title="Lese- und Schreibrecht" i18n-title
+											>
+												<fa-icon [fixedWidth]="true" icon="pen"></fa-icon>
+											</button>
+
+										</div>
+									</div>
+
+								</li>
+
+							</ul>
+						</div>
+					</div>
+
+					<ng-template
+						ngFor let-shiftModels
+						[ngForOf]="shiftModelsForList"
+					>
+						<ng-template [ngIf]="shiftModels.hasUntrashedItem">
+							<ng-container *ngTemplateOutlet="accessgroupSettings; context: {$implicit: shiftModels}"></ng-container>
+						</ng-template>
+					</ng-template>
+				</ng-template>
+			</p-tab>
+			<p-tab
+				label="Allgemeine Info" i18n-label
+				urlName="info"
+				class="p-3"
+			>
+				<ng-container *ngTemplateOutlet="legend"></ng-container>
+
+				<div class="py-4">
+					<h4 i18n>Wer darf was?</h4>
+					<ng-container i18n>Hier kannst du nachschauen, was User abhängig von den Rechten, die sie haben, machen dürfen. Generell gibt es zwei Typen von Rechtegruppen: »Admins« und »Mitarbeitende«. Für beide Gruppen kannst du unten nachschauen, welche Berechtigung sie erhalten müssen, um die gewünschte Aktion (in der ersten Spalte) ausführen zu dürfen. <strong>Ein Beispiel:</strong> Wenn du dich fragst, welche Berechtigung du einer Gruppe "Mitarbeitenden" geben musst, damit sie »Buchungen editieren« kann, gehst du zur Tabelle »Buchungssystem«, findest dort die Zeile mit der Aktion »Buchungen editieren« und siehst rechts in der Zeile, dass eine Rechtegruppe »Mitarbeitende« dafür das Recht »Buchungen verwalten« oder das »Schreibrecht« bräuchte. Anschließend kannst du <a routerLink="/client/rightgroups/settings">zu euren Rechtegruppen wechseln</a> und dort die Einstellung vornehmen. <strong>Beachte:</strong> Bekommt eine Gruppe mehrere Berechtigungen (z.B. Lese- und Schreibrecht), werden die Häkchen der betroffenen Spalten – also die Berechtigungen – summiert.</ng-container>
+				</div>
+
+				<p-rights-table></p-rights-table>
+
+			</p-tab>
+		</p-tabs>
+</p-page>
+
+<ng-template #legend>
+	<h4 i18n class="m-0">Erläuterung der Rechtetypen</h4>
+	<div class="row py-4">
+		<div class="col-12 col-lg-4 d-flex align-items-stretch">
+			<div class="card w-100">
+				<div class="card-header text-center">
+					<div><fa-icon class="large" [fixedWidth]="true" [icon]="['far','eye']"></fa-icon></div>
+					<div><label class="mb-0" i18n>Leserecht</label></div>
+				</div>
+				<div class="card-body" i18n>Das Leserecht macht die gewählten Tätigkeiten und die dazugehörigen Schichten für eine Rechtegruppe sichtbar.</div>
+			</div>
+		</div>
+		<div class="col-12 col-lg-4 d-flex align-items-stretch">
+			<div class="card w-100">
+				<div class="card-header text-center">
+					<div><fa-icon class="large" [fixedWidth]="true" [icon]="PlanoFaIconPool.ITEMS_SALES"></fa-icon></div>
+					<div><label class="mb-0" i18n>Buchungen verwalten</label></div>
+				</div>
+				<div class="card-body" i18n>Hiermit bekommt eine Gruppe das Recht, einzelne Buchungen zu bearbeiten oder manuell neue anzulegen. Dieses Recht schließt das Leserecht ein.</div>
+			</div>
+		</div>
+		<div class="col-12 col-lg-4 d-flex align-items-stretch">
+			<div class="card w-100">
+				<div class="card-header text-center">
+					<div><fa-icon class="large" [fixedWidth]="true" [icon]="PlanoFaIconPool.EDIT"></fa-icon></div>
+					<div><label class="mb-0" i18n>Schreibrecht</label></div>
+				</div>
+				<div class="card-body" i18n>Das Schreibrecht schließt das Leserecht ein. Außerdem erlaubt es, Schichten zu erstellen und zu editieren.</div>
+			</div>
+		</div>
+		<div class="col-12 col-lg-4 offset-lg-2 d-flex align-items-stretch">
+			<div class="card w-100">
+				<div class="card-header text-center">
+					<div><fa-icon class="large" [fixedWidth]="true" [icon]="PlanoFaIconPool.BOOKING_PAYMENT_STATUS"></fa-icon></div>
+					<div><label class="mb-0" i18n>Online-Rückerstattung</label></div>
+				</div>
+				<div class="card-body" i18n>Hiermit bekommt eine Gruppe das Recht, Endkunden <a	routerLink="/client/plugin/faq-online-payment" fragment="refund">per Online-Zahlung Geld zu erstatten</a> (z.B. nach Buchungsstornierungen). Dieses Recht schließt das Recht ein, Buchungen zu verwalten.</div>
+			</div>
+		</div>
+		<div class="col-12 col-lg-4 d-flex align-items-stretch">
+			<div class="card w-100">
+				<div class="card-header text-center">
+					<div><fa-icon class="large" [fixedWidth]="true" [icon]="PlanoFaIconPool.EMAIL_NOTIFICATION"></fa-icon></div>
+					<div><label class="mb-0" i18n>Benachrichtigungen</label></div>
+				</div>
+				<div class="card-body" i18n>Hiermit erhält eine Gruppe die von Dr.&nbsp;Plano verschickten Nachrichten für bereichsleitende Personen. Dieses Recht schließt das Leserecht ein.</div>
+			</div>
+		</div>
+	</div>
+</ng-template>
+<ng-template #accessgroupTitleBar>
+	<div class="mb-4">
+		<div class="d-flex justify-content-between align-items-center">
+			<div><strong *ngIf="api.isLoaded()" i18n>Wähle eine Rechtegruppe oder erstelle bei Bedarf neue:</strong></div>
+			<div class="d-flex justify-content-end flex-grow-1 px-4">
+				<ng-template [ngIf]="api.isLoaded()">
+					<p-rightgroup-header
+						class="accessgroup-wrapper ml-3"
+						[(rightGroup)]="selectedRightGroup"
+						[rightGroups]="api.data.rightGroups"
+					></p-rightgroup-header>
+				</ng-template>
+			</div>
+		</div>
+	</div>
+</ng-template>
+
+<ng-template #accessgroupSettings let-shiftModels>
+	<div class="card mb-4">
+		<div class="card-header bg-light pl-4">
+			<div class="d-flex justify-content-between align-items-center">
+				<h6 class="title m-0">{{ shiftModels.get(0).parentName }}</h6>
+				<div class="d-flex justify-content-end flex-grow-1">
+					<ng-container *ngTemplateOutlet="togglesPerGroup; context: {$implicit: shiftModels.get(0).parentName}"></ng-container>
+				</div>
+			</div>
+		</div>
+		<div class="card-body pt-0 pb-0 pl-0">
+			<ul style="list-style: none;" class="m-0 p-0">
+				<ng-template
+					ngFor let-shiftModel
+					[ngForOf]="shiftModels.iterableSortedBy('name')"
+				>
+					<li *ngIf="!shiftModel.trashed" class="p-0 d-flex justify-content-between align-items-center">
+						<div class="position-relative d-flex">
+							<p-color-marker
+								[item]="shiftModel"
+								[hexColor]="shiftModel?.color ? '#' + shiftModel.color : null"
+								[title]="shiftModel.name"
+							></p-color-marker>
+							<label class="title p-3 pl-4 m-0">{{ shiftModel.name }}</label>
+						</div>
+						<div class="d-flex justify-content-end flex-grow-1">
+							<ng-container *ngTemplateOutlet="togglesPerGroup; context: {$implicit: shiftModel}"></ng-container>
+						</div>
+					</li>
+				</ng-template>
+			</ul>
+		</div>
+	</div>
+
+	<ng-template #togglesPerGroup let-input>
+		<div class="accessgroup-wrapper d-flex justify-content-center align-items-center"
+			*ngIf="!!selectedRightGroup"
+		>
+			<div class="w-100"
+				[pEditable]="true"
+				[api]="api"
+				(onSaveSuccess)="openToast()"
+			>
+				<p-accesscontrol-toggle
+					[item]="input"
+					[rightGroup]="selectedRightGroup"
+				></p-accesscontrol-toggle>
+			</div>
+		</div>
+	</ng-template>
+
+</ng-template>

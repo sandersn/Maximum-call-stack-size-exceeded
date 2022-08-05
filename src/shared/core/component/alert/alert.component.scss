@@ -1,0 +1,98 @@
+@import "variables";
+
+:host {
+	display: block;
+	margin-bottom: map-get($spacers, 3);
+}
+
+.close {
+	color: $white;
+	line-height: 0.9;
+	text-shadow: 0 1px 0 $black;
+	padding: map-get($spacers, 3) map-get($spacers, 3);
+
+	:host.small & {
+		padding: map-get($spacers, 2);
+	}
+}
+
+// :host.alert {
+// 	color: $white;
+
+// 	h1, h2, h3, h4, h5, h6 {
+// 		color: inherit;
+// 	}
+
+// 	&.alert-light,
+// 	&.alert-plain {
+// 		background-color: $white;
+// 		border-color: $gray-300;
+// 		color: $body-color;
+
+// 		.close {
+// 			color: $body-color;
+// 			text-shadow: none;
+// 		}
+// 	}
+
+// 	&:not(.alert-plain):not(.alert-light) {
+// 		color: $lighten-09;
+
+// 		mark {
+// 			font-weight: bold;
+// 		}
+
+// 		mark,
+// 		code {
+// 			color: $white;
+// 		}
+
+// 		a {
+// 			color: $white;
+// 			text-decoration: underline;
+
+// 			@media (hover: hover) {
+// 				&:hover {
+// 					color: $white;
+// 					text-decoration: none;
+// 				}
+// 			}
+// 		}
+// 	}
+
+// 	&.alert-primary {
+// 		background: $primary;
+// 		border-color: theme-color-level("primary", 1);
+// 	}
+
+// 	&.alert-secondary {
+// 		background: $secondary;
+// 		border-color: theme-color-level("secondary", 1);
+// 	}
+
+// 	&.alert-success {
+// 		background: $success;
+// 		border-color: theme-color-level("success", 1);
+// 	}
+
+// 	&.alert-info {
+// 		background: $info;
+// 		border-color: theme-color-level("info", 1);
+// 	}
+
+// 	&.alert-warning {
+// 		background: theme-color-level("warning", 1);
+// 		border-color: theme-color-level("warning", 2);
+// 		color: #fff !important;
+// 	}
+
+// 	&.alert-danger {
+// 		background: $danger;
+// 		border-color: theme-color-level("danger", 1);
+// 	}
+
+// 	&.alert-light {
+// 		background: $light;
+// 		border-color: theme-color-level("light", 1);
+// 	}
+// }

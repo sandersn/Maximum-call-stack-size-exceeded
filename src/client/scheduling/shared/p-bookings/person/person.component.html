@@ -1,0 +1,36 @@
+<p-grid>
+	<div
+		[class.col]="!CONFIG.IS_MOBILE"
+		[class.col-12]="CONFIG.IS_MOBILE"
+		[class.mb-2]="CONFIG.IS_MOBILE"
+	>
+		<label class="mb-0" i18n>Name</label>
+		<div>{{ firstName }} {{ lastName }}</div>
+	</div>
+	<div
+		[class.col]="!CONFIG.IS_MOBILE"
+		[class.col-6]="CONFIG.IS_MOBILE"
+		[class.mb-2]="CONFIG.IS_MOBILE"
+	>
+		<label class="mb-0" i18n>Tarif</label>
+		<div>{{ tariffName }}</div>
+	</div>
+	<div
+		*ngIf="price !== null"
+		[class.col]="!CONFIG.IS_MOBILE"
+		[class.col-6]="CONFIG.IS_MOBILE"
+		[class.mb-2]="CONFIG.IS_MOBILE"
+	>
+		<label class="mb-0" i18n>Preis</label>
+		<div>{{ price | currency }}</div>
+	</div>
+	<div
+		*ngIf="additionalField"
+		[class.col-4]="!CONFIG.IS_MOBILE"
+		[class.col-12]="CONFIG.IS_MOBILE"
+		[class.mb-2]="CONFIG.IS_MOBILE"
+	>
+		<label class="mb-0">{{ additionalField }}</label>
+		<div><code style="user-select: all;">{{ additionalFieldValue }}</code></div>
+	</div>
+</p-grid>

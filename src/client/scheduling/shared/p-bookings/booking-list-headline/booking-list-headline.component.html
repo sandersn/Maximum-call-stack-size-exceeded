@@ -1,0 +1,69 @@
+<div class="booking-data-headline">
+	<p-list-headline-item
+		class="status"
+		label="Status" i18n-label
+		[isLoading]="isLoading"
+		(onToggle)="setSorter(BookingsSortedByEmum.STATE)"
+		[sortDirection]="sortedBy!==BookingsSortedByEmum.STATE ? ListSortDirection.INACTIVE : (sortedReverse ? ListSortDirection.UP : ListSortDirection.DOWN)"
+	></p-list-headline-item>
+	<p-list-headline-item
+		class="bookingNumber"
+		label="Nr." i18n-label
+		[isLoading]="isLoading"
+	></p-list-headline-item>
+	<!-- (onToggle)="setSorter(BookingsSortedByEmum.BOOKING_CODE)"
+	[sortDirection]="sortedBy!==BookingsSortedByEmum.BOOKING_CODE ? ListSortDirection.INACTIVE : (sortedReverse ? ListSortDirection.UP : ListSortDirection.DOWN)" -->
+	<p-list-headline-item
+		class="shiftModelName title"
+		label="Gebuchtes Angebot" i18n-label
+		[isLoading]="isLoading"
+	></p-list-headline-item>
+	<p-list-headline-item
+		class="bookingPerson title"
+		label="Buchende Person" i18n-label
+		[isLoading]="isLoading"
+	></p-list-headline-item>
+	<p-list-headline-item
+		class="dateOfBooking"
+		label="Buchungsdatum" i18n-label
+		[isLoading]="isLoading"
+		(onToggle)="setSorter(BookingsSortedByEmum.DATE_OF_BOOKING)"
+		[sortDirection]="sortedBy!==BookingsSortedByEmum.DATE_OF_BOOKING ? ListSortDirection.INACTIVE : (sortedReverse ? ListSortDirection.UP : ListSortDirection.DOWN)"
+	></p-list-headline-item>
+	<p-list-headline-item
+		*ngIf="!groupByCourses"
+		class="firstShiftStart"
+		label="Angebotsbeginn" i18n-label
+		[isLoading]="isLoading"
+		(onToggle)="setSorter(BookingsSortedByEmum.FIRST_SHIFT_START)"
+		[sortDirection]="sortedBy!==BookingsSortedByEmum.FIRST_SHIFT_START ? ListSortDirection.INACTIVE : (sortedReverse ? ListSortDirection.UP : ListSortDirection.DOWN)"
+	></p-list-headline-item>
+	<p-list-headline-item
+		class="participantCount"
+		label="Teilnehmende" i18n-label
+		[isLoading]="isLoading"
+	></p-list-headline-item>
+	<p-list-headline-item
+		class="price"
+		label="Preis" i18n-label
+		(onToggle)="setSorter(BookingsSortedByEmum.PRICE)"
+		[sortDirection]="sortedBy!==BookingsSortedByEmum.PRICE ? ListSortDirection.INACTIVE : (sortedReverse ? ListSortDirection.UP : ListSortDirection.DOWN)"
+		[isLoading]="isLoading"
+	></p-list-headline-item>
+	<p-list-headline-item
+		class="paymentStatus"
+		[labelIcon]="PlanoFaIconPool.AREA_TRANSACTIONS"
+		[isLoading]="isLoading"
+		(onToggle)="setSorter(BookingsSortedByEmum.PAYMENT_STATUS)"
+		[sortDirection]="sortedBy!==BookingsSortedByEmum.PAYMENT_STATUS ? ListSortDirection.INACTIVE : (sortedReverse ? ListSortDirection.UP : ListSortDirection.DOWN)"
+	></p-list-headline-item>
+
+	<span class="bookingComment">
+	</span>
+	<span class="ownerComment">
+	</span>
+</div>
+<div class="booking-controls card-options">
+	<div *ngIf="!Config.IS_MOBILE" class="card-option" style="opacity: 0;"></div>
+	<div class="card-option" style="opacity: 0;"></div>
+</div>

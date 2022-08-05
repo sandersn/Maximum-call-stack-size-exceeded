@@ -1,0 +1,46 @@
+<div class="mr-2 d-flex">
+	<p-button [attributeInfo]="null"
+		[size]="size"
+		[theme]="PBtnThemeEnum.OUTLINE_SECONDARY"
+		(triggerClick)="navPrev()"
+		[disabled]="disabled"
+		[badge]="todoLeftView"
+		[badgeAlign]="'left'"
+	><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.PREV"></fa-icon><span class="d-none d-xl-inline title"
+		*ngIf="!hideLabels"
+	>&nbsp;<ng-container i18n>Zurück</ng-container></span></p-button>
+	<div class="btn-group ml-1">
+		<p-button [attributeInfo]="null"
+			class="button-today"
+			[size]="size"
+			[theme]="viewDateIsToday ? PThemeEnum.PRIMARY : PBtnThemeEnum.OUTLINE_SECONDARY"
+			[class.active]="viewDateIsToday"
+			[disabled]="disabled"
+			[badge]="todoCurrentView"
+			(triggerClick)="navToToday()"
+		>
+			<fa-icon [fixedWidth]="true" [icon]="viewDateIsToday ? PlanoFaIconPool.RADIO_SELECTED : PlanoFaIconPool.RADIO_UNSELECTED"
+				*ngIf="hideLabels"
+			></fa-icon>
+			<fa-icon [fixedWidth]="true" [icon]="viewDateIsToday ? PlanoFaIconPool.RADIO_SELECTED : PlanoFaIconPool.RADIO_UNSELECTED" class="d-inline d-xl-none"
+				*ngIf="!hideLabels"
+			></fa-icon>
+			<span class="d-none d-xl-inline"
+				*ngIf="!hideLabels"
+				i18n="Button in calendar-nav"
+			>Heute</span>
+		</p-button>
+	</div>
+	<p-button [attributeInfo]="null"
+		class="ml-1"
+		[size]="size"
+		[theme]="PBtnThemeEnum.OUTLINE_SECONDARY"
+		(triggerClick)="navNext()"
+		[disabled]="disabled"
+		[badge]="todoRightView"
+		[badgeAlign]="'right'"
+	><span class="d-none d-xl-inline title"
+		*ngIf="!hideLabels"
+	><ng-container i18n>Vor</ng-container> </span><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.NEXT"></fa-icon>
+	</p-button>
+</div>

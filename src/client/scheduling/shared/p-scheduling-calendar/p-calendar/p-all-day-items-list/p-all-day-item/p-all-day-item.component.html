@@ -1,0 +1,117 @@
+<button
+	type="button"
+	class="item bg-all-day-item border-all-day-item text-left small title clickable"
+	[class.item-start]="isFirstItemOfItem"
+	[class.item-end]="isLastItemOfItem"
+	[class.end-of-week]="isEndOfBar"
+	[class.start-of-week]="isStartOfBar"
+	[class.border-light]="style === 'light' && !(isHighlightedItem || isHovered)"
+	[class.btn-outline-secondary]="style === 'light' && !(isHighlightedItem || isHovered)"
+	[class.bg-light]="style === 'light' && !(isHighlightedItem || isHovered)"
+	[class.text-white]="(style === 'dark' || style === 'info') || (isHighlightedItem || isHovered)"
+	[class.border-dark]="style === 'dark' && !(isHighlightedItem || isHovered)"
+	[class.btn-dark]="style === 'dark' && !(isHighlightedItem || isHovered)"
+	[class.bg-dark]="style === 'dark' && !(isHighlightedItem || isHovered)"
+	[class.border-info]="style === 'info' && !(isHighlightedItem || isHovered)"
+	[class.btn-info]="style === 'info' && !(isHighlightedItem || isHovered)"
+	[class.bg-info]="style === 'info' && !(isHighlightedItem || isHovered)"
+	[class.border-primary]="(isHighlightedItem || isHovered)"
+	[class.bg-primary]="(isHighlightedItem || isHovered)"
+	[class.bg-gradient-primary]="(isHighlightedItem || isHovered)"
+	[class.hovered]="isHovered"
+
+	[style.opacity]="muteItem ? 0.5 : 1"
+
+	(click)="onClick($event)"
+	(mouseenter)="isHovered=true"
+	(mouseleave)="isHovered=false"
+
+	[popper]="tooltipRef"
+	[popperShowOnStart]="false"
+	[popperTrigger]="NgxPopperjsTriggers.none"
+	[popperHideOnClickOutside]="false"
+	[popperPlacement]="popperPlacement"
+	[popperPositionFixed]="true"
+
+><ng-template [ngIf]="hasBarInfo" [ngIfElse]="noTitle"><ng-container *ngTemplateOutlet="titleTemplate; context: {$implicit: true}"></ng-container></ng-template><ng-template #noTitle>&nbsp;</ng-template></button>
+
+<popper-content #tooltipRef>
+	<div class="card shadow-lg m-0 o-hidden border-all-day-item"
+		[class.border-dark]="style === 'dark'"
+		[class.border-info]="style === 'info'"
+		(click)="tooltipRef.hide();"
+		style="border-radius: 0.5rem;"
+	>
+		<div class="card-header card-options bg-all-day-item"
+			[class.bg-dark]="style === 'dark'"
+			[class.bg-info]="style === 'info'"
+			[class.text-white]="(style === 'dark' || style === 'info')"
+		>
+			<div class="p-2 pl-3 pr-3 d-flex align-items-center justify-content-between mr-auto">
+				<ng-container *ngTemplateOutlet="titleTemplate; context: {$implicit: true, _title: tooltipTitle}"></ng-container>
+			</div>
+			<ng-template [ngIf]="showEditButton">
+				<button
+					type="button"
+					class="card-option btn"
+					[class.btn-outline-secondary]="style === 'light'"
+					[class.btn-dark]="style === 'dark'"
+					[class.btn-info]="style === 'info'"
+					(click)="navToDetailForm()"
+				><fa-icon [fixedWidth]="true" icon="pen"></fa-icon></button>
+			</ng-template>
+			<button
+				type="button"
+				class="card-option btn border-bottom-0"
+				[class.btn-outline-secondary]="style === 'light'"
+				[class.btn-dark]="style === 'dark'"
+				[class.btn-info]="style === 'info'"
+				(click)="onClick($event)"
+			><fa-icon [fixedWidth]="true" icon="times"></fa-icon></button>
+		</div>
+		<div class="card-body p-3 pl-3 pr-3">
+			<ng-template [ngIf]="isHoliday">
+				<div class="text-center"><span>{{ typeTitle }}</span></div>
+				<hr class="mt-2 mb-2">
+				<ng-template [ngIf]="federalState">
+					<div class="text-center">
+						<span i18n>Gilt für {!!isSwitzerland, select, true {den Kanton} other {das Bundesland}} {{ federalState }}</span> <p-info-circle [class.ml-2]="Config.IS_MOBILE" placement="top" i18n>Das Bundesland wurde anhand deiner Firmenanschrift ermittelt.</p-info-circle>
+					</div>
+					<hr class="mt-2 mb-2">
+				</ng-template>
+			</ng-template>
+
+			<ng-template [ngIf]="isAbsence">
+				<div class="d-flex align-items-center">
+					<p-member-badge
+						class="mr-2"
+						size="small"
+						[memberId]="member!.id"
+						[firstName]="member!.firstName"
+						[lastName]="member!.lastName"
+						[isMe]="!!rightsService.isMe(member!.id)"
+					></p-member-badge>
+					<ng-container *ngTemplateOutlet="titleTemplate; context: {$implicit: false}"></ng-container>
+				</div>
+				<hr class="mt-2 mb-2">
+			</ng-template>
+
+			<ng-template [ngIf]="isBirthday && !!member">Geburtstag von {{member.firstName}} 🎈</ng-template>
+
+			<div *ngIf="isHoliday || isAbsence" class="d-flex align-items-center justify-content-center text-monospace">
+				<ng-template [ngIf]="start !== end" [ngIfElse]="oneDayEventTemplate">
+					<span [innerHTML]="start"></span>
+					<fa-icon [fixedWidth]="true" icon="long-arrow-alt-right" class="ml-2 mr-2"></fa-icon>
+					<span [innerHTML]="end"></span>
+				</ng-template>
+				<ng-template #oneDayEventTemplate>
+					<span [innerHTML]="start"></span>
+				</ng-template>
+			</div>
+		</div>
+	</div>
+</popper-content>
+
+<ng-template #titleTemplate let-showIconIfAvailable let-_title="_title">
+	<span><fa-icon *ngIf="showIconIfAvailable && icon" class="mr-2" [fixedWidth]="true" [icon]="icon"></fa-icon> {{ _title ? _title : title }}</span>
+</ng-template>

@@ -1,0 +1,92 @@
+<div class="card m-0 text-left o-hidden shadow-lg"
+	style="border-radius: 0.5rem;"
+	[style.border-color]="'#' + shift.model.color"
+>
+	<ng-container *ngTemplateOutlet="cardHeader"></ng-container>
+	<ng-container *ngTemplateOutlet="detailedPacketInfo"></ng-container>
+	<ng-container *ngTemplateOutlet="processInfoTemplate"></ng-container>
+	<ng-container *ngTemplateOutlet="commentBtn"></ng-container>
+	<ng-container *ngTemplateOutlet="assignedMembersTemplate"></ng-container>
+	<ng-container *ngTemplateOutlet="quickAssignmentTemplate"></ng-container>
+	<ng-container *ngTemplateOutlet="illnessShiftExchangesListTemplate"></ng-container>
+	<ng-container *ngTemplateOutlet="linkedCourseInfoTemplate"></ng-container>
+</div>
+
+<ng-template #cardHeader>
+	<div class="card-header bg-white small position-relative p-0">
+		<p-color-marker
+			[item]="shift"
+			[title]="shift.name"
+			[hexColor]="'#' + shift.color"
+			[isPacket]="shift.isPacket"
+		></p-color-marker>
+		<div class="card-options">
+			<ng-container *ngTemplateOutlet="titleAndTime"></ng-container>
+			<div class="d-none d-lg-flex">
+				<button
+					type="button"
+					*ngIf="showEditShiftButton"
+					(click)="onClickEdit.emit({shift: shift, event: $event})"
+					class="btn btn-outline-secondary btn-light card-option border-bottom-0"
+				><fa-icon [fixedWidth]="true" [icon]="userCanWrite ? icons.EDIT : icons.MORE_INFO"></fa-icon></button>
+				<button
+					type="button"
+					(click)="onClose.emit($event)"
+					class="btn btn-outline-secondary btn-light card-option border-bottom-0"
+				><fa-icon [fixedWidth]="true" [icon]="icons.DISMISS"></fa-icon></button>
+			</div>
+		</div>
+	</div>
+</ng-template>
+
+<ng-template #detailedPacketInfo>
+	<section *ngIf="shift.packetShifts.length" class="p-0">
+		<p-packet-shifts
+			class="d-block p-1 pl-2 pr-2"
+			[clickable]="false"
+			[currentShiftId]="shift.id"
+			[packetShifts]="shift.packetShifts"
+		></p-packet-shifts>
+	</section>
+</ng-template>
+
+<ng-template #assignedMembersTemplate>
+	<section *ngIf="shift.assignedMemberIds.length > 0">
+		<p-assigned-members
+			[size]="BootstrapSize.SM"
+			[readMode]="readMode"
+			[shift]="shift"
+		></p-assigned-members>
+	</section>
+</ng-template>
+
+<ng-template #commentBtn>
+	<section *ngIf="shift.description && shift.description.length" class="card-options d-block">
+		<blockquote
+			class="flex-grow-1 text-style-reset-to-body text-left o-hidden p-2 shift-comment title"
+			[class.btn-light]="!readMode"
+			[class.btn-frameless]="!readMode"
+			[class.clickable]="!readMode"
+
+			pShiftCommentModal
+			[shift]="shift"
+			[disabled]="readMode"
+			[userCanWrite]="userCanWrite"
+		>
+			<p-sticky-note height="18" class="mr-2 text-muted"></p-sticky-note><span [innerHTML]="textToHtml(shift.description, 180)"></span>
+		</blockquote>
+	</section>
+</ng-template>
+
+<ng-template #titleAndTime>
+	<section class="title p-0 border-bottom-0">
+		<div class="title pt-2 pl-3 pr-3 pb-0 mt-0"><label
+			style="line-height: 1em;"
+		>{{ shift.name }}</label></div>
+		<div class="pb-2 pl-3 pr-3 pt-0 mt-0"
+			style="line-height: 1em;"
+		>
+			<span class="text-monospace">{{ shift.start | date:'veryShortTime' }} <fa-icon [fixedWidth]="true" icon="long-arrow-alt-right"></fa-icon> {{ shift.end | date:'veryShortTime' }}</span>
+		</div>
+	</section>
+</ng-template>

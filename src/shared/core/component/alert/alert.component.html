@@ -1,0 +1,10 @@
+<button *ngIf="dismissable" type="button" class="close ml-3" data-dismiss="alert" aria-label="Close"
+	(click)="onClose()"
+>
+	<span aria-hidden="true">&times;</span>
+</button>
+<span><fa-icon
+	*ngIf="icon"
+	class="pr-1"
+	[icon]="icon"
+></fa-icon> <ng-content></ng-content></span>

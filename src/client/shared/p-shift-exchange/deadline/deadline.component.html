@@ -1,0 +1,7 @@
+<span *ngIf="timestamp" [pTooltip]="tooltipContent" [class]="cssClasses">
+	<fa-icon
+		[fixedWidth]="true"
+		icon="exclamation-triangle"
+		class="small"
+	></fa-icon>&nbsp;{{label}}&nbsp;{{ timestamp - 1 | date:dateFormat }}
+</span>

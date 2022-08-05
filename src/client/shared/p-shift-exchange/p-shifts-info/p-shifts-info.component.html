@@ -1,0 +1,31 @@
+<p-color-marker
+	[isLoading]="!shiftModel && !(shiftModels && shiftModels.length)"
+	[items]="shiftModels"
+	[item]="shiftModel"
+	[hexColor]="shiftModel?.color ? '#' + shiftModel!.color : null"
+	[title]="shiftModel ? shiftModel.name : undefined"
+></p-color-marker>
+<ng-content select="p-shift-info-content-left"></ng-content>
+<ng-template [ngIf]="showContent" [ngIfElse]="spinnerTemplate">
+	<p-basic-info
+		class="m-1 ml-2 mr-2"
+		[name]="shiftTitle"
+		[start]="firstShiftStart"
+		[end]="lastShiftEnd"
+		[showEndTime]="showEndTime"
+		[showDate]="showDate"
+		[showTime]="showTime && !!allAtTheSameTime"
+		[dateTimeHasDanger]="dateTimeHasDanger"
+		[oneLine]="oneLine"
+		[isRemoved]="allShiftsRemoved"
+	>
+		<ng-content select="p-shift-info-content-inside-basic-info"></ng-content>
+	</p-basic-info>
+</ng-template>
+<ng-content select="p-shift-info-content-right"></ng-content>
+
+<ng-template #spinnerTemplate>
+	<div class="m-2">
+		<p-spinner></p-spinner>
+	</div>
+</ng-template>

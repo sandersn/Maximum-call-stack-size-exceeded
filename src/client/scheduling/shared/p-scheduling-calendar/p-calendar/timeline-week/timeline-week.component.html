@@ -1,0 +1,42 @@
+<div class="d-flex pb-tawk">
+	<div style="width:3em">
+		<p-timeline-separators
+			[showNumbers]="true"
+		></p-timeline-separators>
+	</div>
+	<div #timelineContainer>
+		<ng-template
+			ngFor let-weekday
+			[ngForOf]="weekdays"
+		>
+			<p-timeline-day
+				[class.cal-past]="isInThePast(weekday)"
+				class="cal-cell pb-tawk pr-2 pl-2"
+				[timestamp]="weekday"
+				*ngIf="layout.getLayout(weekday).show"
+				[style.left]="layout.getLayout(weekday).x + 'px'"
+				[style.top]="layout.getLayout(weekday).y + 'px'"
+				[style.z-index]="layout.getLayout(weekday).z.toString()"
+				[style.width]="layout.getLayout(weekday).width + 'px'"
+				[style.height]="layout.getLayout(weekday).height + pbTawk + 'px'"
+				[style.padding-bottom]="pbTawk + 'px'"
+				[insideWeekView]="true"
+			></p-timeline-day>
+			<!-- (dayClick)="dayClick.emit($event)" -->
+		</ng-template>
+
+		<ng-container *ngFor="let shift of shiftsForWeek!.iterable()">
+			<ng-template [ngIf]="layout.getLayout(shift).show">
+				<p-shift-item
+					[shift]="shift"
+					[emptyMemberSlots]="shift.emptyMemberSlots"
+					[showAsList]="false"
+					[selectable]="selectable"
+				></p-shift-item>
+			</ng-template>
+		</ng-container>
+
+		<p-timeline-now-line #nowLineRef></p-timeline-now-line>
+	</div>
+
+</div>

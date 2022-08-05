@@ -1,0 +1,71 @@
+<!-- theme="white" -->
+<p-editable-modal-box
+	#pEditableModalBox
+	[size]="'fullscreen'"
+	[theme]="readMode || !disabled ? 'white' : null"
+
+	[pEditable]="pEditable"
+	[api]="api"
+	[valid]="isValid"
+	[saveChangesHook]="saveChangesHook"
+	(onSaveStart)="onSaveStart.emit($event)"
+	(onSaveSuccess)="onSaveSuccess.emit($event)"
+	(onDismiss)="onDismiss.emit($event)"
+	(onLeaveCurrent)="onLeaveCurrent.emit($event)"
+	(editMode)="editMode.emit($event)"
+
+	(onModalOpen)="openModalSubscriber()"
+	(onModalClosed)="closeModalSubscriber()"
+	[beforeModalClose]="beforeModalClose"
+
+	[disabled]="disabled || readMode"
+	[label]="labelText!"
+	[btnLabel]="shiftPickerBtnLabel!"
+	[btnIcon]="formArray!.length < 2 ? 'plus' : null"
+>
+	<p-editable-modal-box-header class="flex-column">
+		<p-shifts-info
+			*ngFor="let shiftRef of sortedShiftRefs; let i = index"
+			class="align-self-stretch flex-grow-1"
+			[class.border-top]="i!==0"
+			[shiftId]="shiftRef.id"
+		>
+			<p-shift-info-content-left class="ml-2" *ngIf="member">
+				<p-member-badge
+					[memberId]="member.id"
+					[firstName]="member.firstName"
+					[lastName]="member.lastName"
+					[isMe]="!!isMe"
+					[size]="'small'"
+				></p-member-badge>
+			</p-shift-info-content-left>
+			<p-shift-info-content-right
+				*ngIf="showCalendarBtn"
+				class="align-self-stretch"
+			>
+				<button
+					type="button"
+					class="btn rounded-0 btn-frameless border-left btn-outline-secondary align-self-stretch card-option"
+					(click)="$event.stopPropagation();onCalendarClick(shiftRef)"
+					title="Im Kalender ansehen" i18n-title
+				>
+				<!-- *ngIf="showMultiSelectCheckbox" -->
+				<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.CALENDAR_SELECT_RELATED_SHIFTS"></fa-icon></button>
+			</p-shift-info-content-right>
+		</p-shifts-info>
+	</p-editable-modal-box-header>
+	<p-editable-modal-box-form class="flex-grow-1 d-flex flex-column">
+		<p-shift-picker
+			class="flex-grow-1 d-flex flex-column"
+			#shiftPickerRef
+			[formArray]="formArray"
+			(addItem)="addItem.emit($event)"
+			[loadDetailedItem]="loadDetailedItem"
+			[availableShifts]="availableShifts"
+			[shiftTemplate]="shiftTemplate"
+			[offersRef]="offersRef"
+			[hideAddToOffersBtn]="offersRef && !!offersRef.length"
+			(onAddShifts)="onAddShifts.emit($event)"
+		></p-shift-picker>
+	</p-editable-modal-box-form>
+</p-editable-modal-box>

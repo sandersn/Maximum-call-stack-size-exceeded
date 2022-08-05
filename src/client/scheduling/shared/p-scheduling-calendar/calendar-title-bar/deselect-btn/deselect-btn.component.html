@@ -1,0 +1,7 @@
+<button type="button"
+	*ngIf="showContent"
+	class="flex-grow-1 btn btn-sm title nowrap selected"
+	title="Schichten Deselektieren" i18n-title
+	[class.border-primary]="borderPrimary"
+	(click)="onClick()"
+><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.UNDO"></fa-icon> {{ btnText }}</button>

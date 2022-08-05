@@ -1,0 +1,367 @@
+
+	<ng-template [ngIf]="viewStyle !== ShiftItemViewStyles.DETAILED" [ngIfElse]="detailedTemplate">
+		<ng-template [ngIf]="!!shift" [ngIfElse]="spinnerTemplate">
+		<div
+			class="shift-item view-small d-block"
+			[class.muted-item]="!CONFIG.IS_MOBILE && muteItem"
+			[class.is-in-the-past]="!CONFIG.IS_MOBILE && isInThePast && !highlightService.isHighlighted(shift)"
+			[selected]="shift.selected"
+			[style.position]="highlightService.isHighlighted(shift) ? 'sticky' : 'relative'"
+			[popper]="tooltipRef"
+			[popperShowOnStart]="false"
+			[popperTrigger]="NgxPopperjsTriggers.none"
+			[popperHideOnClickOutside]="false"
+			[popperPlacement]="NgxPopperjsPlacements.AUTOSTART"
+			[popperPositionFixed]="false"
+		>
+			<p-color-marker
+				[rounded]="BootstrapRounded.LEFT"
+				[isLoading]="isLoading"
+				[hexColor]="shift.color ? '#' + shift.color : null"
+				[title]="shift.name"
+				[isPacket]="shift.isPacket"
+			></p-color-marker>
+			<ng-container [ngSwitch]="viewStyle">
+				<ng-template [ngSwitchCase]="ShiftItemViewStyles.SMALL">
+					<div class="d-flex title">
+						<ng-template [ngTemplateOutlet]="pMultiSelectCheckboxTemplate"></ng-template>
+						<p-assign-me-button
+							*ngIf="showAssignMeButton"
+							[shift]="shift"
+						></p-assign-me-button>
+						<p-basic-info
+							class="m-1 ml-2 mr-2"
+							[class.m-2]="CONFIG.IS_MOBILE"
+							[name]="name"
+							[start]="start"
+							[end]="end"
+							[showDate]="false"
+							[isRemoved]="!isLoading ? shift.isRemoved : null"
+						></p-basic-info>
+						<ng-template [ngIf]="!isLoading">
+						<div class="ml-auto d-flex align-items-center justify-content-center mr-1">
+
+							<div class="badge-bar ml-auto">
+								<!-- NOTE: Hohe prio hier -->
+								<ng-template [ngIf]="!memberIsHighlighted">
+									<ng-container *ngTemplateOutlet="shiftExchangeIconsTemplate"></ng-container>
+									<ng-container *ngTemplateOutlet="processStatusIconTemplate"></ng-container>
+								</ng-template>
+								<ng-container *ngTemplateOutlet="memberBadgesTemplate"></ng-container>
+								<!-- NOTE: Niedrige prio hier -->
+								<div class="wishes" *ngIf="showWishesIconForMember">
+									<p-member-wish-icon [shift]="shift"></p-member-wish-icon>
+								</div>
+							</div>
+
+						</div>
+						</ng-template>
+					</div>
+					<ng-template [ngIf]="!isLoading">
+					<ng-template [ngIf]="showCourseInfo">
+						<ng-container *ngTemplateOutlet="courseInfo"></ng-container>
+					</ng-template>
+					</ng-template>
+				</ng-template>
+				<ng-template [ngSwitchCase]="ShiftItemViewStyles.MULTI_SELECT">
+					<div class="d-flex">
+						<ng-template [ngIf]="viewStyle === ShiftItemViewStyles.MULTI_SELECT">
+							<ng-template [ngTemplateOutlet]="pMultiSelectCheckboxTemplate"></ng-template>
+						</ng-template>
+						<p-basic-info
+							class="m-1 ml-2 mr-2"
+							[name]="shift.name"
+							[start]="shift.start"
+							[end]="shift.end"
+							[showDate]="false"
+							[isRemoved]="shift.isRemoved"
+						></p-basic-info>
+					</div>
+					<p-minimal-packet-info
+						[packetShiftsLength]="shift.packetShifts.length"
+						[shiftIndex]="shift.id.shiftIndex"
+					></p-minimal-packet-info>
+					<ng-container *ngTemplateOutlet="courseInfo"></ng-container>
+				</ng-template>
+				<ng-template [ngSwitchCase]="ShiftItemViewStyles.MEDIUM_MULTI_SELECT">
+					<div class="card-header small position-relative p-0 pl-2">
+						<ng-template [ngTemplateOutlet]="pMultiSelectCheckboxTemplate"></ng-template>
+						<ng-container *ngTemplateOutlet="titleAndTime"></ng-container>
+					</div>
+
+					<ng-container *ngTemplateOutlet="detailedPacketInfo"></ng-container>
+					<ng-container *ngTemplateOutlet="courseInfo"></ng-container>
+				</ng-template>
+				<ng-template [ngSwitchCase]="ShiftItemViewStyles.MEDIUM">
+					<div class="card-header small position-relative p-0 pl-2">
+						<ng-container *ngTemplateOutlet="titleAndTime"></ng-container>
+					</div>
+
+					<ng-container *ngTemplateOutlet="detailedPacketInfo"></ng-container>
+					<ng-container *ngTemplateOutlet="courseInfo"></ng-container>
+				</ng-template>
+				<div *ngSwitchDefault><small class="text-muted" i18n>error. viewStyle: {viewStyle === undefined, select, true {undefined} other {{{viewStyle}}}}</small></div>
+			</ng-container>
+		</div>
+		</ng-template>
+	</ng-template>
+
+	<ng-template #detailedTemplate>
+		<ng-template [ngIf]="!isLoading" [ngIfElse]="spinnerTemplate">
+		<div
+			class="o-hidden shift-item d-block"
+			[class.highlighted]="!CONFIG.IS_MOBILE && highlightService.isHighlighted(shift)"
+			[class.muted-item]="!CONFIG.IS_MOBILE ? muteItem : false"
+			[style.position]="!CONFIG.IS_MOBILE && highlightService.isHighlighted(shift) ? 'sticky' : 'relative'"
+			[class.is-in-the-past]="!CONFIG.IS_MOBILE && isInThePast && !highlightService.isHighlighted(shift)"
+		>
+			<div class="card-header position-relative p-0"
+				[selected]="shift.selected"
+			>
+				<p-color-marker
+					rounded="top-left"
+					[item]="shift"
+					[title]="shift.name"
+					[hexColor]="shift.color ? '#' + shift.color : null"
+					[isPacket]="shift.isPacket"
+				></p-color-marker>
+				<div class="card-options align-items-stretch pl-2"
+					[class.justify-content-start]="CONFIG.IS_MOBILE"
+					[class.justify-content-stretch]="CONFIG.IS_MOBILE"
+				>
+					<ng-template [ngTemplateOutlet]="pMultiSelectCheckboxTemplate"></ng-template>
+					<div *ngIf="showWishesIconForMember" class="d-flex align-items-center">
+						<div class="wishes"><p-member-wish-icon
+							[shift]="shift"
+						></p-member-wish-icon></div>
+					</div>
+
+					<p-assign-me-button
+						*ngIf="showAssignMeButton"
+						[shift]="shift"
+					></p-assign-me-button>
+					<div class="flex-grow-1" [class.bg-white]="!shift.selected && !muteItem || CONFIG.IS_MOBILE">
+						<ng-container *ngTemplateOutlet="titleAndTime"></ng-container>
+					</div>
+					<div class="d-flex bg-white rounded-right">
+						<button
+							type="button"
+							*ngIf="!CONFIG.IS_MOBILE && userCanRead"
+							(click)="onClickEdit.emit({shift: shift, event: $event})"
+							class="btn btn-outline-secondary card-option border-bottom-0"
+						><fa-icon [fixedWidth]="true" [icon]="userCanWrite ? icons.EDIT : icons.MORE_INFO"></fa-icon></button>
+					</div>
+				</div>
+			</div>
+			<ng-container *ngTemplateOutlet="detailedPacketInfo"></ng-container>
+			<ng-container *ngTemplateOutlet="processInfoTemplate"></ng-container>
+			<ng-container *ngTemplateOutlet="assignedMembersTemplate"></ng-container>
+			<ng-container *ngTemplateOutlet="quickAssignmentTemplate"></ng-container>
+			<ng-container *ngTemplateOutlet="illnessShiftExchangesListTemplate"></ng-container>
+			<ng-container *ngTemplateOutlet="commentBtn"></ng-container>
+			<div *ngIf="CONFIG.IS_MOBILE" class="bg-white">
+				<ng-container *ngTemplateOutlet="courseInfo"></ng-container>
+			</div>
+			<ng-template [ngIf]="showCourseInfo">
+				<ng-container *ngTemplateOutlet="linkedCourseInfoTemplate"></ng-container>
+			</ng-template>
+		</div>
+
+		<ng-template #commentBtn>
+			<section *ngIf="shift.description && shift.description.length">
+				<button
+					type="button"
+					class="btn btn-outline-secondary border-0 rounded-0 p-1 w-100 title o-hidden text-left d-flex"
+
+					pShiftCommentModal
+					[shift]="shift"
+					[userCanWrite]="!!userCanWrite"
+
+				><p-sticky-note height="18" class="ml-2"></p-sticky-note><span class="flex-grow-1 ml-2 title">{{shift.description}}</span></button>
+			</section>
+		</ng-template>
+
+		<ng-template #modalContent let-c="close" let-d="dismiss">
+			<p-modal-content
+				modalTitle="Kommentar" i18n-modalTitle
+				(onDismiss)="d('Cross click')"
+				(onClose)="c('Started');"
+			>
+				<p-modal-content-body>
+					<div class="mb-1"><p-shift-comment-meta
+						[name]="shift.name"
+						[start]="shift.start"
+						[end]="shift.end"
+					></p-shift-comment-meta></div>
+
+					<textarea
+						style="min-height: 10em;"
+						class="form-control"
+						[(ngModel)]="shift.description"
+						[disabled]="isLoading || !userCanWrite"
+					></textarea>
+					<!-- <div [innerHTML]="shift.description"></div> -->
+					<!-- <p-textarea
+						[(ngModel)]="shift.description"
+						[disabled]="true"
+					></p-textarea> -->
+				</p-modal-content-body>
+				<p-modal-content-footer>
+					<ng-template
+						[ngIf]="userCanWrite"
+						[ngIfElse]="justClose"
+					>
+						<button type="button" class="btn btn-outline-secondary mr-auto"
+							(click)="d('Started');"
+							i18n
+						>Abbrechen</button>
+						<button type="button" class="btn ml-auto"
+							[class.btn-primary]="shift.description?.length"
+							[class.btn-danger]="!shift.description?.length"
+							(click)="c()"
+							i18n
+						>Speichern</button>
+					</ng-template>
+					<ng-template #justClose>
+						<button type="button" class="btn btn-outline-secondary ml-auto" (click)="d('Started');"
+						>OK</button>
+					</ng-template>
+				</p-modal-content-footer>
+			</p-modal-content>
+		</ng-template>
+		</ng-template>
+	</ng-template>
+
+<ng-template #spinnerTemplate>
+	<p-spinner [size]="BootstrapSize.SM" class="m-2"></p-spinner>
+</ng-template>
+
+<ng-template #pMultiSelectCheckboxTemplate>
+	<ng-template [ngIf]="!isLoading">
+	<p-multi-select-checkbox
+		*ngIf="multiSelectIsPossible"
+		class="border-right"
+		[class.d-flex]="showMultiSelectCheckbox"
+		[class.d-none]="CONFIG.IS_MOBILE && !showMultiSelectCheckbox"
+		[class.show-on-hover]="!schedulingService.wishPickerMode && !schedulingService.earlyBirdMode && !CONFIG.IS_MOBILE && !shift.selected"
+		[ngModel]="shift.selected"
+		(ngModelChange)="shift.selected=!shift.selected;selectedChange.emit(shift.selected);"
+		[myPref]="shift.myPref!"
+		[meIsAssignable]="meIsAssignable"
+		[earlyBirdMode]="schedulingService.earlyBirdMode"
+		[wishPickerMode]="schedulingService.wishPickerMode"
+		[disabled]="!shiftIsSelectable || !selectable"
+		[readMode]="false"
+		(onClick)="$event.stopPropagation();"
+	></p-multi-select-checkbox>
+	</ng-template>
+</ng-template>
+
+<ng-template [ngIf]="!shift">
+	<p i18n>Schicht konnte nicht geladen werden</p>
+</ng-template>
+
+<ng-template #courseInfo>
+	<ng-template [ngIf]="!isLoading">
+	<div class="d-flex align-items-center justify-content-center">
+		<p-course-info
+			[isCourse]="shift.isCourse"
+			[isCourseCanceled]="shift.isCourseCanceled"
+			[currentCourseParticipantCount]="shift.currentCourseParticipantCount"
+			[minCourseParticipantCount]="shift.minCourseParticipantCount"
+			[maxCourseParticipantCount]="shift.maxCourseParticipantCount"
+			[courseType]="shift.model!.courseType"
+			[isCourseOnline]="shift.isCourseOnline"
+			[onlyWholeCourseBookable]="shift.model!.onlyWholeCourseBookable"
+		></p-course-info>
+	</div>
+	</ng-template>
+</ng-template>
+
+<ng-template #titleAndTime>
+	<section class="title pb-2 pl-2 pr-3 pt-2 border-bottom-0 flex-grow-1">
+		<div class="title"><label
+			class="m-0"
+			style="line-height: 1em;"
+		>{{name}}</label></div>
+		<label style="line-height: 1em;" class="m-0">
+			<span class="text-monospace">{{ start | date:'shortTime' }} ➡ {{ end | date:'shortTime' }}</span>
+		</label>
+	</section>
+</ng-template>
+
+<ng-template #detailedPacketInfo>
+	<ng-template [ngIf]="!isLoading">
+	<section *ngIf="shift.packetShifts.length" class="card-body p-1 pl-2 pr-2">
+		<p-packet-shifts
+			[currentShiftId]="shift.id"
+			[packetShifts]="shift.packetShifts"
+		></p-packet-shifts>
+	</section>
+	</ng-template>
+</ng-template>
+
+<ng-template #assignedMembersTemplate>
+	<ng-template [ngIf]="!isLoading">
+	<section *ngIf="assignedMembers!.length > 0">
+		<p-assigned-members
+			[size]="BootstrapSize.SM"
+			[readMode]="readMode"
+			[shift]="shift"
+		></p-assigned-members>
+	</section>
+	</ng-template>
+</ng-template>
+
+<ng-template #illnessShiftExchangesListTemplate>
+	<ng-template [ngIf]="!isLoading">
+	<ng-template [ngIf]="hasIllnessShiftExchanges">
+		<section>
+			<label class="m-0 p-1 pl-2 pr-2"><fa-icon [fixedWidth]="true" [icon]="icons.ITEMS_ABSENCE_ILLNESS"></fa-icon>&nbsp;<ng-container i18n>Genehmigte Krankmeldungen:</ng-container></label>
+		</section>
+		<section *ngFor="let shiftExchange of illnessShiftExchanges.iterable()" class="card-options">
+			<div class="d-flex align-items-center flex-grow-1 pt-1 pl-2 pb-1 pr-2 title small">{{shiftExchange.indisposedMember!.firstName}} {{shiftExchange.indisposedMember!.lastName}}</div>
+			<p-shift-exchange-btn
+				[shiftExchange]="shiftExchange"
+				[hideNonCounterBadges]="false"
+				[colorizeIconIfShiftExchangeExists]="false"
+			></p-shift-exchange-btn>
+		</section>
+	</ng-template>
+	</ng-template>
+</ng-template>
+
+<ng-template #processInfoTemplate>
+	<ng-template [ngIf]="!isLoading && !!process">
+	<section *ngIf="showProcessStatusIcon" class="p-1 pl-2 pr-2">
+		<div class="d-flex align-items-center">
+			<p-assignment-process-icon
+				class="pr-2"
+				[class.text-muted]="true"
+				[process]="process"
+				[state]="process.state !== states.NEEDING_APPROVAL ? process.state : states.APPROVE"
+				[isOwner]="!!rightsService.isOwner"
+			></p-assignment-process-icon>
+			<div>{{ processTitleForState(process)! | localize }}</div>
+		</div>
+	</section>
+	</ng-template>
+</ng-template>
+
+<popper-content #tooltipRef>
+	<ng-template [ngIf]="!isLoading">
+	<!-- Performance: explcitely use *ngIf to reduce dom -->
+	<p-shift-item-tooltip
+		*ngIf="highlightService.isHighlighted(shift)"
+		[readMode]="readMode"
+		[shift]="shift"
+		(onClickEdit)="onClickEdit.emit({shift: $event.shift, event: $event.event, openTab: $event.openTab});"
+		(onClose)="onCloseShiftTooltip($event, tooltipRef)"
+		[showProcessStatusIcon]="showProcessStatusIcon"
+		[quickAssignmentTemplate]="quickAssignmentTemplate"
+		[linkedCourseInfoTemplate]="linkedCourseInfoTemplate"
+		[processInfoTemplate]="processInfoTemplate"
+		[illnessShiftExchangesListTemplate]="illnessShiftExchangesListTemplate"
+	></p-shift-item-tooltip>
+	</ng-template>
+</popper-content>

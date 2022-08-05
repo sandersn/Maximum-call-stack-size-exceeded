@@ -1,0 +1,206 @@
+<p-editable-modal-box
+	#pEditableModalBox
+	[size]="'fullscreen'"
+	btnLabel="Bearbeiten" i18n-btnLabel
+
+	[editButtonPopover]="!booking.isNewItem() ? popTemplate : undefined"
+
+	[pEditable]="pEditable"
+	[api]="api"
+	[valid]="isValid"
+	[saveChangesHook]="saveChangesHook"
+	(onSaveStart)="onSaveStart.emit()"
+	(onSaveSuccess)="onSaveSuccess.emit();"
+	(onDismiss)="onDismiss.emit($event)"
+	(onLeaveCurrent)="onLeaveCurrent.emit()"
+
+	(onModalClosed)="setShiftForBooking()"
+	(onModalDismissed)="dismissShiftForBooking()"
+	(onModalOpen)="onOpenModal()"
+
+	[disabled]="disabled"
+>
+	<p-editable-modal-box-header>
+		<div class="card-options position-relative w-100 d-flex justify-content-between align-items-stretch">
+			<div class="d-flex justify-content-between align-items-stretch w-100"
+				[pEditable]="pEditable && value && value !== null"
+				[api]="api"
+				[valid]="isValid"
+				(onDismiss)="onDismiss.emit($event)"
+			>
+				<section class="title p-0 border-bottom-0 d-flex w-100 justify-content-start align-items-center">
+					<div class="title p-2 pl-3 m-0">
+						<label class="m-0 wrap" style="line-height: 1em;" i18n>Verknüpftes Angebot</label>
+					</div>
+				</section>
+				<ng-template [ngIf]="booking.state === bookingState.INQUIRY && value && value !== null">
+					<button type="button"
+						class="card-option btn btn-light btn-outline-danger border-bottom-0"
+						pEditableInstantSaveButton
+						(triggerClick)="removeValue()"
+					><fa-icon [fixedWidth]="true" icon="trash"></fa-icon></button>
+				</ng-template>
+			</div>
+		</div>
+	</p-editable-modal-box-header>
+
+	<p-editable-modal-box-showroom class="position-relative">
+
+		<p-color-marker
+			*ngIf="!!booking"
+			[item]="booking.model"
+			[hexColor]="someShiftIsSelected && booking.model?.color ? '#' + booking.model.color : null"
+			[title]="booking.model ? booking.model.name : undefined"
+		></p-color-marker>
+
+		<div class="d-block align-items-center justify-content-start d-lg-flex ">
+
+		<ng-container *ngIf="someShiftIsSelected; else noShiftSelected">
+
+			<div class="mr-0 mr-lg-5 mb-3 mb-lg-0 title" [class.mr-5]="value && value !== null">
+				<label>Name</label>
+				<div class="title m-0 d-flex align-items-center justify-content-between">
+					<span class="m-0 title">{{ booking?.model?.name }}</span>
+				</div>
+			</div>
+
+
+			<div class="mr-0 mr-lg-5 mb-3 mb-lg-0" [class.mr-5]="someShiftIsSelected" *ngIf="someShiftIsSelected">
+				<div
+					[pEditable]="pEditable"
+					[api]="api"
+					[valid]="isValid"
+					(onDismiss)="onDismiss.emit($event)"
+				>
+					<label i18n>Nummer</label>
+					<div class="title m-0 d-flex align-items-center justify-content-between">
+						<p class="m-0"><code *ngIf="booking.courseSelector && booking.courseSelector.courseCode" [class.shifts-removed]="booking.allShiftsRemoved">{{ booking.courseSelector.courseCode }}</code> <code class="ml-2" *ngIf="booking.allShiftsRemoved">(<ng-container i18n>gelöscht</ng-container>)</code></p>
+					</div>
+				</div>
+			</div>
+			<div class="mr-0 mr-lg-5 mb-3 mb-lg-0">
+				<div>
+					<div *ngIf="booking.firstShiftStart">
+						<label [class.shifts-removed]="booking.allShiftsRemoved"><span *ngIf="!shiftIsPartOfPacket" class="nowrap" i18n>Findet statt am:</span><span *ngIf="shiftIsPartOfPacket" class="nowrap" i18n>Erster Termin des Schicht-Pakets am:</span></label>
+						<div class="text-monospace nowrap">{{ booking.firstShiftStart | date:'shortDate' }}, {{ booking.firstShiftStart | date:'veryShortTime' }} {!!booking.firstShiftEnd, select, true {– {{(booking.firstShiftEnd | date:'veryShortTime')}}}}</div>
+					</div>
+					<div *ngIf="!booking.firstShiftStart && !!shiftForNewBooking">
+						<label class="nowrap" i18n>{!shiftIsPartOfPacket, select, true {Findet statt am} other {Erster Termin des Schicht-Pakets am}}:</label>
+						<div class="text-monospace nowrap">{{ shiftForNewBooking.start | date:'shortDate' }}, {{ shiftForNewBooking.start | date:'veryShortTime' }} {!!shiftForNewBooking.end, select, true {– {{(shiftForNewBooking.end | date:'veryShortTime')}}}}</div>
+					</div>
+				</div>
+			</div>
+		</ng-container>
+
+		<ng-template #noShiftSelected>
+			<div class="flex-grow-1 text-center text-muted" i18n>Bitte wählen</div>
+		</ng-template>
+
+		<p-button
+			*ngIf="value && this.booking.firstShiftSelector !== null && !booking.allShiftsRemoved"
+			[attributeInfo]="null"
+			(triggerClick)="navToShift()"
+		><ng-container i18n>Angebot öffnen</ng-container></p-button>
+		</div>
+
+	</p-editable-modal-box-showroom>
+	<p-editable-modal-box-form>
+		<div class="p-3">
+
+			<div class="pb-3 pt-3">
+				<div class="d-flex justify-content-between">
+					<p-calendar-nav
+						class="mr-2"
+						[size]="CONFIG.IS_MOBILE ? null : BootstrapSize.SM"
+						[calendarMode]="calendarMode"
+						(selectedDateChange)="setSelectedDateAndLoadData($event)"
+						[selectedDate]="selectedDate"
+						[disabled]="disabled"
+						[hideLabels]="CONFIG.IS_MOBILE"
+					></p-calendar-nav>
+					<p-calendar-view-settings
+						[showListBtn]="false"
+						[calendarMode]="calendarMode"
+						(calendarModeChange)="setCalendarModeAndLoadData($event)"
+						[hideLabels]="CONFIG.IS_MOBILE"
+						[isLoading]="!api.isLoaded()"
+					></p-calendar-view-settings>
+					<div class="d-flex justify-content-end">
+						<p-calendar-filter-settings [showShiftsFilterBtn]="false" [showShowOnlyMemberBtn]="false"></p-calendar-filter-settings>
+					</div>
+				</div>
+
+			</div>
+			<ng-template [ngIf]="disabled" [ngIfElse]="enabled">
+				<div class="card">
+					<div class="card-body text-center">
+						<small class="text-muted" i18n>Kann zur Zeit nicht bearbeitet werden.</small>
+					</div>
+				</div>
+			</ng-template>
+			<ng-template #enabled>
+				<h5 class="text-center">{{ selectedDate | calendarTitle:calendarMode:CONFIG.IS_MOBILE }}</h5>
+				<ng-template [ngIf]="!CONFIG.IS_MOBILE && calendarMode === CalendarModes.MONTH">
+					<nav class="border-bottom bg-white">
+						<p-calendar-month-weekdays-bar
+							[timestamp]="selectedDate"
+						></p-calendar-month-weekdays-bar>
+					</nav>
+				</ng-template>
+
+				<ng-template [ngIf]="calendarMode === CalendarModes.WEEK">
+					<nav class="border-bottom bg-white">
+						<div class="mt-2">
+							<p-calendar-weekdays-bar
+								[timestamp]="selectedDate"
+								[timelineMode]="false"
+								[neverShowDayTools]="true"
+								[shifts]="shiftsForCalendar"
+							></p-calendar-weekdays-bar>
+						</div>
+					</nav>
+				</ng-template>
+				<p-calendar
+					[isLoading]="api.isBackendOperationRunning"
+					[shifts]="shiftsForCalendar"
+					[absences]="absencesForCalendar"
+					[holidays]="holidaysForCalendar"
+					[birthdays]="birthdaysForCalendar"
+					[selectedStartOfDay]="selectedDate"
+					[calendarMode]="calendarMode"
+					(dayClick)="selectedDate=$event"
+					[(ngModel)]="value"
+					[showAsList]="true"
+					[shiftTemplate]="CONFIG.IS_MOBILE ? mobileTemplate : null"
+
+					[shiftStyle]="PCalendarShiftStyle.SHIFT_PICKER"
+					[shiftIsSelectable]="true"
+				></p-calendar>
+				<ng-template #mobileTemplate let-shift let-viewStyle="viewStyle">
+					<p-shifts-info
+						class="flex-grow-1 border"
+						[shiftId]="shift.id"
+						[showDate]="false"
+						(click)="onSelectedChange(shift)"
+						[selected]="shift.selected"
+					>
+						<p-shift-info-content-left class="align-self-stretch d-flex align-items-stretch">
+							<p-multi-select-checkbox
+								class="border-right"
+								[ngModel]="shift.selected"
+								[readMode]="false"
+							></p-multi-select-checkbox>
+						</p-shift-info-content-left>
+					</p-shifts-info>
+				</ng-template>
+
+				<div class="text-center mt-3">
+					<span class="text-muted" i18n><fa-icon [icon]="PlanoFaIconPool.MORE_INFO"></fa-icon> Bei mehrtägigen Terminen wird nur der Starttermin angezeigt.</span>
+				</div>
+			</ng-template>
+
+		</div>
+
+	</p-editable-modal-box-form>
+</p-editable-modal-box>
+<ng-template #popTemplate><div class="p-2" i18n><strong>Änderst du das,</strong> werden buchende & teilnehmende Personen informiert, <strong>falls</strong> du automatische Emails aktiviert hast.</div></ng-template>

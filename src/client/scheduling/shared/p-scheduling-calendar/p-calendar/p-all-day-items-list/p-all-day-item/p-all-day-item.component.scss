@@ -1,0 +1,90 @@
+@import "variables";
+
+:host {
+	display: flex;
+	min-height: 1.4em;
+	align-items: center;
+	line-height: 1rem;
+}
+
+.border-all-day-item.border-dark {
+	border-color: #5d656c !important;
+}
+
+.bg-all-day-item.bg-dark {
+	background-color: #5d656c !important;
+	background-image: linear-gradient(to bottom, #6c757c 0%, #545b62 100%);
+}
+
+.border-all-day-item.border-light {
+	border-color: theme-color-level("light", 2) !important;
+}
+
+.bg-all-day-item.bg-light {
+	background-color: theme-color-level("light", 2) !important;
+	background-image: linear-gradient(to bottom, theme-color-level("light", 0) 0%, theme-color-level("light", 2) 100%);
+}
+
+.border-all-day-item.border-info {
+	border-color: theme-color-level("info", -3) !important;
+}
+
+.bg-all-day-item.bg-info {
+	background-color: theme-color-level("info", 2) !important;
+	background-image: linear-gradient(to bottom, theme-color-level("info", -3) 0%, theme-color-level("info", -1) 100%);
+}
+
+.item {
+	// unset transition for performance reasons
+	transition: none;
+
+	flex-grow: 1;
+	border-radius: 0;
+	border-width: 0;
+	border-style: solid;
+	border-top-width: $border-width;
+	border-bottom-width: $border-width;
+
+	&.bg-primary,
+	&.hovered,
+	&:hover {
+		background-color: $primary !important;
+		background-image: linear-gradient(to bottom, $primary 0%, theme-color-level("primary", 2) 100%);
+		border-color: $primary;
+	}
+
+	&:focus,
+	&:focus:active {
+		outline: none;
+		box-shadow: none;
+	}
+}
+
+$all-day-item-radius: 3px;
+$all-day-item-radius-end: $all-day-item-radius * 2;
+
+.item-start {
+	margin-left: map-get($spacers, 2);
+	border-left-width: $border-width;
+	border-top-left-radius: $all-day-item-radius-end;
+	border-bottom-left-radius: $all-day-item-radius-end;
+}
+
+.item-end {
+	margin-right: map-get($spacers, 2);
+	border-right-width: $border-width;
+	border-top-right-radius: $all-day-item-radius-end;
+	border-bottom-right-radius: $all-day-item-radius-end;
+}
+
+.start-of-week:not(.item-start) {
+	border-left-width: $all-day-item-radius;
+	border-left-style: dotted;
+	border-left-color: $lighten-05 !important;
+}
+
+.end-of-week:not(.item-end) {
+	border-right-width: $all-day-item-radius;
+	border-right-style: dotted;
+	border-right-color: $lighten-05 !important;
+}

@@ -1,0 +1,75 @@
+<ng-template
+	ngFor let-assignedMember
+	[ngForOf]="assignedMembersForList"
+>
+	<section>
+		<div class="d-flex justify-content-between align-items-stretch card-options">
+			<div
+				class="d-flex align-items-center flex-grow-1 pt-1 pl-2 pb-1 pr-2 title"
+				[class.small]="size==='sm'"
+				[title]="assignedMember.firstName + ' ' + assignedMember.lastName"
+			>
+				<p-member-badge
+					class="mr-1 ml-1"
+					[memberId]="assignedMember.id"
+					[firstName]="assignedMember.firstName"
+					[lastName]="assignedMember.lastName"
+					[isMe]="!!isMe(assignedMember)"
+					[absenceType]="absenceType(assignedMember.id)"
+					size="small"
+				></p-member-badge>
+				<span class="title"><strong>{{ assignedMember.firstName }}</strong> {{ assignedMember.lastName }}</span>
+			</div>
+
+			<p-shift-exchange-btn
+				*ngIf="showExchangeBtn(assignedMember)"
+				class="ml-auto align-self-stretch d-flex"
+				[shiftExchange]="getShiftExchangeForMember(assignedMember.id)"
+				[shiftId]="shift.id"
+				[assignedMember]="assignedMember"
+				[colorizeIconIfShiftExchangeExists]="true"
+			></p-shift-exchange-btn>
+
+			<button type="button" class="btn btn-outline-secondary btn-light btn-frameless p-0 title card-option"
+				[class.btn-sm]="size==='sm'"
+				(click)="openDeleteModal($event, assignedMember, modalContent)"
+				*ngIf="showDeleteButton"
+				title="Aus Schicht entfernen" i18n-title
+			>
+				<fa-icon class="p-1" [fixedWidth]="true" icon="user-times"></fa-icon>
+			</button>
+		</div>
+	</section>
+</ng-template>
+
+<ng-template #modalContent let-c="close" let-d="dismiss">
+	<p-modal-header
+		title="Zuweisung entfernen" i18n-title
+		(onClose)="d()"
+	></p-modal-header>
+	<div class="modal-body">
+		<ng-template [ngIf]="isMe(deletableMember)" [ngIfElse]="notMe">
+			<p i18n>Du willst raus aus der Schicht?</p>
+		</ng-template>
+		<ng-template #notMe>
+			<p i18n>{{ deletableMember.firstName }} {{ deletableMember.lastName }} soll aus dieser Schicht entfernt werden?</p>
+		</ng-template>
+		<p-notification-conf-form
+			[(ngModel)]="api.data.notificationsConf.sendEmail"
+			[api]="api"
+			[shift]="shift"
+		></p-notification-conf-form>
+	</div>
+	<div class="modal-footer">
+		<button type="button"
+			class="btn btn-outline-secondary mr-auto"
+			(click)="d()"
+			i18n
+		>Abbrechen</button>
+		<button type="button"
+			class="btn btn-danger ml-auto"
+			(click)="c()"
+			i18n
+		>Ja, entfernen</button>
+	</div>
+</ng-template>

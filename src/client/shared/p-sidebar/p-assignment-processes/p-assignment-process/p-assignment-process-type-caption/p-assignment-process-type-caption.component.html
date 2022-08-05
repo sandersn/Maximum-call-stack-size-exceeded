@@ -1,0 +1,65 @@
+<button type="button" (click)="keyIsOpen = !keyIsOpen" class="d-block btn btn-frameless btn-light clickable text-center p-3 w-100">
+	<label>{{ typeTitle }}</label>
+	<div class="d-flex justify-content-between text-large"
+		[class.flex-column]="keyIsOpen"
+		[class.align-items-center]="!keyIsOpen"
+		[class.align-items-start]="keyIsOpen"
+	>
+
+		<ng-container *ngTemplateOutlet="itemTemplate; context: {
+			stateOfItem: states.NOT_STARTED
+		}"></ng-container>
+
+		<ng-template [ngIf]="type!==types.EARLY_BIRD">
+			<ng-container *ngTemplateOutlet="itemTemplate; context: {
+				stateOfItem: states.ASKING_MEMBER_PREFERENCES
+			}"></ng-container>
+		</ng-template>
+
+		<ng-template [ngIf]="type===types.DR_PLANO">
+			<ng-container *ngTemplateOutlet="itemTemplate; context: {
+				stateOfItem: states.NEEDING_APPROVAL
+			}"></ng-container>
+			<ng-container *ngTemplateOutlet="itemTemplate; context: {
+				stateOfItem: states.APPROVE,
+				lastItem: true
+			}"></ng-container>
+		</ng-template>
+		<ng-template [ngIf]="type===types.EARLY_BIRD">
+			<ng-container *ngTemplateOutlet="itemTemplate; context: {
+				stateOfItem: states.EARLY_BIRD_SCHEDULING
+			}"></ng-container>
+			<ng-container *ngTemplateOutlet="itemTemplate; context: {
+				stateOfItem: states.EARLY_BIRD_FINISHED,
+				lastItem: true
+			}"></ng-container>
+		</ng-template>
+		<ng-template [ngIf]="type===types.MANUAL">
+			<ng-container *ngTemplateOutlet="itemTemplate; context: {
+				stateOfItem: states.MANUAL_SCHEDULING
+			}"></ng-container>
+			<ng-container *ngTemplateOutlet="itemTemplate; context: {
+				stateOfItem: states.APPROVE,
+				lastItem: true
+			}"></ng-container>
+		</ng-template>
+
+	</div>
+</button>
+
+<ng-template #itemTemplate let-text let-stateOfItem="stateOfItem" let-lastItem="lastItem" let-icon="icon">
+	<div class="d-flex align-items-center">
+		<p-assignment-process-icon
+			[title]="getDescription(stateOfItem) | localize"
+			style="font-size: 1.3rem;opacity: 0.7"
+			[process]="process"
+			[state]="stateOfItem"
+			[class.text-primary]="processHasReached(stateOfItem)"
+			[isOwner]="true"
+		></p-assignment-process-icon>
+		<span *ngIf="keyIsOpen" class="ml-2 mb-0 text-left text-style-reset-to-body" style="font-size: 1rem" [innerHTML]="getDescription(stateOfItem) | localize"></span>
+	</div>
+	<fa-icon *ngIf="!lastItem" [fixedWidth]="true" [icon]="keyIsOpen ? 'long-arrow-alt-down' : 'long-arrow-alt-right'"
+		style="font-size: 1.4rem;opacity: 0.4"
+	></fa-icon>
+</ng-template>

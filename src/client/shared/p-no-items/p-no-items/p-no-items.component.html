@@ -1,0 +1,14 @@
+<div class="card card-body text-center">
+	<div i18n class="text-muted" *ngIf="!hasNgContent">Keine Einträge gefunden.</div>
+	<div #ngContent [class.d-none]="!hasNgContent" class="text-muted">
+		<ng-content></ng-content>
+	</div>
+
+	<ng-template [ngIf]="hasSomeFilterSettings">
+		<div class="mt-2 text-muted" i18n>… denk daran, dass du Filter eingeschaltet hast, die sich auf das Ergebnis auswirken können.</div>
+		<div class="mt-1 d-flex align-items-center justify-content-center">
+			<p-button [attributeInfo]="null" [theme]="PThemeEnum.PRIMARY" class="ml-auto mr-auto" (triggerClick)="resetFilters()"><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.UNDO"></fa-icon> <span i18n>Filter aufheben</span></p-button>
+		</div>
+	</ng-template>
+
+</div>

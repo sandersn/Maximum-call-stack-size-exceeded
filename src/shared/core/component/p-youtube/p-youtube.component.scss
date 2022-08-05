@@ -1,0 +1,44 @@
+:host {
+	position: relative;
+	display: block;
+	cursor: pointer;
+
+	&:hover {
+		fa-icon {
+			color: red;
+		}
+	}
+}
+
+img {
+	width: 100%;
+}
+
+fa-icon {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+	font-size: 60px;
+	pointer-events: none;
+	transform: translate(-50%, -50%);
+}
+
+// make iframe responsive
+.video-container {
+	/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+	padding: 29%;
+	box-sizing: border-box;
+	position: relative;
+
+	width: 100%;
+}
+
+iframe {
+	position: absolute;
+	top: 0;
+	left: 0;
+
+	width: 100%;
+	height: 100%;
+}

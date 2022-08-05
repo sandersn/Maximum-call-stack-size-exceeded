@@ -1,0 +1,19 @@
+<img [src]="imageUrl" alt="YouTube Thumbnail" i18n-alt (click)="onImageClick()" />
+<fa-icon [icon]="PlanoFaIconPool.BRAND_YOUTUBE"></fa-icon>
+
+<ng-template #videoModalContent let-c="close" let-d="dismiss">
+	<p-modal-content
+		modalTitle="Tutorial-Video" i18n-modalTitle
+		closeBtnLabel="Schließen" i18n-closeBtnLabel
+		[hideDismissBtn]="true"
+		(onDismiss)="d('Cross click')"
+		(onClose)="c();"
+		size="frameless"
+	>
+		<p-modal-content-body>
+			<div class="video-container">
+				<iframe [src]="iFrameUrl" frameborder="0" allowfullscreen></iframe>
+			</div>
+		</p-modal-content-body>
+	</p-modal-content>
+</ng-template>

@@ -1,0 +1,42 @@
+<div class="d-flex">
+	<ng-template [ngIf]="timelineMode">
+		<div style="width:3em;height:2em"><span>&nbsp;</span></div>
+	</ng-template>
+
+	<div
+		class="position-relative"
+		[class.flex-grow-1]="!timelineMode"
+		[class.d-flex]="!timelineMode"
+		[class.o-hidden]="!timelineMode"
+	>
+		<span *ngIf="timelineMode">&nbsp;</span>
+
+		<div
+			*ngFor="let weekday of weekdays"
+			class="cal-day-cell d-flex"
+			[class.o-hidden]="!timelineMode"
+			[style.flex]="!timelineMode ? 1 : ''"
+
+			[class.position-absolute]="timelineMode"
+			[style.left]="timelineMode ? layout.getLayout(weekday).x + 'px' : ''"
+			[style.top]="timelineMode ? layout.getLayout(weekday).y + 'px' : ''"
+			[style.z-index]="timelineMode ? layout.getLayout(weekday).z.toString() : ''"
+			[style.bottom]="timelineMode ? '0px' : ''"
+			[style.width]="timelineMode ? layout.getLayout(weekday).width + 'px' : ''"
+			[style.height]="'2em'"
+		>
+			<p-cell-top
+				*ngIf="showTitleForWeekday(weekday)"
+				class="border-left flex-grow-1"
+
+				(clickCellTop)="dayClick.emit($event)"
+				[dayStart]="weekday"
+				dateFormat="EE dd.MM"
+				[shiftsOfDay]="shiftsOfDay(weekday)"
+				[pinStickyNote]="pinStickyNote(weekday)"
+				[neverShowDayTools]="neverShowDayTools"
+				[canEditMemos]="api.data.memos.attributeInfoThis.canEdit"
+			></p-cell-top>
+		</div>
+	</div>
+</div>

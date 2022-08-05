@@ -1,0 +1,243 @@
+<p-subheader [isNewItem]="!!item && item.isNewItem()" (onNavBack)="pRouterService.scrollToSelector($any('#scroll-target-id-'+routeId?.toString()))">
+	<div hidden><span i18n #translatedDeleteBookingLabel>Gutschein löschen</span></div>
+	<div hidden><span i18n #translatedDeleteBookingDescription>Du kannst Gutscheine zurückerstatten, aber nicht löschen.</span></div>
+	<p-dropdown
+		[dropdownType]="DropdownTypeEnum.BUTTONS"
+		label="Aktionen" i18n-label
+		[icon]="PlanoFaIconPool.MORE_ACTIONS"
+		[size]="BootstrapSize.SM"
+		[showActiveItem]="false"
+		[canEdit]="api.data.bookings.attributeInfoThis.canEdit"
+		[show]="api.data.bookings.attributeInfoThis.canEdit"
+	>
+		<p-dropdown-item
+			[show]="true"
+			[disabled]="true"
+			(onClick)="onRemoveClick()"
+			[description]="translatedDeleteBookingDescription.textContent!"
+			[label]="translatedDeleteBookingLabel.textContent!"
+			[icon]="PlanoFaIconPool.DELETE"
+			[theme]="PBtnThemeEnum.OUTLINE_DANGER"
+		></p-dropdown-item>
+		<p-dropdown-item
+			*ngIf="showFaqBtn"
+			[show]="true"
+			[disabled]="false"
+			[icon]="PlanoFaIconPool.AREA_FAQ"
+			(onClick)="navToFaq()"
+			label="FAQ Online-Zahlung" i18n-label
+		></p-dropdown-item>
+	</p-dropdown>
+</p-subheader>
+
+<div class="flex-grow-1 d-flex position-relative">
+	<scroll-shadow-box class="flex-grow-1">
+		<div class="container pb-tawk">
+			<ng-template [ngIf]="!item && !!routeId">
+				<ng-template [ngIf]="api.isBackendOperationRunning" [ngIfElse]="noItemAvailable">
+					<p-spinner [size]="BootstrapSize.LG" class="m-3"></p-spinner>
+				</ng-template>
+				<ng-template #noItemAvailable>
+					<p-no-item></p-no-item>
+				</ng-template>
+			</ng-template>
+
+			<p-detail-form
+				*ngIf="item"
+				class="mb-5"
+				[item]="item"
+				(onAddItem)="saveNewItem($event)"
+			></p-detail-form>
+
+			<p-section
+				*ngIf="!!item && !item.isNewItem()"
+				label="Zahlungsstatus" i18n-label
+				[whitespace]="SectionWhitespace.NONE"
+				class="mb-5"
+			>
+				<p-grid [justifyContent]="'stretch'">
+					<div class="col-12 col-lg-4 d-flex align-items-stretch flex-column flex-lg-row">
+						<div class="card flex-grow-1 align-self-stretch">
+							<div class="card-body flex-grow-0">
+								<div class="d-flex flex-lg-column justify-content-between align-items-center align-items-lg-start">
+									<span i18n>Vom Kunden zu zahlen</span>
+									<div class="mt-1 ml-2 ml-lg-0 mr-2"><span class="h5 text-monospace font-weight-bold">{{ (item.amountToPay ?? 0) | currency }}</span></div>
+								</div>
+							</div>
+
+							<div class="card-footer flex-grow-1 small justify-content-around d-flex flex-column">
+								<div class="d-flex justify-content-between align-items-center">
+									<span class="word-break"><ng-container i18n>Buchungspreis</ng-container></span>
+									<span class="ml-2 mr-2">{{ price ?? 0 | currency }}</span>
+								</div>
+								<div>&nbsp;</div>
+							</div>
+
+						</div>
+
+						<fa-icon [icon]="'minus'" class="mb-3 mb-lg-0 ml-lg-4 align-self-center"></fa-icon>
+					</div>
+
+					<div class="col-12 col-lg-4 d-flex align-items-center flex-column flex-lg-row">
+						<div class="card flex-grow-1 align-self-stretch">
+							<div class="card-body flex-grow-0">
+								<div class="d-flex flex-lg-column justify-content-between align-items-center align-items-lg-start">
+									<span i18n>Saldo bisheriger Zahlungen</span>
+									<div class="mt-1 ml-2 ml-lg-0 mr-2"><span class="h5 text-monospace font-weight-bold">{{ (item.newCurrentlyPaid ?? 0) | currency }}</span></div>
+								</div>
+							</div>
+							<div class="card-footer flex-grow-1 small justify-content-around d-flex flex-column">
+								<p-alert class="p-2 mb-2" *ngIf="item.paidBeforeTransactionListIntroduction" [icon]="null" [theme]="PThemeEnum.INFO">
+									<div class="d-flex justify-content-between align-items-center">
+										<span><ng-container i18n>Saldo zum {{Config.ADYEN_RELEASE_DATE | date}}</ng-container>&ngsp;<label class="m-0 d-inline small"><a (click)="navToAnchorBeforeTransactionListIntroductionHint()" i18n>Mehr&nbsp;Info</a></label></span>
+										<span>{{ item.paidBeforeTransactionListIntroduction | currency }}</span>
+									</div>
+								</p-alert>
+
+								<div class="d-flex justify-content-between align-items-center my-1">
+									<span><fa-icon [fixedWidth]="true" [theme]="PThemeEnum.SUCCESS" [icon]="PlanoFaIconPool.INCOMING_PAYMENT"></fa-icon>&ngsp;<ng-container i18n>Einzahlungen durch Kunden</ng-container></span>
+									<span class="ml-2 mr-2">{{ api.data.transactions.totalIncomingPayments | currency }}</span>
+								</div>
+								<div class="d-flex justify-content-between align-items-center my-1">
+									<span><fa-icon [fixedWidth]="true" [theme]="PThemeEnum.DANGER" [icon]="PlanoFaIconPool.OUTGOING_PAYMENT"></fa-icon>&ngsp;<ng-container i18n>Rückzahlungen an den Kunden</ng-container></span>
+									<span class="ml-2 mr-2">{{ api.data.transactions.totalOutgoingPayments | currency }}</span>
+								</div>
+							</div>
+						</div>
+
+						<fa-icon [icon]="'equals'" class="mb-3 mb-lg-0 ml-lg-4 align-self-center"></fa-icon>
+					</div>
+					<div class="col-12 col-lg-4 d-flex align-items-center flex-column flex-lg-row">
+						<div class="card flex-grow-1 align-self-stretch">
+							<div class="card-body flex-grow-0">
+								<div class="d-flex flex-lg-column justify-content-between align-items-center align-items-lg-start">
+
+									<p-open-amount-display
+										[amountToPay]="item.amountToPay"
+										[currentlyPaid]="item.currentlyPaid"
+										[openAmount]="item.getOpenAmount()"
+										[price]="item.price"
+									></p-open-amount-display>
+
+								</div>
+							</div>
+							<div class="card-footer flex-grow-1 small justify-content-around d-flex flex-column">
+								<ng-container *ngIf="item.isNewItem()">
+								</ng-container>
+								<ng-container *ngIf="!item.isNewItem()">
+									<p i18n>Erfasse Einzahlungen oder veranlasse eine Online-Rückzahlung.</p>
+									<button
+										type="button"
+										class="mr-auto btn btn-secondary p-editable-has-hook p-editable-active nowrap"
+										(click)="onTransactionBtnClick()"
+									><fa-icon [icon]="PlanoFaIconPool.ADD"></fa-icon>&nbsp;{{newTransactionFormLabel}}</button>
+								</ng-container>
+							</div>
+						</div>
+
+					</div>
+
+				</p-grid>
+			</p-section>
+
+			<p-tabs
+				class="mt-5"
+				[isLoading]="!api.isLoaded()"
+				[theme]="PTabsTheme.CLEAN"
+			>
+				<p-tab
+					label="Zahlungen" i18n-label
+					[icon]="PlanoFaIconPool.AREA_TRANSACTIONS"
+					[size]="PTabSizeEnum.FRAMELESS"
+					urlName="transactions"
+				>
+					<div class="my-4">
+						<p-section
+							*ngIf="!!item && !item.isNewItem()"
+							[whitespace]="SectionWhitespace.NONE"
+						>
+
+							<p-transaction-totals
+								[isLoading]="!api.isLoaded()"
+								[totalIncomingPayments]="item.transactions.totalIncomingPayments"
+								[totalOutgoingPayments]="item.transactions.totalOutgoingPayments"
+								[onlineRefundableAmount]="item.transactions.onlineRefundableAmount"
+								[onlineRefundableAmountInfoText]="'Für Online-Rückerstattungen an die buchende Person steht maximal dieses Guthaben zur Verfügung. Das Guthaben ergibt sich aus der Differenz ein- und abgegangener <strong>Online-Zahlungen</strong>, die unten aufgelistet sind.'"
+							>
+								<p-dropdown
+									class="d-none d-xs-flex"
+									[dropdownType]="DropdownTypeEnum.BUTTONS"
+									[size]="BootstrapSize.SM"
+									[icon]="exportIsRunning ? PlanoFaIconPool.SYNCING : PlanoFaIconPool.EXPORT"
+									[iconSpin]="exportIsRunning"
+									[disabled]="isApiLoading || exportIsRunning"
+									label="Exportieren" i18n-label
+								>
+									<p-dropdown-item
+										title="Excel-Export aller Transaktionen mit den gewählten Filter-Einstellungen" i18n-title
+										(onClick)="exportTransactions('xlsx')"
+										[attributeInfo]="exportTransactionsApi.data.attributeInfoThis"
+									><fa-icon [icon]="PlanoFaIconPool.EXPORT_AS_EXCEL"></fa-icon> <strong>Excel</strong>&nbsp;<ng-container i18n>Export</ng-container></p-dropdown-item>
+									<p-dropdown-item
+										title="CSV-Export aller Transaktionen mit den gewählten Filter-Einstellungen" i18n-title
+										(onClick)="exportTransactions('csv')"
+										[attributeInfo]="exportTransactionsApi.data.attributeInfoThis"
+									><fa-icon [icon]="PlanoFaIconPool.EXPORT_AS_CSV"></fa-icon> <strong>CSV</strong>&nbsp;<ng-container i18n>Export</ng-container></p-dropdown-item>
+									<p-dropdown-item
+										title="PDF-Export aller Transaktionen mit den gewählten Filter-Einstellungen" i18n-title
+										(onClick)="exportTransactions('pdf')"
+										[attributeInfo]="exportTransactionsApi.data.attributeInfoThis"
+									><fa-icon [icon]="PlanoFaIconPool.EXPORT_AS_PDF"></fa-icon> <strong>PDF</strong>&nbsp;<ng-container i18n>Export</ng-container></p-dropdown-item>
+								</p-dropdown>
+							</p-transaction-totals>
+
+
+							<p-transaction-list-headline
+								[isLoading]="!api.isLoaded()"
+								[excludedColumn]="[TransactionsSortedByEmum.BOOKING_NUMBER, TransactionsSortedByEmum.OFFER_NAME]"
+							></p-transaction-list-headline>
+
+							<ng-template [ngIf]="item.transactions.length" [ngIfElse]="noItems">
+								<p-transaction-list
+									[isLoading]="!api.isLoaded()"
+									[excludedColumn]="[TransactionsSortedByEmum.BOOKING_NUMBER, TransactionsSortedByEmum.OFFER_NAME]"
+									[transactions]="item.transactions.iterableSortedBy('dateTime', true)"
+									(onEditItem)="navToTransaction($event)"
+								></p-transaction-list>
+							</ng-template>
+							<ng-template #noItems>
+								<p-no-items
+									[handleGlobalFilterService]="false"
+									[hasFilterSettings]="null"
+								></p-no-items>
+							</ng-template>
+
+						</p-section>
+					</div>
+					<p-alert *ngIf="!!item?.paidBeforeTransactionListIntroduction" id="beforeTransactionListIntroductionHint" [theme]="PThemeEnum.INFO" i18n>Die Erfassung der einzelnen Zahlungen wurde erst am <mark>{{Config.ADYEN_RELEASE_DATE | date}}</mark> eingeführt. Ein- und Auszahlungen, die vor diesem Datum erfolgten, wurden nur in ihrer Summe und nicht einzeln erfasst. Diese Buchung wies zum <mark>{{Config.ADYEN_RELEASE_DATE | date}}</mark> einen Zahlungssaldo von <mark>{{ item!.paidBeforeTransactionListIntroduction | currency }}</mark> auf.</p-alert>
+				</p-tab>
+				<p-tab
+					label="Email-Protokoll" i18n-label
+					[icon]="PlanoFaIconPool.EMAIL_NOTIFICATION"
+					[size]="PTabSizeEnum.FRAMELESS"
+					[attributeInfo]="$any(api.data.mailsSentToBookingPerson.attributeInfoThis)"
+					urlName="email-history"
+				>
+					<p-email-history></p-email-history>
+				</p-tab>
+			</p-tabs>
+		</div>
+	</scroll-shadow-box>
+</div>
+
+<ng-template #bookingTransactionFormModal let-modalVersion="modalVersion">
+	<p-editable-modal-button-form>
+		<p-booking-transaction-form
+			*ngIf="item"
+			#transactionForm
+			[modalVersion]="modalVersion"
+			[bookable]="item"
+			[group]="transactionFormGroup"
+		></p-booking-transaction-form>
+		</p-editable-modal-button-form>
+</ng-template>

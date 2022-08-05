@@ -1,0 +1,122 @@
+@use "sass:math";
+
+@import "p-variables";
+@import "variables";
+
+:host {
+	display: block;
+}
+
+.trashed {
+	text-decoration: line-through;
+}
+
+li {
+	position: relative;
+}
+
+$earningsBtnWidth: 110;
+
+.earnings {
+	position: relative;
+	font-size: $font-size-xs;
+	text-align: center;
+	line-height: 18px;
+	min-width: #{$earningsBtnWidth}px;
+	/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+	padding: 0 0.4em;
+}
+
+.earning {
+	line-height: 1.1em;
+}
+
+.earning {
+	// position: relative;
+
+	.earning-top,
+	.earning-bottom {
+		position: absolute;
+		right: 4px;
+		left: 4px;
+		border: $border-width solid transparent;
+	}
+
+	.earning-top {
+		top: 4px;
+	}
+
+	.earning-bottom {
+		bottom: 4px;
+	}
+}
+
+.bar-wrap {
+	position: relative;
+
+	&.bar-top,
+	&.bar-bottom {
+		position: absolute;
+		right: 0;
+		left: 0;
+	}
+
+	&.bar-top {
+		top: 6px;
+	}
+
+	&.bar-bottom {
+		bottom: 6px;
+	}
+}
+
+.expected-earnings-details {
+	// background: #1c1d1d;
+	/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+	padding: 10px 0;
+	list-style: none;
+}
+
+.message-bubble {
+	position: relative;
+	// color: $white;
+	background: $white;
+	font-size: $font-size-base;
+	border-radius: $border-radius * 2;
+	line-height: 26px;
+	padding: map-get($spacers, 3);
+
+	&::after {
+		position: absolute;
+		bottom: 100%;
+		border: solid transparent;
+		transform: translateX(50%);
+		content: " ";
+		height: 0;
+		width: 0;
+		pointer-events: none;
+		border-bottom-color: $white;
+		/* stylelint-disable-next-line declaration-property-unit-disallowed-list, sh-waqar/declaration-use-variable */
+		border-width: 10px;
+		/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+		margin-left: -10px;
+	}
+}
+
+.bubble-center {
+	&::after {
+		right: #{(46 + math.div($earningsBtnWidth, 2))}px;
+	}
+}
+
+.bubble-left {
+	&::after {
+		right: #{(46 + 46 + math.div($earningsBtnWidth, 2))}px;
+	}
+}
+
+.bubble-right {
+	&::after {
+		right: #{(math.div($earningsBtnWidth, 2))}px;
+	}
+}

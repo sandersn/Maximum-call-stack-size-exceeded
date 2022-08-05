@@ -1,0 +1,32 @@
+<div
+	*ngIf="schedulingService.showDayAsList; else noList"
+	style="max-width: 600px; margin-left: auto; margin-right: auto;"
+>
+	<p-all-day-items-list
+		[holidays]="holidays"
+		[absences]="absences"
+		[birthdays]="birthdays"
+		[startOfDay]="startOfDay"
+		[heightOfLine]="heightOfLine"
+		[popperPlacement]="NgxPopperjsPlacements.BOTTOMSTART"
+		[readMode]="readMode"
+	></p-all-day-items-list>
+</div>
+
+<ng-template #noList>
+	<div class="d-flex">
+		<div style="width: 3em; height: 2em;"><span>&nbsp;</span></div>
+
+		<div class="position-relative flex-grow-1">
+			<p-all-day-items-list
+				[holidays]="holidays"
+				[absences]="absences"
+				[birthdays]="birthdays"
+				[startOfDay]="startOfDay"
+				[heightOfLine]="heightOfLine"
+				[popperPlacement]="NgxPopperjsPlacements.BOTTOMSTART"
+				[readMode]="readMode"
+			></p-all-day-items-list>
+		</div>
+	</div>
+</ng-template>

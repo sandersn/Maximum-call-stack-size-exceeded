@@ -1,0 +1,505 @@
+<p-editable-modal-box
+	*ngIf="shiftModel"
+	class="mb-4"
+	[pEditable]="!shiftModel.isNewItem()"
+	[api]="api"
+	[valid]="!someChildrenAreInvalid"
+	(onDismiss)="initFormGroup.emit()"
+	(onSaveSuccess)="initFormGroup.emit()"
+
+	[saveChangesHook]="saveChangesHook"
+
+	[modalWhitespace]="SectionWhitespace.NONE"
+
+	[disabled]="!userCanWrite"
+>
+	<p-editable-modal-box-header><label class="m-0 pl-3"><ng-container i18n>Stornogebühren & Widerruf & Online-Storno</ng-container><a routerLink="/client/tutorials" rel="noopener" target="_blank" class="pl-5 tut-video-link"><ng-container i18n>Tutorial ansehen</ng-container></a></label></p-editable-modal-box-header>
+	<!-- (onSaveStart)="onSaveStart.emit()" -->
+	<p-editable-modal-box-showroom>
+
+		<p-form-group label="Stornogebühren" i18n-label>
+			<div class="d-flex flex-column-reverse">
+				<ng-container *ngFor="let feePeriod of shiftModel.currentCancellationPolicy!.feePeriods.iterable()">
+					<div class="card mb-1">
+						<div class="card-body d-flex justify-content-between align-items-center py-2" *ngIf="!!feePeriod.rawData">
+							<label class="m-0"><ng-container *ngTemplateOutlet="feePeriodTitleTemplate; context: {$implicit: feePeriod}"></ng-container></label>
+							<ng-container *ngTemplateOutlet="feePeriodPriceTemplate; context: {$implicit: feePeriod}"></ng-container>
+						</div>
+					</div>
+				</ng-container>
+				<ng-container *ngIf="!shiftModel.currentCancellationPolicy?.feePeriods!.length">
+					<div class="card mb-1">
+						<div class="card-body d-flex justify-content-between align-items-center py-2">
+							<span i18n>Keine Stornogebühren hinterlegt.</span>
+						</div>
+					</div>
+				</ng-container>
+
+			</div>
+		</p-form-group>
+
+		<p-form-group
+			label="Widerrufsfrist" i18n-label
+		>
+			<div class="list-group">
+				<div class="list-group-item">
+					<p class="m-0" *ngIf="shiftModel.currentCancellationPolicy?.withdrawalEnabled" i18n>Widerruf gestattet innerhalb von <code>{{ shiftModel.currentCancellationPolicy!.withdrawalPeriod }}</code> Tagen nach dem Buchungstag.</p>
+					<p class="m-0" *ngIf="!shiftModel.currentCancellationPolicy?.withdrawalEnabled" i18n>Die Widerrufsfrist ist <code>deaktiviert</code>.</p>
+				</div>
+			</div>
+		</p-form-group>
+		<p-form-group
+			label="Online-Storno durch Kunden" i18n-label
+		>
+			<div class="list-group">
+				<div class="list-group-item">
+
+					<div>
+						<p class="m-0" *ngIf="shiftModel.onlineCancellationForFreeBookingsEnabled" i18n>Kostenlose Buchungen dürfen von Kunden <code *ngIf="shiftModel.onlineCancellationForFreeBookingsDeadline === null">bis zum Angebotsbeginn</code><code *ngIf="shiftModel.onlineCancellationForFreeBookingsDeadline !== null"><ng-container *ngIf="shiftModel.onlineCancellationForFreeBookingsDeadline === null">bis zum Angebotstag, aber nicht mehr am Angebotstag selbst</ng-container><ng-container *ngIf="shiftModel.onlineCancellationForFreeBookingsDeadline !== 0">bis {{shiftModel.onlineCancellationForFreeBookingsDeadline ? shiftModel.onlineCancellationForFreeBookingsDeadline / 1000 / 60 / 60 / 24 : 0}} {shiftModel.onlineCancellationForFreeBookingsDeadline ? shiftModel.onlineCancellationForFreeBookingsDeadline / 1000 / 60 / 60 / 24 : 0, plural, 1 {Tag} other {Tage}} vor dem Angebotstag</ng-container></code> online storniert werden.</p>
+						<p class="m-0" *ngIf="!shiftModel.onlineCancellationForFreeBookingsEnabled" i18n>Kostenlose Buchungen dürfen <code>nicht</code> online storniert werden.</p>
+
+					</div>
+					<div>
+						<p class="m-0" *ngIf="shiftModel.onlineCancellationForChargeableBookingsEnabled" i18n>Kostenpflichtige Buchungen dürfen von Kunden <code *ngIf="shiftModel.onlineCancellationForChargeableBookingsDeadline === null">bis zum Angebotsbeginn</code><code *ngIf="shiftModel.onlineCancellationForChargeableBookingsDeadline !== null"><ng-container *ngIf="shiftModel.onlineCancellationForChargeableBookingsDeadline === null">bis zum Angebotstag, aber nicht mehr am Angebotstag selbst</ng-container><ng-container *ngIf="shiftModel.onlineCancellationForChargeableBookingsDeadline !== 0">bis {{shiftModel.onlineCancellationForChargeableBookingsDeadline ? shiftModel.onlineCancellationForChargeableBookingsDeadline / 1000 / 60 / 60 / 24 : 0}} {shiftModel.onlineCancellationForChargeableBookingsDeadline ? shiftModel.onlineCancellationForChargeableBookingsDeadline / 1000 / 60 / 60 / 24 : 0, plural, 1 {Tag} other {Tage}} vor dem Angebotstag</ng-container></code> online storniert werden.</p>
+						<p class="m-0" *ngIf="!shiftModel.onlineCancellationForChargeableBookingsEnabled" i18n>Kostenpflichtige Buchungen dürfen <code>nicht</code> online storniert werden.</p>
+					</div>
+
+					<div i18n *ngIf="shiftModel.onlineCancellationForWithdrawableBookingsAlwaysEnabled"><p class="m-0">Innerhalb der Widerrufsfrist ist Online-Stornierung immer <code>erlaubt</code>.</p></div>
+					<div i18n><p class="m-0">Automatische Rückerstattung nach Storno ist <code>{shiftModel.onlineCancellationAutomaticOnlineRefundEnabled, select, true {aktiviert} other {deaktiviert}}</code>.</p></div>
+				</div>
+			</div>
+		</p-form-group>
+	</p-editable-modal-box-showroom>
+	<p-editable-modal-box-form *ngIf="formGroup">
+
+		<p-tabs
+			[theme]="PTabsTheme.CLEAN"
+			[pageSubNav]="true"
+		>
+			<p-tab
+				*ngIf="formGroup.get('feePeriods')"
+				label="Stornogebühren" i18n-label
+				[size]="PTabSizeEnum.LG"
+				class="pt-4"
+				[hasDanger]="!!formGroup.controls['feePeriods']?.invalid"
+			>
+				<p i18n>Hier kannst du deine Stornierungsgebühren hinterlegen, die bei jeder Buchung Teil des Vertrags mit deinen Kunden sind.</p>
+				<ul class="list custom-marker pb-3 pl-3">
+					<li><ng-container i18n>Mehr Transparenz für deine Kunden, denn die hinterlegten Stornierungsgebühren werden bei der Online-Buchung angezeigt.</ng-container></li>
+					<li><ng-container i18n>Bei manuellen Stornierungen brauchst du die Gebühren nicht mehr selbst auszurechnen.</ng-container></li>
+					<li><ng-container i18n>Wenn du die Stornobedingungen hinterlegt hast, kannst du deinen Kunden erlauben, kostenpflichtige Buchungen selbst online zu stornieren.</ng-container></li>
+					<li><ng-container i18n>Bei kostenlosen Buchungen werden automatisch keine Stornierungsgebühren angerechnet.</ng-container></li>
+					<li><ng-container i18n>Alle Einstellungen einfach erklärt in unserem passenden <a routerLink="/client/tutorials" target="_blank" rel="noopener" class="tut-video-link">Tutorial-Video</a>.</ng-container></li>
+				</ul>
+				<p-alert [theme]="PThemeEnum.INFO" class="small mt-4 mb-5" i18n>Änderungen der Stornogebühren wirken sich <strong>nur auf neue Buchungen</strong> aus. Bereits vorhandene Buchungen bleiben unangetastet.</p-alert>
+				<div class="d-flex flex-column-reverse">
+
+					<ng-template
+						ngFor let-feePeriodFormGroup
+						[ngForOf]="formGroup.controls['feePeriods']!.controls"
+						let-i="index"
+					>
+						<ng-container *ngIf="!!$any(feePeriodFormGroup).controls['feePeriodRef'].value.rawData; else spinnerTemplate">
+						<p-collapsible
+							[hasDanger]="feePeriodFormGroup.invalid"
+							[collapsed]="!$any(feePeriodFormGroup).controls['feePeriodRef'].value.isNewItem()"
+						>
+							<div trigger class="flex-grow-1 d-flex align-items-center justify-content-between nowrap title">
+								<h6 class="mb-0 mt-0 mr-3"><ng-container *ngTemplateOutlet="feePeriodTitleTemplate; context: {$implicit: $any(feePeriodFormGroup).controls['feePeriodRef'].value}"></ng-container></h6>
+								<small class="title"><ng-container *ngTemplateOutlet="feePeriodPriceTemplate; context: {$implicit: $any(feePeriodFormGroup).controls['feePeriodRef'].value}"></ng-container></small>
+							</div>
+							<div content class="m-3">
+								<p-grid>
+									<div class="col-12 col-md flex-grow-1">
+
+										<p-form-control-switch-duration
+											*ngIf="i === 0; else nonNullableTemplate"
+											label="Start der Zeitspanne" i18n-label
+											description="Um eine Stornogebühr für Stornos <strong>am Angebotstag selbst</strong> zu definieren, trage hier »0 Tage vor dem Angebotstag« ein.<br><br>Dementsprechend bezieht sich die Einstellung »2 Tage vor dem Angebotstag« bei einem Angebot, das beispielsweise an einem 3. Juli stattfinden soll, auf den 1. Juli beziehen" i18n-description
+											[inputGroupAppendIcon]="null"
+											[group]="$any(feePeriodFormGroup)"
+											[attributeInfo]="$any(feePeriodFormGroup).controls['feePeriodRef'].value.attributeInfoStart"
+											[durationUIType]="$any(feePeriodFormGroup).controls['feePeriodRef'].value.start !== null || $any(feePeriodFormGroup).controls['feePeriodRef'].value.start !== undefined ? PApiPrimitiveTypes.Days : null"
+											[options]="startInputDurationOptions"
+										></p-form-control-switch-duration>
+										<ng-template #nonNullableTemplate>
+											<p-form-control-switch
+												[pEditable]="false"
+												label="Start der Zeitspanne" i18n-label
+												description="Um eine Stornogebühr für Stornos <strong>am Angebotstag selbst</strong> zu definieren, trage hier »0 Tage vor dem Angebotstag« ein.<br><br>Dementsprechend würde sich die Einstellung »2 Tage vor dem Angebotstag« bei einem Angebot, das beispielsweise an einem 3. Juli stattfinden soll, auf den 1. Juli beziehen." i18n-description
+												[inputGroupAppendIcon]="null"
+												[group]="$any(feePeriodFormGroup)"
+												[attributeInfo]="$any(feePeriodFormGroup).controls['feePeriodRef'].value.attributeInfoStart"
+												inputGroupAppendText="Tage vor dem Angebotstag" i18n-inputGroupAppendText
+											></p-form-control-switch>
+										</ng-template>
+									</div>
+									<div class="col-12 col-md flex-grow-0 d-flex align-items-center justify-content-center">
+										<p-form-group label="&nbsp;">
+											<div class="d-flex align-items-center justify-content-center" i18n>bis</div>
+										</p-form-group>
+									</div>
+									<div class="col-12 col-md flex-grow-1">
+										<p-form-group
+											*ngIf="i === (formGroup.controls['feePeriods']!.controls.length - 1); else realEndSwitch"
+											label="Ende der Zeitspanne" i18n-label
+										>
+											<p-input
+												[pEditable]="false"
+												[api]="null!"
+
+												label="Ende der Zeitspanne" i18n-label
+												[inputGroupAppendIcon]="null"
+												[ngModel]="'Angebotsbeginn & danach' | localize"
+												[attributeInfo]="$any(feePeriodFormGroup).controls['feePeriodRef'].value.attributeInfoEnd"
+												[disabled]="true"
+												[readMode]="false"
+											></p-input>
+										</p-form-group>
+
+										<ng-template #realEndSwitch>
+											<p-form-control-switch
+												[pEditable]="false"
+												[api]="api"
+
+												label="Ende der Zeitspanne" i18n-label
+												[inputGroupAppendIcon]="null"
+												inputGroupAppendText="Tage vor dem Angebotstag" i18n-inputGroupAppendText
+												[group]="$any(feePeriodFormGroup)"
+												[attributeInfo]="$any(feePeriodFormGroup).controls['feePeriodRef'].value.attributeInfoEnd"
+												[placeholder]="!feePeriodFormGroup.valid || !formGroup.valid ? '?' : ($any(feePeriodFormGroup).controls['feePeriodRef'].value.end === null ? ('Angebotsbeginn & danach' | localize) : '')"
+											></p-form-control-switch>
+										</ng-template>
+									</div>
+
+								</p-grid>
+								<p-grid>
+
+									<div class="col-12 col-md flex-grow-1">
+
+										<p-form-control-switch
+											[pEditable]="false"
+											[api]="api"
+
+											label="Stornogebühr in dieser Zeitspanne" i18n-label
+											[group]="$any(feePeriodFormGroup)"
+											[attributeInfo]="$any(feePeriodFormGroup).controls['feePeriodRef'].value.attributeInfoFeeFix"
+											inputGroupAppendText="Fixe Gebühr" i18n-inputGroupAppendText
+										></p-form-control-switch>
+
+									</div>
+									<div class="col-12 col-md flex-grow-0 d-flex align-items-center justify-content-center">
+										<p-form-group label="&nbsp;">
+											<div class="d-flex align-items-center justify-content-center" i18n>und</div>
+										</p-form-group>
+									</div>
+									<div class="col-12 col-md flex-grow-1">
+										<p-form-control-switch
+											[pEditable]="false"
+											[api]="api"
+
+											label="&nbsp;"
+											[group]="$any(feePeriodFormGroup)"
+											[attributeInfo]="$any(feePeriodFormGroup).controls['feePeriodRef'].value.attributeInfoFeePercentage"
+											[inputGroupAppendIcon]="'percentage'"
+											inputGroupAppendText="vom Buchungsbetrag" i18n-inputGroupAppendText
+										></p-form-control-switch>
+									</div>
+
+								</p-grid>
+								<div class="mt-4">
+									<h4 i18n>Löschen</h4>
+									<div class="d-flex align-items-center">
+										<div class="flex-grow-1" i18n>Willst du diesen Zeitraum und die dazugehörigen Gebühren entfernen?</div>
+										<div class="flex-grow-0">
+											<p-button
+												[attributeInfo]="null"
+												(triggerClick)="onRemoveFeePeriodClick($any(feePeriodFormGroup))"
+												[theme]="PThemeEnum.DANGER"
+												[icon]="PlanoFaIconPool.DELETE"
+												i18n
+											>Löschen</p-button>
+										</div>
+									</div>
+								</div>
+							</div>
+						</p-collapsible>
+						</ng-container>
+						<p-button
+							class="mb-3"
+							*ngIf="!!$any(feePeriodFormGroup).controls['feePeriodRef'].value.rawData && i!==(formGroup.controls['feePeriods']!.controls.length - 1)"
+							[icon]="PlanoFaIconPool.ADD"
+							[theme]="PBtnThemeEnum.OUTLINE_PRIMARY"
+							(triggerClick)="onAddFeePeriodClick(i + 1)"
+						><ng-container i18n>Zeitspanne & Gebühr hinzufügen</ng-container>&ngsp;<ng-container i18n *ngIf="formGroup.controls['feePeriods']!.controls.length >= 1">an dieser Stelle</ng-container></p-button>
+
+					</ng-template>
+				</div>
+
+				<p-button
+					[icon]="PlanoFaIconPool.ADD"
+					[theme]="PBtnThemeEnum.OUTLINE_PRIMARY"
+					(triggerClick)="onAddFeePeriodClick(0)"
+					[disabled]="shiftModel.currentCancellationPolicy?.feePeriods?.get(0)?.start===-1"
+					[cannotEditHint]="'Damit hier eine weitere Zeitspanne hinzugefügt werden kann, ändere bitte den Start der vorherigen Zeitspanne von »UNBEGRENZT« in eine konkrete Anzahl an Tagen.'"
+				><ng-container i18n>Zeitspanne & Gebühr hinzufügen</ng-container>&ngsp;<ng-container i18n *ngIf="formGroup.controls['feePeriods']!.controls.length >= 1">an dieser Stelle</ng-container></p-button>
+
+				<p-alert *ngIf="formGroup.controls['feePeriods']!.hasError(PPossibleErrorNames.REQUIRED)" [theme]="PThemeEnum.DANGER" class="mt-3" i18n>Du hast die Funktion aktiviert, dass deine Kunden <strong>kostenpflichtige</strong> Buchungen selbst online stornieren dürfen. Voraussetzung dafür ist, dass du hier deine Stornogebühren angibst.</p-alert>
+
+				<p-alert *ngIf="firstFeePeriodStartIsNullError" [theme]="PThemeEnum.DANGER" class="mt-3" i18n>Um speichern zu können, definiere bitte noch die Gebühr für Stornierungen <mark>{{ firstFeePeriodStartIsNullError?.['actual'] !== undefined && firstFeePeriodStartIsNullError?.['actual'] !== null ? firstFeePeriodStartIsNullError['actual'] + 1 : '?' }}</mark> oder mehr Tage vor dem Angebotstag. Lege dazu eine Zeitspanne mit dem Start <mark>UNBEGRENZT</mark> an.</p-alert>
+
+				<p-alert *ngIf="noCancellationConditionsLinked || editFeePeriodEmailIsDisabled" [theme]="PThemeEnum.WARNING" class="mt-3"><ng-container *ngIf="noCancellationConditionsLinked" i18n>Wir empfehlen dir sehr, eure Stornobedingungen in Dr.&nbsp;Plano zu <a routerLink="/client/plugin/basis/" fragment="legal-links-anchor" target="_blank" rel="noopener">hinterlegen</a>.</ng-container>&ngsp;<ng-container *ngIf="editFeePeriodEmailIsDisabled" i18n>Die automatische Email »Buchungspreis geändert« sollte für »{{ shiftModel.name }}« aktiviert werden, damit eure Kunden über mögliche Änderungen der Stornogebühren benachrichtigt werden.</ng-container></p-alert>
+
+			</p-tab>
+			<p-tab
+				*ngIf="shiftModel.currentCancellationPolicy"
+				label="Widerrufsfrist" i18n-label
+				class="pt-4"
+				[hasDanger]="!!formGroup.controls[shiftModel.currentCancellationPolicy.attributeInfoWithdrawalPeriod.id]?.invalid"
+				[size]="PTabSizeEnum.LG"
+			>
+
+				<p i18n>Falls das Widerrufsrecht für eure buchbaren Angebote gilt, kannst du hier die Widerrufsfrist einstellen, damit sie deinen Kunden bei der Online-Buchung angezeigt wird. Werden Buchungen innerhalb der gesetzten Widerrufsfrist storniert, fallen generell keine Stornierungsgebühren an – die Widerrufsfrist hat also Vorrang gegenüber den hinterlegten Stornierungsgebühren. Zum Thema Widerrufsfrist empfehlen wir dir sehr unser <a routerLink="/client/tutorials" target="_blank" rel="noopener" class="tut-video-link">Tutorial-Video</a> über die Stornierung & Rückzahlung von Buchungen.</p>
+				<p-alert [theme]="PThemeEnum.INFO" class="small mt-4 mb-5" i18n>Änderungen der Widerrufsfrist wirken sich <strong>nur auf neue Buchungen</strong> aus. Bereits vorhandene Buchungen bleiben unangetastet.</p-alert>
+				<p-form-control-switch
+					[pEditable]="false"
+					[api]="api"
+
+					[group]="formGroup"
+					[attributeInfo]="shiftModel.currentCancellationPolicy.attributeInfoWithdrawalEnabled"
+					[type]="FormControlSwitchType.RADIOS"
+				>
+					<p-form-control-switch-item
+						label="Widerrufsfrist aktivieren" i18n-label
+						[value]="true"
+					></p-form-control-switch-item>
+					<p-form-control-switch-item
+						label="Widerrufsfrist deaktivieren" i18n-label
+						[value]="false"
+					></p-form-control-switch-item>
+				</p-form-control-switch>
+				<p-grid *ngIf="shiftModel.currentCancellationPolicy.withdrawalEnabled">
+					<div class="col-12 col-md-6">
+						<p-form-control-switch
+							[pEditable]="false"
+							[api]="api"
+
+							label="Widerrufsfrist gilt innerhalb von" i18n-label
+							placeholder="z.B. 14" i18n-placeholder
+							[group]="formGroup"
+							[attributeInfo]="shiftModel.currentCancellationPolicy.attributeInfoWithdrawalPeriod"
+							[durationUIType]="PApiPrimitiveTypes.Days"
+							inputGroupAppendText="Tagen nach dem Buchungstag" i18n-inputGroupAppendText
+						></p-form-control-switch>
+						<span class="form-text" i18n><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.MORE_INFO"></fa-icon>&nbsp;Der Buchungstag selbst wird <strong>nicht</strong> mitgezählt. Die Widerrufsfrist endet spätestens mit dem Beginn des gebuchten Angebots – bei mehrtägigen Angeboten spätestens mit dem Beginn des ersten Termins.</span>
+					</div>
+				</p-grid>
+
+			</p-tab>
+			<p-tab
+				label="Online-Storno durch Kunden" i18n-label
+				class="pt-4"
+				[size]="PTabSizeEnum.FRAMELESS"
+				[hasDanger]="(
+					!!formGroup.controls[shiftModel.attributeInfoOnlineCancellationForFreeBookingsEnabled.id]?.invalid ||
+					!!formGroup.controls[shiftModel.attributeInfoOnlineCancellationForFreeBookingsDeadline.id]?.invalid ||
+					!!formGroup.controls[shiftModel.attributeInfoOnlineCancellationForChargeableBookingsEnabled.id]?.invalid ||
+					!!formGroup.controls[shiftModel.attributeInfoOnlineCancellationForChargeableBookingsDeadline.id]?.invalid ||
+					!!formGroup.controls[shiftModel.attributeInfoOnlineCancellationForWithdrawableBookingsAlwaysEnabled.id]?.invalid ||
+					!!formGroup.controls[shiftModel.attributeInfoOnlineCancellationAutomaticOnlineRefundEnabled.id]?.invalid
+				)"
+			>
+				<p class="pt-4 mx-5" i18n>Hier kannst du deinen Kunden erlauben, ihre Buchungen selbst online zu stornieren. Nutzt du die Online-Zahlung, kannst du zusätzlich eine automatische Rückerstattung aktivieren.</p>
+				<ul class="list custom-marker pb-3 pl-3 ml-5">
+					<li><ng-container i18n>Deine Kunden können komfortabel über einen Link in den Emails stornieren. Der Link wird automatisch in die Emails platziert, wenn du die Stornierung durch Kunden erlaubst. Du brauchst also deine <a target="_blank" rel="noopener" routerLink="/client/plugin/emails">Email-Vorlagen</a> nicht manuell anzupassen.</ng-container></li>
+					<li><ng-container i18n>Du sparst dir das Lesen von Storno-Emails, das manuelle Stornieren etc.</ng-container></li>
+					<li><ng-container i18n>Du hast dabei die volle Kontrolle, weil du Fristen definieren kannst, bis wann Kunden selbst stornieren dürfen. Die Fristen dafür können übrigens andere sein als die, die für deine Stornierungsgebühren gelten.</ng-container></li>
+					<li><ng-container i18n>Aktiviere noch die automatische Geldrückerstattung für maximale Effizienz.</ng-container></li>
+					<li><ng-container i18n>Lasse dich über Online-Stornierung durch Kunden automatisch benachrichtigen und werde bei Bedarf aktiv – das geht wie gewohnt über deine persönlichen <a target="_blank" rel="noopener" routerLink="/client/notifications">Benachrichtigungs-Einstellungen</a>.</ng-container></li>
+				</ul>
+				<p-alert [theme]="PThemeEnum.INFO" class="small mt-3 mb-5 mx-5" i18n>Änderungen bei Online-Storno wirken sich sofort <strong>auch auf bereits bestehende Buchungen</strong> aus – anders als Änderungen der Stornogebühren oder der Widerrufsfrist.</p-alert>
+				<p-section
+					[whitespace]="SectionWhitespace.LG"
+					[background]="'light-cold'"
+					label="Kostenlose Buchungen stornieren" i18n-label
+					class="mt-0 mb-0"
+				>
+
+					<p i18n>Bei Stornierungen von kostenlosen Buchungen durch Kunden fallen generell <strong>keine Stornierungsgebühren</strong> an. Als kostenlos gilt eine Buchung mit einem Buchungspreis von <mark>{{0 | currency:undefined:undefined:undefined:undefined:true}}</mark> – ist also unabhängig von der vom Kunden gewählten Zahlungsart.</p>
+					<p-form-control-switch
+						[pEditable]="false"
+						[api]="api"
+
+						[group]="formGroup"
+						[attributeInfo]="shiftModel.attributeInfoOnlineCancellationForFreeBookingsEnabled"
+						[type]="FormControlSwitchType.RADIOS"
+					>
+						<p-form-control-switch-item
+							label="Kunden dürfen online stornieren" i18n-label
+							[value]="true"
+						></p-form-control-switch-item>
+						<p-form-control-switch-item
+							label="Kunden dürfen nicht online stornieren" i18n-label
+							[value]="false"
+						></p-form-control-switch-item>
+					</p-form-control-switch>
+
+					<p-grid *ngIf="shiftModel.onlineCancellationForFreeBookingsEnabled" class="mb-3">
+						<div class="col-12 col-md-6">
+							<p-form-control-switch-duration
+								label="Frist für Online-Stornos durch Kunden" i18n-label
+								description="Um eine Online-Stornierung <strong>am Angebotstag selbst</strong> auszuschließen, trage hier »0 Tage vor dem Angebotstag« ein.<br><br>Dementsprechend bedeutet die Einstellung »2 Tage vor dem Angebotstag« bei einem Angebot, das beispielsweise an einem 3. Juli stattfinden soll, dass deine Kunden bis zum einschließlich 1. Juli selbst online stornieren dürfen." i18n-description
+								[group]="formGroup"
+								[attributeInfo]="shiftModel.attributeInfoOnlineCancellationForFreeBookingsDeadline"
+								[durationUIType]="shiftModel.onlineCancellationForFreeBookingsDeadline !== null ? PApiPrimitiveTypes.Days : null"
+								[options]="deadlinesInputDurationOptions"
+								[maxDecimalPlacesCount]="0"
+							></p-form-control-switch-duration>
+							<span class="form-text" i18n><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.MORE_INFO"></fa-icon>&nbsp;Bei mehrtägigen Angeboten ist der Starttermin relevant.</span>
+						</div>
+					</p-grid>
+
+					<p-alert *ngIf="shiftModel.onlineCancellationForFreeBookingsEnabled" [theme]="PThemeEnum.SUCCESS" i18n>Ab jetzt werden deine Kunden einen Link für die Stornierung in den Emails vorfinden, die sie von Dr.&nbsp;Plano erhalten – z.B. in der Email für die Buchungsbestätigung. Du brauchst also deine Email-Vorlagen nicht selbst manuell anzupassen.</p-alert>
+
+				</p-section>
+				<p-section
+					[whitespace]="SectionWhitespace.LG"
+					[background]="'light-cold'"
+					label="Kostenpflichtige Buchungen stornieren" i18n-label
+					class="mt-0 mb-0"
+				>
+					<p i18n>Bei Stornierungen von kostenpflichtigen Buchungen durch Kunden werden automatisch die in Dr.&nbsp;Plano hinterlegten Stornogebühren angerechnet. Buchungen, für die keine Stornogebühren hinterlegt sind, können nicht online storniert werden.</p>
+					<p-form-control-switch
+						[pEditable]="false"
+						[api]="api"
+
+						label="Kunden dürfen online stornieren" i18n-label
+						[group]="formGroup"
+						[attributeInfo]="shiftModel.attributeInfoOnlineCancellationForChargeableBookingsEnabled"
+						[canEdit]="!(!shiftModel.onlineCancellationForChargeableBookingsEnabled && shiftModel.currentCancellationPolicy?.feePeriods!.length === 0)"
+						[cannotEditHint]="!shiftModel.onlineCancellationForChargeableBookingsEnabled && shiftModel.currentCancellationPolicy?.feePeriods!.length === 0 ? 'Um diese Funktion nutzen zu können, musst du erst deine Stornogebühren unter dem Reiter »Stornogebühren« angeben.' : null"
+					>
+							<p-form-control-switch-item
+								label="Kunden dürfen online stornieren" i18n-label
+								[value]="true"
+								[cannotEditHint]="onlineCancellationForChargeableBookingsEnabledCannotEditHint"
+							></p-form-control-switch-item>
+							<p-form-control-switch-item
+								label="Kunden dürfen nicht online stornieren" i18n-label
+								[value]="false"
+								[cannotEditHint]="onlineCancellationForChargeableBookingsEnabledCannotEditHint"
+							></p-form-control-switch-item>
+					</p-form-control-switch>
+
+					<p-grid *ngIf="shiftModel.onlineCancellationForChargeableBookingsEnabled" class="mb-3">
+						<div class="col-12 col-md-6">
+							<p-form-control-switch-duration
+								label="Frist für Online-Stornos durch Kunden" i18n-label
+								description="Um eine Online-Stornierung <strong>am Angebotstag selbst</strong> auszuschließen, trage hier »0 Tage vor dem Angebotstag« ein.<br><br>Dementsprechend bedeutet die Einstellung »2 Tage vor dem Angebotstag« bei einem Angebot, das beispielsweise an einem 3. Juli stattfinden soll, dass deine Kunden bis zum einschließlich 1. Juli selbst online stornieren dürfen." i18n-description
+								[group]="formGroup"
+								[attributeInfo]="shiftModel.attributeInfoOnlineCancellationForChargeableBookingsDeadline"
+								[durationUIType]="shiftModel.onlineCancellationForChargeableBookingsDeadline !== null ? PApiPrimitiveTypes.Days : null"
+								[options]="deadlinesInputDurationOptions"
+								[maxDecimalPlacesCount]="0"
+							></p-form-control-switch-duration>
+							<span class="form-text" i18n><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.MORE_INFO"></fa-icon>&nbsp;Bei mehrtägigen Angeboten ist der Starttermin relevant.</span>
+						</div>
+					</p-grid>
+
+					<p-alert *ngIf="shiftModel.onlineCancellationForChargeableBookingsEnabled" [theme]="PThemeEnum.SUCCESS" i18n>Ab jetzt werden deine Kunden einen Link für die Stornierung in den Emails vorfinden, die sie von Dr.&nbsp;Plano erhalten – z.B. in der Email für die Buchungsbestätigung. Du brauchst also deine Email-Vorlagen nicht selbst manuell anzupassen.</p-alert>
+
+				</p-section>
+				<p-section
+					[whitespace]="SectionWhitespace.LG"
+					[background]="'light-cold'" label="Innerhalb der Widerrufsfrist stornieren" i18n-label
+					class="mt-0 mb-0"
+				>
+					<p><ng-container i18n *ngIf="shiftModel.currentCancellationPolicy?.withdrawalEnabled">Du hast für »{{ shiftModel.name }}« eine Frist von <code>{shiftModel.currentCancellationPolicy?.withdrawalPeriod, plural, one {einem Tag} other {{{shiftModel.currentCancellationPolicy?.withdrawalPeriod}} Tagen}}</code> im Sinne des Widerrufsrechts definiert.&nbsp;</ng-container><ng-container i18n>Hier kannst du die Online-Stornierung durch Kunden innerhalb der Widerrufsfrist separat regulieren – das, was du hier einstellst, hat Vorrang gegenüber den Einstellungen oben für kostenlose oder kostenpflichtige Buchungen.</ng-container></p>
+					<p-form-control-switch
+						[pEditable]="false"
+						[api]="api"
+
+						[group]="formGroup"
+						[attributeInfo]="shiftModel.attributeInfoOnlineCancellationForWithdrawableBookingsAlwaysEnabled"
+					>
+						<p-form-control-switch-item
+							label="Online-Stornierung in der Widerrufsfrist immer erlauben" i18n-label
+							[value]="true"
+						></p-form-control-switch-item>
+						<p-form-control-switch-item
+							label="Keine besondere Regelung für Stornierungen in der Widerrufsfrist" i18n-label
+							[value]="false"
+						></p-form-control-switch-item>
+					</p-form-control-switch>
+					<p-alert *ngIf="shiftModel.onlineCancellationForWithdrawableBookingsAlwaysEnabled" [theme]="PThemeEnum.INFO" i18n>Bedenke bitte, dass bei Stornierungen innerhalb der Widerrufsfrist generell keine Stornierungsgebühren angerechnet werden.</p-alert>
+
+				</p-section>
+				<p-section
+					[whitespace]="SectionWhitespace.LG"
+					label="Automatische Online-Rückzahlung" i18n-label
+				>
+
+					<p i18n>Wenn du unten die automatische Rückzahlung aktivierst, wird nach einem Online-Storno durch deinen Kunden der zu erstattende Betrag von Dr.&nbsp;Plano ausgerechnet, indem eine ggf. anfallende Stornogebühr von der bereits bezahlten Buchungsgebühr abgezogen wird. Anschließend wird der Betrag automatisch an deinen Kunden zurückgezahlt. Diese Funktionalität steht nur bei Buchungen zur Verfügung, die per <a routerLink="/client/plugin/payments" target="_blank" rel="noopener">Online-Zahlung</a> bezahlt werden.</p>
+					<p i18n>☝ Wenn du die automatische Rückzahlung nicht aktivierst, wirst du nach Stornierungen durch Kunden informiert, dass du noch Geld zurückzahlen musst. Das kannst du dann in der jeweiligen Buchung mit ein paar Klicks erledigen.</p>
+					<p-form-control-switch
+						[pEditable]="false"
+						[api]="api"
+
+						label="Automatische Rückzahlung"
+						[group]="formGroup"
+						[attributeInfo]="shiftModel.attributeInfoOnlineCancellationAutomaticOnlineRefundEnabled"
+						[cannotEditHint]="onlineCancellationAutomaticOnlineRefundEnabledCannotEditHint"
+					>
+						<p-form-control-switch-item
+							label="Automatische Rückzahlung aktivieren" i18n-label
+							[value]="true"
+						></p-form-control-switch-item>
+						<p-form-control-switch-item
+							label="Keine automatische Rückzahlung" i18n-label
+							[value]="false"
+						></p-form-control-switch-item>
+					</p-form-control-switch>
+
+					<p-alert *ngIf="shiftModel.onlineCancellationAutomaticOnlineRefundEnabled" [theme]="PThemeEnum.INFO" i18n>Die automatische Rückzahlung erfolgt nur, wenn dein gesamter Account und die jeweilige Buchung genügend <a routerLink="/client/plugin/faq-online-payment" fragment="refund" target="_blank" rel="noopener">Online-Guthaben</a> aufweisen. Für Rückerstattungen fallen <a routerLink="/client/plugin/faq-online-payment" fragment="pricing" rel="noopener" target="_blank">Gebühren</a> an. Online-Zahlungen von Kunden, die vor mehr als 180 Tagen getätigt worden sind, können leider nicht zurückerstattet werden, da die Banken sie nicht mehr akzeptieren – Dr.&nbsp;Plano siebt so alte Zahlungen automatisch aus.</p-alert>
+
+				</p-section>
+				<div class="p-4 px-5" *ngIf="showCancelEmailIsDisabledHint">
+					<hr>
+					<p-alert class="mt-3" i18n>Die automatische Email »Buchung storniert« ist für »{{shiftModel.name}}« deaktiviert. Wir empfehlen dringend, sie zu aktivieren, damit eure Kunden nach erfolgreicher Online-Stornierung automatisch eine Bestätigung per Email erhalten.</p-alert>
+				</div>
+			</p-tab>
+		</p-tabs>
+
+	</p-editable-modal-box-form>
+</p-editable-modal-box>
+
+<ng-template #feePeriodTitleTemplate let-feePeriod>
+	<span>
+		<ng-container *ngIf="feePeriod.start === null && feePeriod.end === null; else detailPeriodDatesTemplate" i18n>Bei jeglicher Stornierung</ng-container>
+
+		<ng-template #detailPeriodDatesTemplate>
+			<p-fee-period-time-text
+				[start]="feePeriod.start"
+				[end]="feePeriod.end"
+			></p-fee-period-time-text>
+
+		</ng-template>
+	</span>
+</ng-template>
+
+<ng-template #feePeriodPriceTemplate let-feePeriod>
+	<span *ngIf="!feePeriod.feeFix && !feePeriod.feePercentage; else priceTemplate" i18n>kostenlose Stornierung</span>
+	<ng-template #priceTemplate>
+		<p class="m-0">
+			<code *ngIf="feePeriod.feeFix">{{ feePeriod.feeFix | currency }}</code>
+			<ng-container *ngIf="!!feePeriod.feeFix && !!feePeriod.feePercentage">&nbsp;+&nbsp;</ng-container>
+			<ng-container *ngIf="!!feePeriod.feePercentage">
+				<code>{{ feePeriod.feePercentage / 100 | percent : '1.0-1' }}</code>&nbsp;<ng-container i18n>vom Buchungsbetrag</ng-container>
+			</ng-container>
+		</p>
+	</ng-template>
+</ng-template>
+
+<ng-template #spinnerTemplate>
+	<p-spinner [size]="BootstrapSize.LG" class="m-3"></p-spinner>
+</ng-template>

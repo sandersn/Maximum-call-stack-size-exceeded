@@ -1,0 +1,29 @@
+<ng-container
+	*ngIf="!hasCourseDatesData"
+	[class.text-danger]="!negateForCourseDatesInterval"
+	class="mb-0"
+	i18n
+>Tarif ist zeitlich unbeschränkt gültig</ng-container>
+<ng-template [ngIf]="hasCourseDatesData">
+	<ng-container
+		*ngIf="negateForCourseDatesInterval === true && !forCourseDatesFrom && !forCourseDatesUntil; else hasStartAndOrEndTemplate"
+		[class.text-danger]="!negateForCourseDatesInterval"
+		class="mb-0"
+		i18n
+	>Tarif ist dauerhaft ungültig!</ng-container>
+
+	<ng-template #hasStartAndOrEndTemplate>
+		<ng-template [ngIf]="negateForCourseDatesInterval!==undefined">
+			<ng-container i18n>{!negateForCourseDatesInterval, select, true {Gilt} other {Gilt nicht}}</ng-container>
+			<ng-template [ngIf]="longText">&nbsp;<ng-container i18n>für Termine</ng-container></ng-template>
+		</ng-template>
+
+		<ng-template [ngIf]="forCourseDatesFrom">&nbsp;ab <code>{{ forCourseDatesFrom | date:'shortDate' }}</code></ng-template>
+
+		<ng-template [ngIf]="forCourseDatesUntil">&nbsp;<ng-container i18n>bis <code>{{ forCourseDatesUntil - 1 | date:'shortDate' }}</code></ng-container></ng-template>
+	</ng-template>
+</ng-template>
+<ng-template [ngIf]="hasCourseDatesData && isInternal">,&nbsp;</ng-template>
+<ng-template [ngIf]="isInternal">
+	<span i18n>{{ isInternalLabel }}</span>
+</ng-template>

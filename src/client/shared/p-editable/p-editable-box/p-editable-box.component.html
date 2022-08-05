@@ -1,0 +1,67 @@
+<div
+	[pEditable]="pEditable"
+	[api]="api"
+	[valid]="valid"
+	[saveChangesHook]="saveChangesHook"
+	(onSaveStart)="onSaveStart.emit()"
+	(onSaveSuccess)="initialInvalid=false;onSaveSuccess.emit();"
+	(onDismiss)="onDismiss.emit()"
+	(onLeaveCurrent)="onLeaveCurrent.emit()"
+	(editMode)="updateEditMode($event)"
+
+	class="card"
+	[class.border-danger]="!valid"
+>
+	<div class="card-header card-options align-items-stretch"
+		[class.border-bottom-0]="!showShowroom"
+	>
+		<div class="w-100"
+			[class.p-2]="!!label"
+			[class.pl-3]="!!label"
+			[class.pr-3]="!!label"
+		>
+			<ng-template [ngIf]="!label"><ng-container *ngTemplateOutlet="header"></ng-container></ng-template>
+			<ng-template [ngIf]="!!label">{{ label }} <ng-container *ngTemplateOutlet="header"></ng-container></ng-template>
+		</div>
+		<div class="ml-auto d-flex">
+			<ng-template [ngIf]="!initialInvalid">
+				<ng-template [ngIf]="!disabled">
+					<button
+						type="button"
+						pEditableTriggerClickable
+						triggerType="click"
+						class="card-option btn btn-outline-secondary pt-2 pb-2 ml-auto"
+					><fa-icon [fixedWidth]="true" icon="pen"></fa-icon></button>
+				</ng-template>
+				<button
+					type="button"
+					class="card-option ml-auto"
+					pEditableDismissButton
+				><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.UNDO"></fa-icon></button>
+				<button
+					type="button"
+					class="card-option"
+					pEditableSuccessButton
+				><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.SUCCESS"></fa-icon></button>
+			</ng-template>
+			<button
+				type="button"
+				*ngIf="!disabled && !boxEditMode && onRemoveItemClick.observers.length > 0"
+				class="btn btn-danger card-option rounded-right nowrap"
+				pEditableInstantSaveButton
+				(triggerClick)="onRemoveItemClick.emit()"
+			><fa-icon [fixedWidth]="true" icon="trash"></fa-icon> Löschen</button>
+
+		</div>
+	</div>
+	<div class="card-body bg-light-cold" #showroom [class.d-none]="!showShowroom" [hidden]="(!(pEditable) || boxEditMode || initialInvalid)">
+		<ng-content select="p-editable-box-showroom"></ng-content>
+	</div>
+	<div class="card-body bg-light-cold" [class.border-top]="!showShowroom" [hidden]="!(!(pEditable) || boxEditMode || initialInvalid)">
+		<ng-content select="p-editable-box-form"></ng-content>
+	</div>
+</div>
+
+<ng-template #header>
+	<ng-content select="p-editable-box-header"></ng-content>
+</ng-template>

@@ -1,0 +1,69 @@
+<div class="form-group">
+
+	<div
+		dropdown
+		[autoClose]="true"
+		[(isOpen)]="isOpen"
+		(click)="$event.preventDefault()"
+		[isDisabled]="!!disabled"
+	>
+		<button
+			type="button"
+			class="form-control btn pl-3"
+			[class.btn-primary]="!disabled && !selectedShift"
+			[class.btn-outline-secondary]="!(!disabled && !selectedShift)"
+			dropdownToggle
+		>
+			<p-color-marker
+				*ngIf="!!selectedShift && !!selectedShift.model"
+				[item]="selectedShift"
+				[title]="selectedShift ? selectedShift.name : undefined"
+				[hexColor]="selectedShift ? '#' + selectedShift.model.color : 'transparent'"
+				[isPacket]="false"
+			></p-color-marker>
+			<span *ngIf="selectedShift" class="d-flex justify-content-between align-items-center">
+				<span style="text-overflow: ellipsis; overflow: hidden; text-align: left;">{{ selectedShift.name }}</span>
+				<span>
+					<span class="text-monospace">{{ formattedDateTimePipe.getFormattedDateInfo(selectedShift.start,selectedShift.end, false).full }}</span>
+					<span class="text-monospace d-none d-sm-inline"> | </span>
+					<span class="text-monospace d-none d-sm-inline">{{ getFormattedTimeInfo(selectedShift.start,selectedShift.end) }}</span>
+				</span>
+			</span>
+			<span *ngIf="!selectedShift && !placeholder" i18n>Wähle deine Schicht…</span>
+			<span *ngIf="!selectedShift && placeholder" i18n>{{ placeholder }}</span>
+		</button>
+		<ul
+			*dropdownMenu
+			role="menu"
+			class="dropdown-menu dropdown-menu-right"
+		>
+			<li
+				class="text-right"
+				role="menuitem"
+				*ngFor="let shift of shifts"
+			>
+				<a
+					class="dropdown-item pl-3"
+					href=""
+					(click)="onSelect(shift)"
+				>
+					<p-color-marker
+						*ngIf="!!shift.model"
+						[item]="shift.model"
+						[hexColor]="shift.model.color ? '#' + shift.model.color : null"
+						[title]="shift.name"
+					></p-color-marker>
+					<span class="d-flex justify-content-between align-items-center">
+						<span style="text-overflow: ellipsis; overflow: hidden; text-align: left;">{{ shift.name }}</span>
+						<span>
+							<span class="text-monospace">{{ formattedDateTimePipe.getFormattedDateInfo(shift.start, shift.end, true).full }}</span>
+							<span class="text-monospace"> | </span>
+							<span class="text-monospace d-none d-lg-inline">{{ getFormattedTimeInfo(shift.start, shift.end) }}</span>
+							<span class="text-monospace d-lg-none">{{ getFormattedTimeInfo(shift.start) }}</span>
+						</span>
+					</span>
+				</a>
+			</li>
+		</ul>
+	</div>
+</div>

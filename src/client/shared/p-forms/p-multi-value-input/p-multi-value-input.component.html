@@ -1,0 +1,75 @@
+<p-list class="rounded grid-list">
+	<div
+		*ngFor="let item of value"
+	>
+		<p-list-item
+			size="frameless"
+			class="rounded o-hidden card-options border bg-white c"
+		>
+			<div class="p-2 flex-grow-1">{{item}}</div>
+			<p-list-item-append class="d-flex align-items-stretch card-option border-left">
+				<p-delete-button
+					class="border-0 border-light d-flex flex-grow-1 btn-frameless rounded-right"
+					modalText="Willst du »{{item}}« aus der Liste löschen?" i18n-modalText
+					(onModalSuccess)="removeItem($event, item)"
+					[disabled]="false"
+				></p-delete-button>
+			</p-list-item-append>
+		</p-list-item>
+	</div>
+	<p-input
+		#inputRef
+		(keydown.enter)="onEnter($event)"
+		[placeholder]="defaultValue"
+		[type]="type"
+		[formControl]="tempFormControlForInput"
+	>
+
+		<!-- [formControl]="formControl" -->
+		<!-- NOTE: For release 3.1, use this here: #release3.1PreparationsTemplate -->
+		<p-input-append>
+			<button type="button"
+				class="ml-auto input-group-btn btn btn-outline-primary"
+				[class.btn-lg]="Config.IS_MOBILE"
+				[disabled]="disabled"
+				(click)="addItem($event)"
+			>
+				<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon>
+				<span i18n>Hinzufügen</span>
+			</button>
+		</p-input-append>
+	</p-input>
+</p-list>
+
+
+<!-- <ng-template #release3.1Preparations>
+	<div class="input-group">
+		<div class="form-control flex-grow-1">
+			<ng-container
+				*ngFor="let item of value"
+			>
+				<span class="badge badge-dark align-self-center mr-2">{{item}}&ngsp;<fa-icon [icon]="'times'"
+					(click)="removeItem(item)"
+				></fa-icon></span>
+			</ng-container>
+			<p-input
+				#inputRef
+				class="border-0 flex-grow-1"
+				(keydown.enter)="onEnter()"
+				(keydown.backspace)="onBackspace()"
+				[placeholder]="defaultValue"
+			></p-input>
+		</div>
+		<div class="input-group-append">
+			<button type="button"
+				class="ml-auto input-group-btn btn btn-outline-primary"
+				[class.btn-lg]="Config.IS_MOBILE"
+				[disabled]="disabled"
+				(click)="addItem()"
+			>
+				<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon>
+				<span i18n>Hinzufügen</span>
+			</button>
+		</div>
+	</div>
+</ng-template> -->

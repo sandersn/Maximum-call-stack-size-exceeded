@@ -1,0 +1,11 @@
+
+@import "variables";
+
+:host {
+	display: block;
+	margin-bottom: map-get($spacers, 3);
+}
+
+.form-group {
+	margin-bottom: auto;
+}

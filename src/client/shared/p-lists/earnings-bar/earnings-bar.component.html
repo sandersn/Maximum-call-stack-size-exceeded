@@ -1,0 +1,26 @@
+<div class="earnings-bar-wrap"
+	[class.extract]="extract"
+>
+	<div class="earnings-bar earnings-bar-bottom">
+		<div class="min-overlay"
+			*ngIf="!extract || extract === 'min'"
+			[style.width]="minOverlayWidth + '%'"
+		></div>
+		<div class="desired-marker d-flex align-items-center"
+			*ngIf="!extract || extract === 'desired'"
+			[style.left]="desiredMarkerOffset + '%'"
+		>
+			<div class="dot"></div>
+		</div>
+		<div class="max-overlay"
+			*ngIf="!extract || extract === 'max'"
+			[style.width]="maxOverlayWidth + '%'"
+		></div>
+		<div class="value-bar"
+			*ngIf="!extract"
+			[style.width]="valueBarWidth + '%'"
+			[style.background]="valueBarColor"
+		></div>
+	</div>
+
+</div>

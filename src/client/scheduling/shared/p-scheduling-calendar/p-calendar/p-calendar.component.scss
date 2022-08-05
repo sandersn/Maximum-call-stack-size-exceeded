@@ -1,0 +1,122 @@
+/* stylelint-disable csstools/use-nesting */
+@import "variables";
+
+:host {
+	display: block;
+}
+
+p-calendar {
+	.cal-week-view .cal-cell-row .cal-cell:hover {
+		background: transparent;
+	}
+
+	.cal-cell-top .sticky-note-button.only-show-on-hover,
+	.cal-cell-top .multi-select-checkbox.only-show-on-hover {
+		display: none !important;
+	}
+
+	.cal-cell-top:hover .sticky-note-button.only-show-on-hover,
+	.cal-cell-top:hover .multi-select-checkbox.only-show-on-hover {
+		display: flex !important;
+	}
+
+	.cal-day-cell {
+		.sticky-note-button .btn {
+			border-color: transparent;
+		}
+
+		&:hover .sticky-note-button .btn {
+			border-color: theme-color-level("light", 2);
+		}
+	}
+
+	.cal-week-view .cal-day-headers .cal-header:hover,
+	.cal-month-view .cal-cell-row .cal-cell.cal-has-events.cal-open .cal-cell-top {
+		background-color: theme-color-level("primary", -4);
+	}
+
+	.cal-month-view .cal-day-cell.cal-out-month,
+	.cal-month-view .cal-day-cell.cal-out-month:hover {
+		background: $gray-200;
+
+		.cal-day-number {
+			// FIXME: PLANO-1389
+			// opacity: 0.5;
+			opacity: 0;
+		}
+
+		// FIXME: PLANO-1389
+		p-all-day-items-list {
+			display: none !important;
+		}
+	}
+
+	.cal-day-cell:not(.cal-today) .cal-cell-top .cal-day-number {
+		z-index: 2;
+	}
+
+	.cal-month-view {
+		.cal-header .cal-cell {
+			font-weight: normal;
+		}
+
+		.cal-day-number {
+			margin-bottom: 0;
+			/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+			margin-left: 6px;
+			/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+			margin-right: 6px;
+			margin-top: 0;
+		}
+
+		// .cal-day-cell.cal-out-month {
+		// 	&.cal-future {
+		// 		background: $gray-200;
+		// 	}
+		//
+		// 	&.cal-past {
+		// 		background: $white;
+		// 	}
+		// }
+	}
+
+	.cal-week-view .cal-day-headers span,
+	.cal-month-view .cal-day-number {
+		opacity: 1;
+	}
+
+	// Lighten weekend-numbers
+	.cal-week-view .cal-header.cal-weekend span,
+	.cal-month-view .cal-day-cell.cal-weekend .cal-day-number {
+		// color: theme-color-level("dark", -8);
+		color: inherit;
+	}
+
+	.cal-month-view .cal-day-cell {
+		// overflow: hidden;
+
+		&:not(:last-child) {
+			border-right-color: transparent;
+		}
+	}
+
+	.cal-month-view .cal-day-number {
+		float: none;
+	}
+
+	.button-today {
+		border-right-width: $border-width * 2 !important;
+	}
+
+	.mode-day {
+		padding-top: map-get($spacers, 3);
+		padding-bottom: map-get($spacers, 3);
+	}
+}
+
+.cal-week-view,
+.cal-month-view {
+	.cal-cell-top {
+		min-height: 40px !important;
+	}
+}

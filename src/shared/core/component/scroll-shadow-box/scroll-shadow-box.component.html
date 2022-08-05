@@ -1,0 +1,52 @@
+<div class="overlay"
+
+	[class.has-fixed-footer]="!!showFooterAsFixed"
+	[class.no-fixed-footer]="!showFooterAsFixed"
+
+	[class.bg-darker]="backgroundColor==='darker'"
+	[class.bg-dark]="backgroundColor==='dark'"
+	[class.bg-light-cold]="backgroundColor==='light'"
+	[class.bg-primary]="backgroundColor==='primary'"
+>
+	<div class="shadow-container"
+		*ngIf="!showFooterAsFixed && !shadowsDisabled"
+	>
+		<div class="radial-shadow-top"></div>
+		<div class="radial-shadow-bottom"></div>
+	</div>
+	<div class="content"
+		[class.always-show-scrollbar]="alwaysShowScrollbar"
+		[style]="contentContainerStyles"
+	>
+		<div
+			*ngIf="!shadowsDisabled"
+			class="shadow-cover-top"
+			[class.bg-darker]="backgroundColorTop==='darker'"
+			[class.bg-dark]="backgroundColorTop==='dark'"
+			[class.bg-light-cold]="backgroundColorTop==='light'"
+			[class.bg-primary]="backgroundColorTop==='primary'"
+		></div>
+		<div class="content-inner">
+			<ng-template [ngTemplateOutlet]="contentTemplate"></ng-template>
+			<ng-template [ngIf]="!showFooterAsFixed && !!fixedFooterTemplate">
+				<ng-template [ngTemplateOutlet]="fixedFooterTemplate"></ng-template>
+			</ng-template>
+		</div>
+		<div class="shadow-cover-bottom"
+			*ngIf="!shadowsDisabled"
+			[class.bg-darker]="backgroundColorBottom==='darker'"
+			[class.bg-dark]="backgroundColorBottom==='dark'"
+			[class.bg-light-cold]="backgroundColorBottom==='light'"
+			[class.bg-primary]="backgroundColorBottom==='primary'"
+		></div>
+	</div>
+	<ng-template [ngIf]="showFooterAsFixed">
+		<div class="flex-grow-1 flex-shrink-1">
+			<ng-template [ngTemplateOutlet]="fixedFooterTemplate"></ng-template>
+		</div>
+	</ng-template>
+</div>
+
+<ng-template #contentTemplate>
+	<ng-content></ng-content>
+</ng-template>

@@ -1,0 +1,166 @@
+
+<p-section label="Firma" i18n-label>
+	<p-grid>
+		<div class="col">
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+
+				label="Name der Firma" i18n-label
+				[attributeInfo]="api.data.attributeInfoCompanyName"
+				[group]="formGroup"
+				placeholder="Magic Plano AG" i18n-placeholder
+			></p-form-control-switch>
+		</div>
+		<div class="col">
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+
+				label="USt-IdNr." i18n-label
+				description="Falls dein Betrieb keine USt.&#8209;IdNr. hat, trage hier bitte »0« ein. Mit einer USt-IdNr. unterliegst du nach einer Prüfung dem Reverse-Charge-Verfahren und wir stellen deine Rechnung ohne Umsatzsteuer aus." i18n-description
+				[attributeInfo]="api.data.billing.attributeInfoVatNumber"
+				[group]="formGroup"
+			></p-form-control-switch>
+		</div>
+	</p-grid>
+</p-section>
+<p-section label="Rechnungsanschrift" i18n-label>
+	<p-form-control-switch
+		[pEditable]="!turnIntoRealAccountForm"
+		(onSaveSuccess)="initFormGroup.emit()"
+
+		label="Rechnungsanschrift ist gleich Standortadresse?" i18n-label
+		[attributeInfo]="api.data.billing.attributeInfoBillAddressIsLocationAddress"
+		[group]="formGroup"
+		valueText="Ja" i18n-valueText
+	></p-form-control-switch>
+
+	<p-form-control-switch
+		[pEditable]="!turnIntoRealAccountForm"
+
+		label="Straße und Hausnummer" i18n-label
+		[attributeInfo]="api.data.billing.attributeInfoStreetAndHouseNumber"
+		[group]="formGroup"
+	></p-form-control-switch>
+
+	<p-grid>
+		<div class="col-4">
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+
+				label="Postleitzahl" i18n-label
+				[attributeInfo]="api.data.billing.attributeInfoPostalCode"
+				[group]="formGroup"
+			></p-form-control-switch>
+		</div>
+		<div class="col-8">
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+
+				label="Stadt" i18n-label
+				[attributeInfo]="api.data.billing.attributeInfoCity"
+				[group]="formGroup"
+			></p-form-control-switch>
+		</div>
+		<div class="col-12">
+			<p-form-group
+				label="Land" i18n-label
+				[control]="pFormsService.getByAI(formGroup, api.data.billing.attributeInfoCountry)"
+				*ngIf="api.data.billing.attributeInfoCountry.show"
+			>
+				<p-dropdown
+					[pEditable]="!turnIntoRealAccountForm"
+					[api]="api"
+					[saveChangesHook]="getBillCountryHook(billCountryHookContent)"
+					(onDismiss)="initFormGroup.emit()"
+
+					label="Land" i18n-label
+					[formControl]="pFormsService.getByAI(formGroup, api.data.billing.attributeInfoCountry)"
+					[ngModel]="api.data.billing.attributeInfoCountry.value"
+
+					[disabled]="!api.data.billing.attributeInfoCountry.canEdit"
+					[readMode]="api.data.billing.attributeInfoCountry.readMode"
+				>
+					<p-dropdown-item
+						*ngFor="let country of countriesArray"
+						label="{{country | pTranslateCountryKey}}"
+						[value]="country"
+					></p-dropdown-item>
+				</p-dropdown>
+			</p-form-group>
+			<ng-template #billCountryHookContent let-c="close" let-d="dismiss">
+				<p-modal-content
+					modalTitle="Angabe nötig" i18n-modalTitle
+					(onDismiss)="d('Cross click')"
+					(onClose)="c('Started');"
+					dismissBtnLabel="Abbrechen" i18n-dismissBtnLabel
+					closeBtnLabel="Speichern" i18n-closeBtnLabel
+					[closeBtnDisabled]="pFormsService.getByAI(formGroup, api.data.billing.attributeInfoVatNumber).invalid"
+					[theme]="PThemeEnum.WARNING"
+				>
+					<p-modal-content-body>
+						<p i18n>Um deine Rechnungsadresse auf {{api.data.billing.country | pTranslateCountryKey}} umzustellen, wird die Angabe einer Umsatzsteuer-Identifikationsnummer (USt&#8209;IdNr.) benötigt:</p>
+						<p-form-group
+							label="USt-IdNr." i18n-label
+							description="Falls dein Betrieb keine USt.&#8209;IdNr. hat, trage hier bitte »0« ein. Mit einer USt-IdNr. unterliegst du nach einer Prüfung dem Reverse-Charge-Verfahren und wir stellen deine Rechnung ohne Umsatzsteuer aus." i18n-description
+						>
+							<p-input
+								[formControl]="pFormsService.getByAI(formGroup, api.data.billing.attributeInfoVatNumber)"
+							></p-input>
+						</p-form-group>
+					</p-modal-content-body>
+				</p-modal-content>
+			</ng-template>
+		</div>
+	</p-grid>
+</p-section>
+<p-section id="scroll-target-id-billing-contact" label="Ansprechperson für Rechnungen" i18n-label>
+	<p-grid>
+		<div class="col">
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+
+				label="Vorname" i18n-label
+				[attributeInfo]="api.data.billing.attributeInfoContactFirstName"
+				[group]="formGroup"
+			></p-form-control-switch>
+		</div>
+		<div class="col">
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+
+				label="Nachname" i18n-label
+				[attributeInfo]="api.data.billing.attributeInfoContactLastName"
+				[group]="formGroup"
+			></p-form-control-switch>
+		</div>
+	</p-grid>
+	<p-grid>
+		<div class="col">
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+
+				label="Email-Adresse" i18n-label
+				[attributeInfo]="api.data.billing.attributeInfoContactEmail"
+				[group]="formGroup"
+			></p-form-control-switch>
+		</div>
+		<div class="col">
+			<p-form-control-switch
+				[pEditable]="!turnIntoRealAccountForm"
+
+				label="Telefonnummer" i18n-label
+				[attributeInfo]="api.data.billing.attributeInfoContactPhone"
+				[group]="formGroup"
+			></p-form-control-switch>
+		</div>
+	</p-grid>
+	<p-alert [theme]="PThemeEnum.INFO" class="d-block">
+		<span i18n>Die Rechnungen schicken wir monatlich an die hier hinterlegte E-Mailadresse.</span>
+	</p-alert>
+</p-section>
+<p-section *ngIf="api.data.billing.billomatCustomerPortalUrl" id="scroll-target-id-invoice-download" label="Rechnungen herunterladen" i18n-label>
+	<p i18n>Alle deine bisherigen Rechnungen findest du auf deinem <a rel="noopener" class="external-link" [externalLink]="api.data.billing.billomatCustomerPortalUrl">persönlichen Rechnungsportal <fa-icon [icon]="PlanoFaIconPool.EXTERNAL_LINK"></fa-icon></a></p>
+	<p-alert [theme]="PThemeEnum.WARNING" class="d-block">
+		<span i18n>Gib den Link zu deinem Rechnungsportal unter keinen Umständen an Dritte weiter, um unautorisierte Zugriffe zu vermeiden.</span>
+	</p-alert>
+</p-section>

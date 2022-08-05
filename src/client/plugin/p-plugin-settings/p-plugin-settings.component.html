@@ -1,0 +1,188 @@
+<p-section class="pt-5">
+	<div i18n>Bei der Online-Buchung sind Vertrauen und Transparenz enorm wichtig. Um euren Kunden beides zu bieten, empfehlen wir dir, die Daten auf dieser Seite immer vollständig und aktuell zu halten. Sie werden im Rahmen des Buchungsprozesses euren Kunden angezeigt.</div>
+</p-section>
+
+<ng-template [ngIf]="!!formGroup" [ngIfElse]="spinnerTemplate">
+	<form [formGroup]="$any(formGroup)">
+	<p-section label="Name und Homepage" i18n-label>
+		<p-grid *ngIf="accountApi.isLoaded() && !!formGroup; else spinnerTemplate">
+			<div class="col-12 col-lg-6">
+				<p-form-control-switch
+					[pEditable]="true"
+					[api]="accountApi"
+
+					label="Standortname für eure Kunden" i18n-label
+					description="Dieser Name wird euren Kunden im Buchungsplugin und bei der Bezahlung angezeigt. Bei Bedarf könnt ihr eine davon abweichende Firmenbezeichnung in euren Account-Einstellungen angeben, die für die Dr.&nbsp;Plano-Rechnungen genutzt werden soll." i18n
+					placeholder="Magic Plano Place" i18n-placeholder
+					[group]="formGroup"
+					[attributeInfo]="accountApi.data.attributeInfoLocationName"
+				></p-form-control-switch>
+			</div>
+			<div class="col-12 col-lg-6">
+				<p-form-control-switch
+					[pEditable]="true"
+					[api]="accountApi"
+
+					label="Eure Homepage" i18n-label
+					placeholder="https://" i18n-placeholder
+					[group]="formGroup"
+					[attributeInfo]="accountApi.data.attributeInfoLocationHomepage"
+				></p-form-control-switch>
+			</div>
+		</p-grid>
+	</p-section>
+
+	<p-section label="Cover-Bild & Logo" i18n-label>
+		<p i18n class="m-0">Bei kostenpflichtigen Buchungen werden deine Kunden auf eine Payment-Seite weitergeleitet, wo sie eine Zahlungsart auswählen. Um die Payment-Seite zu personalisieren und somit eine nahtlose Buchungserfahrung zu ermöglichen, lade bitte hier ein Logo und ein Cover-Bild hoch. Mithilfe der Vorschau kannst du sicherstellen, dass die Darstellung deinem Wunsch entspricht.</p>
+	</p-section>
+
+	<ng-template [ngIf]="api.isLoaded()" [ngIfElse]="spinnerTemplate">
+		<div class="bg-light">
+			<p-form-control-switch
+				[pEditable]="true"
+				[api]="api"
+
+				[group]="formGroup"
+				[attributeInfo]="api.data.attributeInfoBookingPageCover"
+
+				[previewTemplate]="bookingPageCoverPreviewTemplate"
+			></p-form-control-switch>
+			<p-form-control-switch
+				[pEditable]="true"
+				[api]="api"
+
+				[group]="formGroup"
+				[attributeInfo]="api.data.attributeInfoCompanyLogo"
+
+				[previewTemplate]="logoPreviewTemplate"
+			></p-form-control-switch>
+		</div>
+		<!-- <p-form-control-switch
+			[pEditable]="true"
+			[api]="api"
+
+			label="Firmenname" i18n-label
+			[group]="formGroup"
+			[attributeInfo]="api.data.attributeInfoLocationUrl"
+		></p-form-control-switch> -->
+	</ng-template>
+
+	<ng-template #previewTemplate let-logoSrc="logoSrc" let-bookingPageCoverSrc="bookingPageCoverSrc" let-imageRatio="imageRatio">
+	<div class="shadow bg-white  mb-3 rounded o-hidden w-100">
+			<div class="bg-secondary d-flex p-2">
+				<button class="d-inline-block mr-2 p-0 bg-danger rounded-circle border-0" style="width: 12px; height: 12px; cursor: default;">&nbsp;</button>
+				<button class="d-inline-block mr-2 p-0 bg-warning rounded-circle border-0" style="width: 12px; height: 12px; cursor: default;">&nbsp;</button>
+				<button class="d-inline-block mr-2 p-0 bg-success rounded-circle border-0" style="width: 12px; height: 12px; cursor: default;">&nbsp;</button>
+			</div>
+			<ng-template [ngIf]="!bookingPageCoverSrc">
+				<div [class.bg-primary]="bookingPageCoverSrc===false" [class.skeleton]="bookingPageCoverSrc===undefined" class="bg-primary d-flex align-items-center justify-content-center" style="height: 150px; width: 100%;">
+					<label *ngIf="bookingPageCoverSrc===false" class="text-muted text-white m-0 large" i18n>Cover-Bild</label>
+				</div>
+			</ng-template>
+			<ng-template [ngIf]="bookingPageCoverSrc">
+				<img [src]="bookingPageCoverSrc" alt="Hochgeladenes Bild" i18n-alt style="width: 100%;">
+			</ng-template>
+			<div class="shadow border-bottom d-flex align-items-start">
+				<ng-template [ngIf]="!logoSrc">
+					<div [class.bg-primary]="logoSrc===false" [class.skeleton]="logoSrc===undefined" class="rounded d-flex align-items-center justify-content-center" style="border: 1px solid #d6d7d8; height: 70px; width: 70px; transform: translate(50%, -1rem);flex-shrink: 0;">
+						<label *ngIf="logoSrc===false" class="text-muted text-white m-0 large" i18n>Logo</label>
+					</div>
+				</ng-template>
+				<ng-template [ngIf]="logoSrc">
+					<img class="bg-light rounded" style="border: 1px solid #d6d7d8; min-height: 70px; width: 70px; transform: translate(50%, -1rem);" [src]="logoSrc" alt="Hochgeladenes Bild" i18n-alt>
+				</ng-template>
+				<div class="pl-5 py-2">
+					<span class="text-skeleton">Platzhalter-Text für die Vorschau</span><br>
+					<span class="text-skeleton">platzhalter-url.de</span>
+				</div>
+			</div>
+			<div class="bg-white bg-light" style="min-height: 50px; width: 100%;">
+				<div class="px-5 py-3">
+					<span class="text-skeleton">Platzhalter-Text für die Vorschau</span>
+					<div class="row mt-2">
+						<div class="col-4"><div class="text-skeleton" style="height: 100px; cursor: default;">Platzhalter</div></div>
+						<div class="col-4"><div class="text-skeleton" style="height: 100px; cursor: default;">Platzhalter</div></div>
+						<div class="col-4"><div class="text-skeleton" style="height: 100px; cursor: default;">Platzhalter</div></div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+	</ng-template>
+
+	<ng-template #logoPreviewTemplate let-imageSrc let-imageRatio="imageRatio">
+		<ng-template [ngTemplateOutlet]="previewTemplate" [ngTemplateOutletContext]="{
+			logoSrc: imageSrc ? imageSrc : false,
+			imageRatio: imageRatio
+		}"></ng-template>
+	</ng-template>
+	<ng-template #bookingPageCoverPreviewTemplate let-imageSrc let-imageRatio="imageRatio">
+		<ng-template [ngTemplateOutlet]="previewTemplate" [ngTemplateOutletContext]="{
+			bookingPageCoverSrc: imageSrc ? imageSrc : false,
+			imageRatio: imageRatio
+		}"></ng-template>
+	</ng-template>
+
+	<p-section id="scroll-target-id-legal-links" label="Rechtliches" i18n-label>
+		<p i18n>Bei der Online-Buchung sowie Online-Bezahlung sollten Kunden eure AGB bzw. Teilnahmebedingungen und Datenschutzerklärung zur Kenntnis nehmen. Damit wir ihnen diese anzeigen können, trage bitte unten die Links ein, wo man sie auf eurer Seite findet. Lässt du ein Feld leer, wird es bei der Buchung oder Bezahlung nicht angezeigt.</p>
+			<p-grid *ngIf="accountApi.isLoaded() && !!formGroup; else spinnerTemplate">
+			<div class="col-12 col-md-6">
+				<p-form-control-switch
+					[pEditable]="true"
+					[api]="accountApi"
+					(onDismiss)="initFormGroup.emit()"
+
+					label="Link für eure AGB" i18n-label
+
+					[group]="formGroup"
+					[attributeInfo]="accountApi.data.attributeInfoTermsUrl"
+				></p-form-control-switch>
+			</div>
+			<div class="col-12 col-md-6">
+				<p-form-control-switch
+					[pEditable]="true"
+					[api]="accountApi"
+					(onDismiss)="initFormGroup.emit()"
+
+					label="Link für eure Datenschutzerklärung" i18n-label
+
+					[group]="formGroup"
+					[attributeInfo]="accountApi.data.attributeInfoDataProtectionUrl"
+				></p-form-control-switch>
+			</div>
+			<div class="col-12 col-md-6">
+				<p-form-control-switch
+					[pEditable]="true"
+					[api]="accountApi"
+					(onDismiss)="initFormGroup.emit()"
+
+					label="Link für eure Teilnahmebedingungen" i18n-label
+
+					[group]="formGroup"
+					[attributeInfo]="accountApi.data.attributeInfoTermsOfParticipationUrl"
+				></p-form-control-switch>
+			</div>
+			<div class="col-12 col-md-6">
+				<p-form-control-switch
+					[pEditable]="true"
+					[api]="accountApi"
+					(onDismiss)="initFormGroup.emit()"
+
+					label="Link für eure Stornobedingungen" i18n-label
+
+					[group]="formGroup"
+					[attributeInfo]="accountApi.data.attributeInfoCancellationPolicyUrl"
+				></p-form-control-switch>
+			</div>
+		</p-grid>
+	</p-section>
+</form>
+
+</ng-template>
+
+<div class="m-5">
+
+<ng-template #spinnerTemplate>
+	<p-spinner class="p-3"></p-spinner>
+</ng-template>
+</div>

@@ -1,0 +1,90 @@
+<ng-template [ngIf]="isEnabled" [ngIfElse]="disabledTemplate">
+	<button
+		type="button"
+		class="btn btn-outline-secondary btn-frameless w-100"
+		[class.btn-sm]="size==='sm'"
+		(click)="openQuickAssignModal($event, modalContent)"
+		*ngIf="shift.emptyMemberSlots > 0"
+	>
+		<div class="d-flex justify-content-between align-items-center title">
+			<div class="d-flex align-items-center title text-left" style="height: 26px">
+				<p-empty-member-badges
+					*ngIf="shift.emptyMemberSlots"
+					[emptyMemberSlots]="shift.emptyMemberSlots"
+				></p-empty-member-badges>
+				<div hidden><span i18n #translatedEmptyMemberSlotsTitle>{{shift.emptyMemberSlots}} {shift.emptyMemberSlots, plural, one {Platz} other {Plätze}} unbesetzt</span></div>
+				<span class="title ml-2" [title]="translatedEmptyMemberSlotsTitle.textContent!" i18n>{shift.emptyMemberSlots, plural, one {Freier Platz} other {Freie Plätze}}</span>
+			</div>
+			<fa-icon class="ml-1" [fixedWidth]="true" icon="user-plus"></fa-icon>
+		</div>
+	</button>
+</ng-template>
+<ng-template #disabledTemplate>
+	<div class="d-flex justify-content-between align-items-center title flex-grow-1" style="padding: 0.25rem 0.5rem">
+		<div class="d-flex title flex-grow-1" [class.align-items-center]="!CONFIG.IS_MOBILE" [class.flex-column]="CONFIG.IS_MOBILE" [class.justify-content-between]="!CONFIG.IS_MOBILE" [class.justify-content-start]="!CONFIG.IS_MOBILE">
+			<div class="d-flex align-items-center">
+				<p-empty-member-badges
+					*ngIf="shift.emptyMemberSlots"
+					[emptyMemberSlots]="shift.emptyMemberSlots"
+				></p-empty-member-badges>
+				<div hidden><span i18n #translatedEmptyMemberSlotsDisabled>{{shift.emptyMemberSlots}} {shift.emptyMemberSlots, plural, one {Platz} other {Plätze}} unbesetzt</span></div>
+				<span class="title ml-2" [class.small]="size==='sm'" [title]="translatedEmptyMemberSlotsDisabled.textContent!" i18n>{shift.emptyMemberSlots, plural, one {Freier Platz} other {Freie Plätze}}</span>
+			</div>
+			<span *ngIf="showInfoAboutBlockedAssignments" class="small" i18n>Blockiert durch Verteilungsvorgang</span>
+		</div>
+	</div>
+</ng-template>
+
+<ng-template #modalContent let-c="close" let-d="dismiss">
+	<div hidden><span #translatedEmptySlotsModalHeaderTitle><ng-container *ngIf="!!shift.rawData" i18n>{shift.emptyMemberSlots, plural, one {ein Platz unbesetzt} other {{{shift.emptyMemberSlots}} Plätze unbesetzt}}</ng-container></span></div>
+	<p-modal-header
+		[title]="translatedEmptySlotsModalHeaderTitle.textContent!"
+		(onClose)="d()"
+	></p-modal-header>
+	<div class="modal-body">
+		<p i18n>Wer soll diese Schicht übernehmen?</p>
+		<ng-template [ngIf]="!membersForList.length" [ngIfElse]="availableMembers">
+			<div class="card card-body" i18n>Es sind keine Personen für diese Schicht zugelassen. Das kannst du in der dazugehörigen Tätigkeit ändern.</div>
+		</ng-template>
+		<ng-template #availableMembers>
+			<p-input-member
+				[shift]="shift"
+				class="d-block mb-3"
+				[(ngModel)]="selectedMember"
+				[members]="membersForList"
+			></p-input-member>
+
+		</ng-template>
+		<ng-template
+			ngFor let-error
+			[ngForOf]="errors"
+		>
+			<p-alert [theme]="error.type" [icon]="error.icon">{{ error.text }}</p-alert>
+		</ng-template>
+
+		<ng-template [ngIf]="!!errors.length">
+			<p i18n>{{ selectedMember!.firstName }} {{ selectedMember!.lastName }} trotzdem einteilen?</p>
+		</ng-template>
+
+		<p-notification-conf-form
+			[(ngModel)]="api.data.notificationsConf.sendEmail"
+			[api]="api"
+			[shift]="shift"
+		></p-notification-conf-form>
+	</div>
+	<div class="modal-footer">
+		<button type="button"
+			class="btn btn-outline-secondary mr-auto"
+			(click)="d()"
+			i18n
+		>Abbrechen</button>
+		<button type="button"
+			class="btn ml-auto"
+			[disabled]="!selectedMember"
+			[class.btn-primary]="selectedMember"
+			[class.btn-outline-secondary]="!selectedMember"
+			(click)="c()"
+			i18n
+		>OK</button>
+	</div>
+</ng-template>

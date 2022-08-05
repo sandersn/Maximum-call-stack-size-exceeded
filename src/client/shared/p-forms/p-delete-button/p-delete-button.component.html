@@ -1,0 +1,19 @@
+<button
+	type="button"
+	class="btn btn-light btn-outline-danger justify-content-center align-items-center nowrap {{class}}"
+	(click)="onRemoveClick($event)"
+	[disabled]="disabled"
+><fa-icon [class.mr-1]="!!label" [fixedWidth]="true" icon="trash"></fa-icon>{{ label }}</button>
+
+<ng-template #warningModalContentTemplate let-c="close" let-d="dismiss">
+	<p-modal-content
+		[theme]="modalTheme ?? null"
+		[closeBtnLabel]="translatedDeleteWarningModalCloseBtnLabel"
+		(onDismiss)="d('Cross click')"
+		(onClose)="c('Started');"
+	>
+		<p-modal-content-body>
+			<p class="m-0">{{ modalText }}</p>
+		</p-modal-content-body>
+	</p-modal-content>
+</ng-template>

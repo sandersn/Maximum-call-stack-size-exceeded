@@ -1,0 +1,64 @@
+<p-list-item
+	size="frameless"
+	*ngIf="shiftModel && shiftModel.rawData"
+	class="rounded o-hidden card-options border bg-white"
+
+	[hideListItemStyle]="true"
+
+	[class.border-secondary]="!highlightService.isHighlighted(shiftModel)"
+	[class.border-primary]="highlightService.isHighlighted(shiftModel)"
+	[class.shadow]="highlightService.isHighlighted(shiftModel)"
+
+	(onClick)="!undefined"
+>
+	<button
+		class="flex-grow-1 d-flex align-items-center flex-nowrap title p-0 position-relative"
+		[affected]="affected"
+		[selected]="selected"
+		[class.clickable]="hasOnItemClickBinding"
+		[class.list-group-item]="hasOnItemClickBinding"
+		[class.list-group-item-action]="hasOnItemClickBinding"
+		[class.border-0]="true"
+		[class.bg-white]="highlightService.isHighlighted(shiftModel) && !selected && !affected"
+		(click)="onItemClick.emit(shiftModel)"
+	>
+		<p-color-marker
+			[item]="shiftModel"
+			[hexColor]="shiftModelColor"
+			[title]="shiftModel.name"
+			[isPacket]="shiftModel.isPacket ?? null"
+		></p-color-marker>
+		<div
+			class="mr-auto title p-2 pl-3 pr-3 w-100"
+			[class.text-muted]="!shiftModel.name"
+		>{{ shiftModelName }}</div>
+	</button>
+
+	<div class="d-flex justify-content-end ml-auto">
+		<button
+			*ngIf="showMultiSelectCheckbox"
+			type="button"
+			class="card-option btn pt-2 pb-2 d-flex align-items-center justify-content-center border-left btn-frameless rounded-0"
+			[class.btn-primary]="shiftModel.selected"
+			[class.btn-light]="!shiftModel.selected"
+			[class.btn-outline-secondary]="!shiftModel.selected"
+			(click)="selectInCalendar($event)"
+			title="Alle Einträge dieser Tätigkeit selektieren" i18n-title
+		><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.CALENDAR_SELECT_RELATED_SHIFTS">
+			<!-- [class.text-primary]="affected && !selected" -->
+		</fa-icon></button>
+		<button
+			type="button"
+			*ngIf="showDetailsBtn"
+			class="card-option btn pt-2 pb-2 d-flex align-items-center justify-content-center border-left btn-frameless rounded-0 btn-outline-secondary btn-light"
+			(click)="showDetails()"
+			[title]="(userCanWrite ? 'Bearbeiten' : 'Details anzeigen') | localize"
+		><fa-icon [fixedWidth]="true" [icon]="userCanWrite ? 'pen' : 'info'"></fa-icon></button>
+		<button
+			*ngIf="editFilterModeActive"
+			type="button"
+			(click)="toggleItem()"
+			class="card-option btn pt-2 pb-2 d-flex align-items-center justify-content-center border-left btn-frameless rounded-0 btn-secondary"
+		><fa-icon [fixedWidth]="true" [class.text-primary]="!isVisible" [icon]="isVisible ? PlanoFaIconPool.VISIBLE : PlanoFaIconPool.INVISIBLE"></fa-icon></button>
+	</div>
+</p-list-item>

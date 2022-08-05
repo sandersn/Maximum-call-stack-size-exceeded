@@ -1,0 +1,130 @@
+<scroll-shadow-box class="flex-grow-1">
+	<div class="container pb-4 pl-lg-6 pr-lg-6">
+		<h2 i18n>Kalender-Synchronisation</h2>
+		<p i18n>Bringe deine Schichten in deinen persönlichen Kalender und behalte so alles im Blick. Egal ob du Google Kalender, Outlook, den iOS Kalender oder was anderes benutzt – Hauptsache dein Kalender unterstützt das iCalender-Format.</p>
+		<p i18n>Unten zeigen wir dir am Beispiel von Google Kalender, wie einfach das geht.</p>
+	</div>
+	<div class="voda-bg-dark mb-5">
+		<div class="container text-white pb-4 pr-lg-6 pl-lg-6">
+			<div class="responsive-video-container">
+				<iframe width="560" height="315" src="https://www.youtube.com/embed/tWsEIvExX_k?rel=0" frameborder="0" allowfullscreen></iframe>
+			</div>
+		</div>
+	</div>
+	<div class="container pb-tawk">
+		<div class="mb-5">
+			<h5 class="text-center text-primary"><fa-icon [fixedWidth]="true" icon="wrench"></fa-icon></h5>
+			<h3 class="text-center" i18n>Einrichtung der Kalender-Synchronisation in 3 Schritten</h3>
+			<ol>
+				<li i18n>Du erstellst in deinem Kalender-Programm einen neuen Kalender.</li>
+				<li i18n>Dabei wählst du die Option „per URL“.</li>
+				<li i18n>Du generierst unten deine persönliche URL und fügst sie in das von deinem Kalender vorgesehene Feld ein.</li>
+			</ol>
+			<div style="max-width: 400px;" class="ml-auto mr-auto">
+				<p-button
+					[attributeInfo]="null"
+					(triggerClick)="openLinkGenerator(generatorSettingsModalContent, generatorResultModalContent)"
+					[size]="BootstrapSize.LG"
+					[theme]="PThemeEnum.PRIMARY"
+				><fa-icon [fixedWidth]="true" [icon]="['fas','tools']"></fa-icon>&nbsp;<ng-container i18n>URL generieren</ng-container></p-button>
+			</div>
+		</div>
+		<div class="mb-5">
+			<h5 class="text-center text-primary"><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.MORE_INFO"></fa-icon></h5>
+			<h3 class="text-center" i18n>Einige wichtige Infos zur Kalender-Synchronisation</h3>
+			<ul>
+				<li i18n><strong>Zeitraum der Synchronisation:</strong> Es werden Schichten vom vergangenen, aktuellen und den kommenden zwei Monaten synchronisiert. Im Monat Oktober beispielsweise bekommst die Schichten aus den Monaten September, Oktober, November und Dezember zu sehen.</li>
+				<li i18n><strong>Synchronisation in unterschiedlichen Zeitintervallen:</strong> Änderungen an den Schichten bei Dr.&nbsp;Plano werden automatisch mit deinem Kalender-Programm synchronisiert. Ändert sich bei Dr.&nbsp;Plano z.B. die Uhrzeit deiner Schicht, brauchst du weiter nichts zu tun, denn die neue Uhrzeit wird automatisch in deinen Kalender übertragen. <strong>Bedenke aber</strong>, dass es manchmal etwas länger - sogar ein paar Stunden - dauern kann, bis die Aktualisierung erfolgt. Das hängt ganz von dem Kalender ab, den du benutzt. Wir können die Aktualisierungsintervalle leider nicht beeinflussen.</li>
+				<li i18n><strong>Nutzung von mehreren URLs:</strong> Du kannst mehrere URLs generieren und so unterschiedliche Kalender synchronisieren lassen. Etwa einen nur für deine eigenen Schichten und einen für alle Schichten. So kannst du auf die Schnelle schauen, wer wann arbeitet.</li>
+			</ul>
+		</div>
+	</div>
+</scroll-shadow-box>
+
+
+<ng-template #generatorSettingsModalContent let-c="close" let-d="dismiss">
+	<p-modal-content
+		modalTitle="URL generieren" i18n-modalTitle
+		closeBtnLabel="Generieren" i18n-closeBtnLabel
+		[closeBtnTheme]="PThemeEnum.PRIMARY"
+		dismissBtnLabel="Schließen" i18n-dismissBtnLabel
+		(onDismiss)="d('Cross click')"
+		(onClose)="c('Started');"
+	>
+		<p-modal-content-body class="pb-3">
+			<p i18n>Welche Schichten möchtest du synchronisieren?</p>
+			<!-- <p-checkbox
+				class="flex-grow-1 d-flex justify-content-stretch mb-2"
+				[ngModel]="true"
+				[disabled]="true"
+				[hasButtonStyle]="true"
+				valueText="Meine eigenen Schichten" i18n-valueText
+			></p-checkbox> -->
+			<p-alert [theme]="PThemeEnum.INFO"><ng-container i18n>Schichten, in die du eingeteilt bist, werden immer synchronisiert. Wenn du also nur deine eigenen Schichten haben möchtest, lasse alle Tätigkeiten unten unausgewählt und klicke auf »Generieren«.</ng-container></p-alert>
+			<p i18n>Auf Wunsch kannst du zusätzlich alle Schichten von folgenden Tätigkeiten synchronisieren:</p>
+			<ng-template
+				ngFor let-shiftModels
+				[ngForOf]="shiftModelsForList"
+			>
+				<list-headline
+					class="card mb-1 mt-2"
+					[class.trashed]="!shiftModels.hasUntrashedItem"
+					[text]="translatedListHeadlineText(shiftModels)"
+				>
+					<div class="d-flex justify-content-center align-items-stretch flex-shrink-0"><span class="mr-2 d-flex justify-content-center align-items-center" i18n>Alle</span> <p-checkbox
+						class="flex-grow-0 d-flex justify-content-stretch border-left pl-2 pr-1"
+						style="min-width: 2em;"
+						[ngModel]="isAdditionalShiftModel(shiftModels)"
+						(onClick)="toggleAdditionalItems(shiftModels)"
+						[hasButtonStyle]="false"
+					></p-checkbox></div>
+				</list-headline>
+				<p-list>
+					<p-list-item
+						*ngFor="let shiftModel of shiftModels.iterableSortedBy('name')"
+						class="o-hidden"
+						size="frameless"
+					>
+						<div class="d-flex align-items-stretch flex-grow-1">
+							<div
+								class="mr-auto p-2 pl-3 pr-3 w-100"
+								[class.text-muted]="!shiftModel.name"
+								i18n
+							>{!!shiftModel.name, select, true {{{shiftModel.name}}} other {…}}</div>
+							<p-color-marker
+								[item]="shiftModel"
+								[hexColor]="shiftModel?.color ? '#' + shiftModel.color : null"
+								[title]="shiftModel.name"
+							></p-color-marker>
+						</div>
+						<p-checkbox
+							class="flex-grow-0 d-flex justify-content-stretch border-left pl-2 pr-1 flex-shrink-0"
+							style="min-width: 2em;"
+							[ngModel]="isAdditionalShiftModel(shiftModel)"
+							(ngModelChange)="toggleAdditionalItems(shiftModel)"
+							[hasButtonStyle]="false"
+						></p-checkbox>
+					</p-list-item>
+				</p-list>
+			</ng-template>
+		</p-modal-content-body>
+	</p-modal-content>
+</ng-template>
+
+<ng-template #generatorResultModalContent let-c="close" let-d="dismiss">
+	<p-modal-content
+		modalTitle="URL für Synchronisation" i18n-modalTitle
+		[closeBtnLabel]="closeBtnLabel"
+		[closeBtnTheme]="PThemeEnum.PRIMARY"
+		dismissBtnLabel="Verwerfen" i18n-dismissBtnLabel
+		(onDismiss)="d('Cross click')"
+		(onClose)="c('Started');"
+	>
+		<p-modal-content-body>
+			<p i18n>Deine persönliche URL ist nun generiert. Um die Synchronisation zu starten, kopiere diese URL und füge sie in das von deinem Kalender vorgesehene Feld ein:</p>
+			<p-input-copy-string
+				[valueToCopy]="icalUrlWithAdditionalShiftModels"
+		></p-input-copy-string>
+		</p-modal-content-body>
+	</p-modal-content>
+</ng-template>

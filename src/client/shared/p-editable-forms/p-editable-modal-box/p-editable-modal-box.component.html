@@ -1,0 +1,109 @@
+<ng-template [ngIf]="showSimpleReadOnlyMode" [ngIfElse]="showComplexModeTemplate">
+	<div class="form-control-read-mode">
+		<ng-template [ngIf]="!label"><ng-container *ngTemplateOutlet="header"></ng-container></ng-template>
+		<ng-template [ngIf]="!!label">
+			<div
+				[class.text-white]="theme==='dark'"
+				class="flex-grow-1 d-flex justify-content-start align-items-center title"
+			>
+				<span class="mr-2 mb-0">{{ label }}</span>
+				<span><ng-container *ngTemplateOutlet="header"></ng-container></span>
+			</div>
+		</ng-template>
+	</div>
+</ng-template>
+<ng-template #showComplexModeTemplate>
+	<div class="card-options align-items-stretch o-hidden flex-grow-1"
+		[class.border-bottom-0]="!showShowroom || disabled"
+		[class.card-header]="hasCardStyle"
+	>
+		<div class="flex-grow-1 d-flex justify-content-between align-items-stretch title"
+			[style.padding]="!!label ? '0.375rem 0.75rem' : ''"
+		>
+			<ng-template [ngIf]="!label"><ng-container *ngTemplateOutlet="header"></ng-container></ng-template>
+			<ng-template [ngIf]="!!label">
+				<div
+					[class.text-white]="theme==='dark'"
+					class="flex-grow-1 d-flex justify-content-start align-items-center title"
+					[class.text-danger]="isValid===false"
+				>
+					<label class="mr-2 mb-0">{{ label }}</label>
+					<span><ng-container *ngTemplateOutlet="header"></ng-container></span>
+				</div>
+			</ng-template>
+		</div>
+		<button
+			type="button"
+			class="d-flex align-items-stretch ml-auto card-option btn btn-secondary"
+
+			*ngIf="!disabled"
+
+			[popover]="showEditButtonPopover ? editButtonPopover : ''"
+			[placement]="showShowroom ? 'bottom' : 'left'"
+
+			#modalButtonRef
+			pEditableModalButton
+			[modalSize]="size"
+			[modalWhitespace]="modalWhitespace"
+			[scrollable]="scrollable"
+			[backdrop]="backdrop"
+
+			[pEditable]="pEditable"
+			[api]="api"
+			[valid]="isValid"
+			[saveChangesHook]="saveChangesHook"
+			[beforeEditHook]="beforeEditHook"
+			(onSaveStart)="onSaveStart.emit($event)"
+			(onSaveSuccess)="onSaveSuccess.emit($event)"
+			(onDismiss)="onDismiss.emit($event)"
+			(onLeaveCurrent)="onLeaveCurrent.emit()"
+			(editMode)="updateEditMode($event)"
+
+			[waitForEditableCompleteBeforeClose]="waitForEditableCompleteBeforeClose"
+
+			(onModalOpen)="onModalOpen.emit()"
+			(onModalClosed)="onModalClosed.emit()"
+			(onModalDismissed)="onModalDismissed.emit()"
+			[beforeModalClose]="beforeModalClose"
+
+			[saveButtonPopover]="saveButtonPopover"
+			[disabled]="disabled || boxEditMode"
+			[closeBtnDisabled]="!isValid"
+			[label]="btnLabel"
+			[icon]="btnIcon"
+			[showBtnIcon]="showBtnIcon"
+			[showBtnLabel]="showBtnLabel"
+		>
+			<p-editable-modal-button-form>
+				<ng-content select="p-editable-modal-box-form"></ng-content>
+			</p-editable-modal-button-form>
+		</button>
+		<div class="ml-auto d-flex"
+			[pEditable]="pEditable"
+			[api]="api"
+			[valid]="isValid"
+			[saveChangesHook]="saveChangesHook"
+			(onSaveStart)="onSaveStart.emit($event)"
+			(onSaveSuccess)="onSaveSuccess.emit($event)"
+			(onDismiss)="onDismiss.emit($event)"
+			(onLeaveCurrent)="onLeaveCurrent.emit()"
+			(editMode)="updateEditMode($event)"
+		>
+			<p-delete-button
+				*ngIf="!disabled && onRemoveItemClick.observers.length > 0 && !hideRemoveBtn"
+				class="card-option rounded-0 nowrap btn-light"
+				[modalText]="removeModalText"
+				(onModalSuccess)="onRemoveItemClick.emit($event)"
+				[label]="removeModalButtonLabel"
+				[disabled]="boxEditMode || removeButtonDisabled"
+			></p-delete-button>
+		</div>
+	</div>
+</ng-template>
+<div #showroom [class.d-none]="!showShowroom">
+	<ng-content select="p-editable-modal-box-showroom"></ng-content>
+</div>
+
+<ng-template #header>
+	<ng-content select="p-editable-modal-box-header"></ng-content>
+</ng-template>

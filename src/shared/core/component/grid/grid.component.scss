@@ -1,0 +1,9 @@
+@import "variables";
+@import "bootstrap/scss/mixins/breakpoints";
+@import "bootstrap/scss/mixins/grid-framework";
+@import "bootstrap/scss/mixins/grid";
+@import "bootstrap/scss/grid";
+
+:host {
+	@extend .row;
+}

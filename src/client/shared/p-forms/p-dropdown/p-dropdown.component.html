@@ -1,0 +1,178 @@
+<!-- pEditable’s [valid] is always true because its not possible to click a item in a dropdown that has a invalid value -->
+<div
+	class="d-flex flex-grow-1 dropdown"
+
+	[pEditable]="pEditable"
+	[api]="api"
+	[valid]="true"
+	[saveChangesHook]="saveChangesHook"
+	(onSaveStart)="onSaveStart.emit($event)"
+	(onSaveSuccess)="onSaveSuccess.emit($event)"
+	(onDismiss)="onDismiss.emit($event)"
+	(onLeaveCurrent)="onLeaveCurrent.emit($event)"
+	(editMode)="editMode.emit($event)"
+>
+	<ng-template [ngIf]="readMode" [ngIfElse]="realModeTemplate">
+		<div class="form-control-read-mode title">
+			<ng-container *ngIf="triggerLabelTemplate"><ng-template [ngTemplateOutlet]="triggerLabelTemplate"></ng-template></ng-container>
+			<ng-container *ngIf="!triggerLabelTemplate">{{ triggerLabel }}</ng-container>
+		</div>
+	</ng-template>
+	<ng-template #realModeTemplate>
+		<p-button
+			[class.p-editable-active]="pEditable"
+			[btnClasses]="(pEditable ? 'p-editable-active' : '') + ' ' + (pEditable && !!saveChangesHook ? 'p-editable-has-hook' : '')"
+
+			#triggerRef
+			class="d-flex flex-grow-1"
+			[attributeInfo]="null"
+			[show]="show"
+			[canEdit]="canEdit"
+			(triggerClick)="onClickTrigger(modalContent)"
+			[theme]="btnStyle"
+			[isActiveButton]="isHighlighted"
+			[class.has-danger]="hasDanger"
+			[class.card-option]="triggerIsCardOption"
+			[class.border-bottom-0]="triggerIsCardOption"
+			[rounded]="rounded"
+			[size]="size ?? null"
+			[disabled]="disabled || !!readMode"
+			[required]="required"
+			(focus)="focus.emit()"
+			(blur)="onBlur()"
+		>
+			<div class="d-flex justify-content-center align-items-center nowrap flex-grow-1">
+			<ng-template
+				[ngTemplateOutlet]="dropdownTriggerTemplate ? dropdownTriggerTemplate : defaultDropdownTriggerTemplate"
+			></ng-template>
+			<!-- [ngTemplateOutletContext]="{$implicit : item, close: c, dismiss: d}" -->
+			<ng-template #defaultDropdownTriggerTemplate let-item let-c="close" let-d="dismiss">
+				<div class="d-flex align-items-center flex-grow-1" [class.justify-content-center]="!!triggerIcon && !showLabel">
+					<fa-icon
+						*ngIf="!!triggerIcon"
+						[class.mr-1]="showLabel"
+						[fixedWidth]="true"
+						[icon]="triggerIcon"
+						[spin]="iconSpin"
+					></fa-icon>
+					<span *ngIf="showFilterLed" class="mr-1"><p-led
+						[off]="!badgeContent"
+						[theme]="PThemeEnum.PRIMARY"
+						[size]="size"
+
+						[popover]="itemsFilterTitle ? itemsFilterTitlePopover : ''"
+						placement="bottom"
+					></p-led><ng-template #itemsFilterTitlePopover><span [innerHTML]="itemsFilterTitle"></span></ng-template></span>
+					<!-- <span *ngIf="showBadge" class="badge badge-primary mr-1">{{ badgeContent }}</span> -->
+					<span *ngIf="showLabel">
+						<ng-container *ngIf="triggerLabelTemplate"><ng-template [ngTemplateOutlet]="triggerLabelTemplate"></ng-template></ng-container>
+						<ng-container *ngIf="!triggerLabelTemplate">{{ triggerLabel }}</ng-container>
+					</span>
+				</div>
+			</ng-template>
+
+			<fa-icon *ngIf="!hideDropdownToggleTriangle" class="ml-1" [icon]="dropdownMenuVisible ? PlanoFaIconPool.DROPDOWN_OPEN : PlanoFaIconPool.DROPDOWN_CLOSE"></fa-icon>
+			</div>
+		</p-button>
+
+		<!-- We explicitely use "visibility: hidden" to reduce "update layer tree" time on mobile devices -->
+		<div
+			*ngIf="dropdownMenuVisible"
+			class="d-flex flex-column dropdown-menu dropdown-menu-{{dropdownMenuAlignment}}"
+			[class.border-0]="borderStyle === 'none'"
+			role="menu"
+			[@collapseOnLeave]
+			[@expandOnEnter]
+		>
+			<ng-template [ngTemplateOutlet]="listTemplate"></ng-template>
+		</div>
+
+		<ng-template #modalContent let-c="close" let-d="dismiss">
+			<div class="modal-body p-0 d-flex flex-column">
+				<ng-template [ngTemplateOutlet]="listTemplate" [ngTemplateOutletContext]="{close: c, dismiss: d}"></ng-template>
+				<div class="modal-footer"
+					*ngIf="isMultiSelect"
+				>
+					<p-button [attributeInfo]="null"
+						title="Bestätigen und schließen" i18n-title
+						[size]="size"
+						class="ml-auto"
+						(triggerClick)="c()"
+					>Ok</p-button>
+				</div>
+			</div>
+		</ng-template>
+
+		<ng-template #listTemplate let-c="close" let-d="dismiss">
+			<div *ngIf="CONFIG.IS_MOBILE && label"><label class="m-0 px-3 py-2"><fa-icon
+				*ngIf="!!triggerIcon"
+				class="mr-1"
+				[fixedWidth]="true"
+				[icon]="triggerIcon"
+				[spin]="iconSpin"
+			></fa-icon>&nbsp;{{label}}</label></div>
+			<ng-template
+				ngFor let-item
+				[ngForOf]="items"
+			>
+				<ng-container *ngIf="item.show===true">
+					<ng-template
+						[ngTemplateOutlet]="dropdownItemTemplate ? dropdownItemTemplate : defaultDropdownItemTemplate"
+						[ngTemplateOutletContext]="{$implicit : item, close: c, dismiss: d}"
+					></ng-template>
+				</ng-container>
+		</ng-template>
+		</ng-template>
+
+		<ng-template #defaultDropdownItemTemplate let-item let-c="close" let-d="dismiss">
+			<button type="button"
+				pEditableInstantSaveButton
+				(triggerClick)="clickItem(item, c)"
+
+				class="btn btn-frameless btn-lg text-left"
+				[class.btn-outline-secondary]="!item.theme && !isPrimary(item)"
+				[class.btn-primary]="!item.theme && isPrimary(item)"
+				[class.btn-danger]="item.theme === PThemeEnum.DANGER"
+				[class.btn-outline-danger]="item.theme === PBtnThemeEnum.OUTLINE_DANGER"
+				[class.active]="item.theme !== undefined && isPrimary(item)"
+				[class.py-3]="CONFIG.IS_MOBILE"
+				[class.disabled]="item.disabled"
+
+				(blur)="onBlur()"
+			>
+				<p-spinner
+					[size]="BootstrapSize.SM"
+					*ngIf="item.isLoading; else loaded"
+					class="d-inline"
+					[class.text-white]="isPrimary(item)"
+				></p-spinner>
+				<ng-template #loaded>
+					<span class="d-flex align-items-center nowrap" [class.pt-1]="!!item.description">
+						<ng-template [ngIf]="isMultiSelect && !item.isLoading">
+							<fa-icon class="pl-1 pr-1" [fixedWidth]="true" [class.text-primary]="dropdownType === DropdownTypeEnum.FILTER && !isActive(item)" [icon]="multiSelectIcon(item)"></fa-icon>
+						</ng-template>
+						<fa-icon *ngIf="!!item.icon" [class.pl-1]="isMultiSelect && !item.isLoading" class="pr-2" [fixedWidth]="true" [icon]="item.icon"></fa-icon>
+						<span [class.pl-1]="isMultiSelect && !item.isLoading || !!item.icon"><ng-template [ngTemplateOutlet]="item.innerTemplate"></ng-template>{{ item.label }}</span>
+					</span>
+					<ng-template [ngIf]="!!item.description">
+						<span  class="text-left text-style-reset-to-body text-muted pt-1 pb-1 d-flex" style="white-space: normal;">{{ item.description }}</span>
+					</ng-template>
+					<ng-template [ngIf]="!!item.disabled && item.cannotEditHint">
+						<span  class="text-left text-style-reset-to-body text-muted pt-1 pb-1 d-flex" style="white-space: normal;"><fa-icon class="text-danger" [fixedWidth]="true" icon="exclamation-triangle"></fa-icon>&nbsp;{{ item.cannotEditHint }}</span>
+					</ng-template>
+				</ng-template>
+			</button>
+		</ng-template>
+	</ng-template>
+
+</div>
+<ng-template [ngIf]="!!formControl">
+	<p-validation-hint
+		*ngFor="let error of visibleErrors"
+		[control]="formControl"
+		[isInvalid]="true"
+		[validationName]="error.key"
+		[errorValue]="error.value"
+		[checkTouched]="checkTouched"
+	></p-validation-hint>
+</ng-template>

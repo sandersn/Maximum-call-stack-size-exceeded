@@ -1,0 +1,13 @@
+@import "variables";
+
+.form-text {
+	font-size: inherit;
+}
+
+:host {
+	display: block;
+
+	&.form-control-feedback .form-text.text-warning {
+		color: darken($warning, 10%) !important;
+	}
+}

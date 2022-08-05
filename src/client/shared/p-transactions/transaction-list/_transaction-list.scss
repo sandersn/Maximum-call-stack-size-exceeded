@@ -1,0 +1,140 @@
+@import "variables";
+@import "~bootstrap/scss/mixins/breakpoints";
+
+/*
+dateTime
+amount | drPlanoFee
+
+.type, .referencedPerson
+.offerName,
+.bookingNumber,
+
+.paymentMethodType,
+*/
+
+@mixin hideLevel1() {
+	.paymentMethodType {
+		display: none;
+	}
+}
+@mixin hideLevel2() {
+	.bookingNumber,
+	.paymentMethodType {
+		display: none;
+	}
+}
+@mixin hideLevel3() {
+	.offerName,
+	.bookingNumber,
+	.paymentMethodType {
+		display: none;
+	}
+}
+
+.transactions-list-headlines,
+.transactions-list-tupel {
+	display: flex;
+	align-items: flex-start;
+	@extend .p-overflow-ellipsis;
+
+	> * {
+		flex-shrink: 0;
+		flex-basis: 50px;
+
+		overflow: hidden;
+
+		margin-left: map-get($map: $spacers, $key: 4);
+
+		&:first-child {
+			margin-left: 0;
+		}
+
+		// &:last-child {
+		// 	margin-right: map-get($map: $spacers, $key: 4);
+		// }
+	}
+
+	@include media-breakpoint-down(lg) {
+	}
+
+	@include media-breakpoint-down(md) {
+		@include hideLevel1();
+	}
+
+	@include media-breakpoint-down(sm) {
+		@include hideLevel2();
+	}
+
+	@include media-breakpoint-down(xs) {
+		@include hideLevel3();
+	}
+
+	@include media-breakpoint-down(xxs) {
+		.type,
+		.referencedPerson,
+		.offerName,
+		.bookingNumber,
+		.paymentMethodType {
+			display: none;
+		}
+	}
+
+	.amount,
+	.drPlanoFee {
+		@extend .text-monospace;
+		text-align: right;
+	}
+
+	.dateTime {
+		flex-grow: 0;
+		flex-basis: 70px;
+	}
+	.offerName {
+		flex-grow: 5;
+		flex-basis: 110px;
+	}
+
+	.bookingNumber {
+		flex-grow: 0;
+		flex-basis: 84px;
+		text-align: center;
+	}
+
+	.referencedPerson {
+		flex-grow: 4;
+		flex-basis: 70px;
+	}
+	.amount {
+		flex-grow: 1;
+		flex-shrink: 0;
+		flex-basis: 80px;
+	}
+
+	.drPlanoFee {
+		flex-grow: 1;
+		flex-shrink: 0;
+	}
+
+	.type {
+		flex-grow: 5;
+		flex-basis: 100px;
+	}
+	.paymentMethodType {
+		flex-grow: 3;
+		flex-basis: 100px;
+	}
+}
+
+.sidebar-is-visible {
+	.transactions-list-headlines,
+	.transactions-list-tupel {
+		@include media-breakpoint-down(lg) {
+			@include hideLevel1();
+			@include hideLevel2();
+		}
+		@include media-breakpoint-down(md) {
+			@include hideLevel3();
+		}
+
+	}
+}

@@ -1,0 +1,77 @@
+@import "p-variables";
+@import "~bootstrap/scss/mixins/breakpoints";
+
+.cal-month-view .cal-day-cell.cal-today {
+	background: inherit;
+}
+
+p-transmission-preview {
+	.cal-month-view .cal-cell {
+		align-items: flex-start;
+		flex-direction: row;
+	}
+
+	.cal-month-view .cal-cell-row .cal-cell:hover {
+		background: transparent;
+	}
+
+	.cal-month-view .cal-cell-row .cal-cell.cal-out-month:hover,
+	.cal-month-view .cal-cell-row .cal-cell.cal-has-events:hover {
+		background: rgba(0, 0, 0, 0.075);
+	}
+
+	.cal-month-view .cal-cell-row .cal-cell.cal-has-events.cal-open {
+		background: $darken-015;
+	}
+
+	.cal-month-view .cal-header {
+		font-weight: normal;
+	}
+
+	.cal-month-view .cal-day-cell {
+		min-height: auto;
+	}
+
+	$number-margin: 5px;
+	$number-margin-sm: 3px;
+	.cal-month-view .cal-day-number {
+		font-size: $font-size-base;
+		margin-left: $number-margin;
+		margin-right: $number-margin;
+		margin-top: $number-margin;
+		margin-bottom: $number-margin;
+		float: left;
+		@include media-breakpoint-down(lg) {
+			margin-left: $number-margin-sm;
+			margin-right: $number-margin-sm;
+			margin-top: $number-margin-sm;
+			margin-bottom: $number-margin-sm;
+		}
+	}
+
+	.cal-week-view .cal-cell-top,
+	.cal-month-view .cal-cell-top {
+		min-height: 20px;
+	}
+
+	.cal-week-view .cal-cell-top {
+		min-height: 20px;
+	}
+
+	.cal-month-view .cal-day-cell.cal-today .cal-day-number {
+		font-size: $font-size-base;
+	}
+	.cal-month-view .cal-day-cell.cal-weekend .cal-day-number {
+		color: $gray-500;
+	}
+
+	.cell-totals {
+		display: flex;
+		align-items: center;
+		flex-direction: row;
+	}
+
+	.badge {
+		line-height: 18px;
+	}
+}

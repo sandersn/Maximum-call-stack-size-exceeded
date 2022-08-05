@@ -1,0 +1,21 @@
+@import "variables";
+
+:host {
+	flex-grow: 1;
+	display: block;
+	overflow: hidden;
+	line-height: 1rem;
+
+	.time {
+		z-index: 1;
+	}
+}
+
+.is-removed {
+	text-decoration: line-through;
+}
+
+.date-and-time,
+.name {
+	font-size: $font-size-xs;
+}

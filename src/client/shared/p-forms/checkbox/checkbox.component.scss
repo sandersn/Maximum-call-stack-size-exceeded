@@ -1,0 +1,13 @@
+@import "variables";
+
+:host {
+	display: block;
+}
+
+label {
+	white-space: normal;
+}
+
+button {
+	line-height: 1.5rem;
+}

@@ -1,0 +1,10 @@
+:host {
+	display: block;
+}
+
+p-interface-card {
+	flex-basis: 21% !important;
+	max-width: 236px;
+	/* stylelint-disable-next-line sh-waqar/declaration-use-variable */
+	margin-top: 30px;
+}

@@ -1,0 +1,44 @@
+<button
+	type="button"
+	class="btn btn-light flex-grow-1"
+	[class.p-0]="!label"
+
+	pEditableModalButton
+	icon="copy"
+	[label]="label!"
+	(onModalClosed)="onModalClosed()"
+	(onModalDismissed)="searchTerm=null;onItemClick(null)"
+>
+	<p-editable-modal-button-header class="d-flex flex-grow-1">
+		<div class="p-2 align-self-stretch position-relative bg-white pl-3 flex-grow-1 d-flex">
+			<p-color-marker
+				class="d-flex"
+				[item]="valueItem"
+				[hexColor]="valueItem?.color ? '#' + valueItem?.color : null"
+				[title]="valueItem ? valueItem.name : undefined"
+				[isPacket]="valueItem ? !!valueItem.isPacket : false"
+			></p-color-marker> {{ valueItem ? valueItem.name : label }}
+		</div>
+	</p-editable-modal-button-header>
+	<p-editable-modal-button-form>
+		<p-input
+			class="mb-2"
+			[type]="PApiPrimitiveTypes.Search"
+			[(ngModel)]="searchTerm"
+		></p-input>
+		<ng-template [ngIf]="!!shiftModelsForList.length" [ngIfElse]="noItemsAvailable">
+			<p-shiftmodel-list
+				[shiftModels]="shiftModelsForList"
+				(onItemClick)="onItemClick($event)"
+			></p-shiftmodel-list>
+		</ng-template>
+		<ng-template #noItemsAvailable>
+			<p-alert
+				[theme]="PThemeEnum.WARNING"
+				[dismissable]="false"
+				i18n
+			>Es wurden keine Tätigkeiten gefunden.</p-alert>
+		</ng-template>
+	</p-editable-modal-button-form>
+</button>
+<button *ngIf="value !== null" type="button" class="btn btn-sm btn-primary flex-grow-0" (click)="value=null"><fa-icon [fixedWidth]="true" icon="times"></fa-icon></button>

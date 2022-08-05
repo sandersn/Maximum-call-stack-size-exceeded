@@ -1,0 +1,250 @@
+<p-main-sidebar *ngIf="!CONFIG.IS_MOBILE"></p-main-sidebar>
+<div class="flex-grow-1 d-flex flex-column">
+	<nav
+		class="navbar navbar-light bg-light border-bottom d-block flex-grow-0"
+		[class.pl-4]="!CONFIG.IS_MOBILE"
+		[class.pr-4]="!CONFIG.IS_MOBILE"
+		[class.pl-2]="CONFIG.IS_MOBILE"
+		[class.pr-2]="CONFIG.IS_MOBILE"
+	>
+		<div class="report-navbar align-items-stretch justify-content-between flex-grow-1 d-block d-lg-flex">
+			<div class="report-settings align-items-center"
+				[class.justify-content-center]="!CONFIG.IS_MOBILE"
+				[class.justify-content-between]="CONFIG.IS_MOBILE"
+				[class.mr-2]="!CONFIG.IS_MOBILE"
+				[class.ml-2]="!CONFIG.IS_MOBILE"
+			>
+				<!-- [class.align-items-center]="CONFIG.IS_MOBILE"
+				[class.align-items-stretch]="!CONFIG.IS_MOBILE" -->
+				<div class="mr-1 d-flex align-items-center">
+					<label *ngIf="fromLabelText" class="mr-2 mb-0 nowrap">{{fromLabelText}}</label>
+					<p-input-date
+						class="d-flex"
+						*ngIf="formGroup"
+						style="max-width: 180px;"
+
+						[size]="CONFIG.IS_MOBILE ? BootstrapSize.SM : null"
+
+						[pEditable]="true"
+						[api]="api"
+						[valid]="!formGroup.invalid"
+
+						[showEraseValueBtn]="false"
+						[formControl]="formGroup.controls['minDate']!"
+						(ngModelChange)="navToNewRange()"
+						[max]="formGroup.controls['maxDate']!.value - 1"
+						[disabled]="!formGroup"
+					></p-input-date>
+				</div>
+				<label *ngIf="tillLabelText" class="mr-1 mb-0 nowrap">{{tillLabelText}}</label>
+				<div class="d-flex align-items-center">
+					<p-input-date
+						class="d-flex"
+						*ngIf="formGroup"
+						style="max-width: 180px;"
+
+						[size]="CONFIG.IS_MOBILE ? BootstrapSize.SM : null"
+
+						[pEditable]="true"
+						[api]="api"
+						[valid]="!formGroup.invalid"
+
+						[showEraseValueBtn]="false"
+						[formControl]="formGroup.controls['maxDate']!"
+						(ngModelChange)="navToNewRange()"
+						[min]="formGroup.controls['minDate']!.value"
+						[isExclusiveEnd]="true"
+						[disabled]="!formGroup"
+					></p-input-date>
+				</div>
+			</div>
+		</div>
+	</nav>
+	<scroll-shadow-box
+		class="position-relative flex-grow-1"
+		[class.bg-light]="!!highlightService.highlightedItem"
+		[backgroundStyle]="!!highlightService.highlightedItem ? PThemeEnum.LIGHT : null"
+	>
+		<!-- <ng-template [ngIf]="api.isLoaded() && meService.isLoaded()"> -->
+		<ng-template [ngIf]="api.isLoaded() && meService.isLoaded()">
+			<div
+				class="d-flex align-items-center justify-content-between mb-3"
+				[class.p-4]="!CONFIG.IS_MOBILE"
+				[class.p-2]="CONFIG.IS_MOBILE"
+				[class.mt-3]="CONFIG.IS_MOBILE"
+			>
+				<!-- HACK: PLANO-16313 -->
+				<p-dropdown
+					class="align-self-center"
+					[class.flex-grow-1]="CONFIG.IS_MOBILE"
+					[icon]="PlanoFaIconPool.FILTER"
+					label="Filter" i18n-label
+					[size]="CONFIG.IS_MOBILE ? BootstrapSize.LG : BootstrapSize.SM"
+					[dropdownType]="DropdownTypeEnum.FILTER"
+					[hideTriggerLabel]="false"
+					dropdownMenuAlignment="left"
+				>
+					<p-dropdown-item
+						label="Arbeitseinsätze" i18n-label
+						[active]="reportFilterService.showWorkingTimes===true"
+						(onClick)="reportFilterService.showWorkingTimes=!reportFilterService.showWorkingTimes"
+						[attributeInfo]="null"
+					></p-dropdown-item>
+					<p-dropdown-item
+						label="Prognose für Einsätze" i18n-label
+						[active]="reportFilterService.showWorkingTimesForecast===true"
+						(onClick)="reportFilterService.showWorkingTimesForecast=!reportFilterService.showWorkingTimesForecast"
+						[disabled]="!reportFilterService.showWorkingTimes"
+						icon="chart-line"
+						[attributeInfo]="null"
+					></p-dropdown-item>
+					<p-dropdown-item
+						label="Abwesenheiten" i18n-label
+						[active]="reportFilterService.showAbsences===true"
+						(onClick)="reportFilterService.showAbsences=!reportFilterService.showAbsences"
+						[attributeInfo]="null"
+					></p-dropdown-item>
+					<p-dropdown-item
+						label="Unbezahlte Abwesenheiten" i18n-label
+						[active]="reportFilterService.showUnpaidAbsences===true"
+						(onClick)="reportFilterService.showUnpaidAbsences=!reportFilterService.showUnpaidAbsences"
+						[disabled]="!reportFilterService.showAbsences"
+						[icon]="['fab','creative-commons-nc-eu']"
+						[attributeInfo]="null"
+					></p-dropdown-item>
+					<p-dropdown-item
+						*ngIf="rightsService.isOwner"
+						label="Personen ohne Einträge" i18n-label
+						[active]="reportFilterService.showUsersWithoutEntries===true"
+						(onClick)="reportFilterService.showUsersWithoutEntries=!reportFilterService.showUsersWithoutEntries"
+						[attributeInfo]="null"
+					></p-dropdown-item>
+				</p-dropdown>
+				<div class="d-flex align-items-center justify-content-end">
+
+					<div
+						class="d-none d-lg-block"
+					>
+						<p-dropdown
+							*ngIf="rightsService.isOwner"
+							[size]="CONFIG.IS_MOBILE ? BootstrapSize.LG : BootstrapSize.SM"
+							[icon]="PlanoFaIconPool.ADD"
+							label="Neuer Eintrag" i18n-label
+							[btnStyle]="PBtnThemeEnum.OUTLINE_PRIMARY"
+							[dropdownType]="DropdownTypeEnum.BUTTONS"
+							>
+							<p-dropdown-item
+								label="Arbeitseinsatz" i18n-label
+								(onClick)="createWorkingTimeEntry()"
+							></p-dropdown-item>
+							<p-dropdown-item
+								label="Abwesenheit" i18n-label
+								(onClick)="createAbsenceEntry()"
+						></p-dropdown-item>
+						</p-dropdown>
+					</div>
+					<div
+						class="d-none d-sm-block ml-2"
+						[tooltip]="tooltipDatev"
+						placement="bottom"
+					>
+						<button
+							type="button"
+							name="button"
+							class="btn btn-outline-secondary"
+							[class.btn-lg]="CONFIG.IS_MOBILE"
+							[class.btn-sm]="!CONFIG.IS_MOBILE"
+							[disabled]="isApiLoading || exportIsRunning"
+							(click)="export()"
+						>
+							<span><fa-icon [fixedWidth]="true" [icon]="exportIsRunning ? PlanoFaIconPool.SYNCING : PlanoFaIconPool.EXPORT" [spin]="exportIsRunning"></fa-icon><span class="d-none d-lg-inline ml-1"> <strong i18n>Excel</strong> <span class="d-none d-xl-inline" i18n>Export</span></span></span>
+						</button>
+						<ng-template #tooltipDatev>
+							<div class="d-block clickable card m-0 text-left o-hidden">
+								<div class="card-body p-1 pl-2">
+									<span *ngIf="rightsService.isOwner" i18n>Exportiere die Arbeits- und Abwesenheitszeiten und leite sie direkt an deine Buchhaltung oder deinen Steuerberater weiter.</span> <!-- cSpell:ignore Arbeits -->
+									<span *ngIf="!rightsService.isOwner" i18n>Exportiere deine Arbeits- und Abwesenheitszeiten für deine Unterlagen.</span>
+								</div>
+							</div>
+						</ng-template>
+					</div>
+				</div>
+				<!-- [class.btn-outline-primary]="api.data.workingTimes.length" -->
+				<!-- [class.btn-outline-secondary]="!api.data.workingTimes.length" -->
+			</div>
+
+			<div class="pb-tawk" [class.pl-4]="!CONFIG.IS_MOBILE" [class.pr-4]="!CONFIG.IS_MOBILE">
+
+				<!-- <table class="table table-hover mb-0"> -->
+				<div class="line headlines d-flex justify-content-between">
+					<div class="mr-auto pl-3"><span
+						*ngIf="rightsService.isOwner"
+						i18n
+					>Name</span></div>
+					<div class="min-w-md-90 d-none d-lg-block text-monospace text-right ml-auto"><div *ngIf="reportFilterService.showWorkingTimes" i18n>Pause</div></div>
+					<div class="d-none d-sm-block min-w-lg-140 text-monospace text-right"><div i18n>Arbeit/<br />Abwesenheit</div></div>
+					<div class="min-w-md-120 text-right mr-2"><strong i18n>Verdienst</strong></div>
+					<div class="d-none d-sm-block min-w-md-140 text-right" i18n>Meldungen</div>
+					<div class="d-none d-lg-block min-w-50"></div>
+				</div>
+
+				<div class="position-relative">
+					<p-spinner [size]="BootstrapSize.LG" *ngIf="api.isLoadOperationRunning" class="area-blocking-spinner"></p-spinner>
+
+					<p-report-row
+						*ngIf="membersForList.length"
+						[headline]="false"
+						[ruler]="false"
+						[regularPauseDuration]="workingTimes.regularPauseDuration"
+						[automaticPauseDuration]="workingTimes.automaticPauseDuration"
+						[mergePauseDurations]="true"
+						[duration]="workingTimes.durationBetween(reportUrlParams.urlParam.start, reportUrlParams.urlParam.end) + absences.durationBetween(reportUrlParams.urlParam.start, reportUrlParams.urlParam.end)"
+						[warningAmount]="workingTimes.warningAmount"
+						[commentAmount]="(workingTimes.commentAmount + absences.commentAmount)"
+					>
+						<strong report-row-badges class="pb-1" style="font-size: 1.3em;">∑</strong>
+						<strong report-row-earnings>{{ (workingTimes.totalEarningsBetween(reportUrlParams.urlParam.start, reportUrlParams.urlParam.end) + absences.totalEarningsBetween(reportUrlParams.urlParam.start, reportUrlParams.urlParam.end)) | currency:undefined:'symbol':'1.2-2' }}</strong>
+					</p-report-row>
+
+					<ng-template
+						ngFor let-member
+						[ngForOf]="membersForList.iterableSortedBy(['lastName', 'firstName'])"
+					>
+						<p-member-working-times
+							*ngIf="!member.trashed || absences.getByMember(member).length || workingTimes.getByMember(member).length"
+							[member]="member"
+							[min]="reportUrlParams.urlParam.start"
+							[max]="reportUrlParams.urlParam.end"
+							[absences]="absences"
+							[workingTimes]="workingTimes"
+						></p-member-working-times>
+					</ng-template>
+
+					<ng-template [ngIf]="!!formGroup && !membersForList.length">
+						<div class="mt-4 p-3 d-block border rounded text-center">
+							<ng-template [ngIf]="(formGroup.controls['minDate']!.value | date:'shortDate') === (formGroup.controls['maxDate']!.value - 1 | date:'shortDate')" [ngIfElse]="moreThanADay">
+								<div i18n>Am {{ formGroup.controls['minDate']!.value | date:'shortDate' }} war wohl nichts los.</div>
+							</ng-template>
+							<ng-template #moreThanADay>
+								<div i18n>Es gibt keine Einträge für den Zeitraum {{ formGroup.controls['minDate']!.value | date:'shortDate' }} - {{ formGroup.controls['maxDate']!.value - 1 | date:'shortDate' }}</div>
+							</ng-template>
+							<ng-template [ngIf]="hasSomeFilterSettings">
+								<div class="mt-2" i18n>… denk daran, dass du Filter eingeschaltet hast, die sich auf das Ergebnis auswirken können.</div>
+								<div class="mt-1 d-flex align-items-center justify-content-center">
+									<p-button
+										[attributeInfo]="null"
+										title="Filter aufheben" i18n-title
+										[theme]="PThemeEnum.PRIMARY"
+										class="ml-auto mr-auto"
+										(triggerClick)="resetFilter()"
+									><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.UNDO"></fa-icon>&nbsp;<ng-container i18n>Filter aufheben</ng-container></p-button>
+								</div>
+							</ng-template>
+						</div>
+					</ng-template>
+				</div>
+
+			</div>
+		</ng-template>
+	</scroll-shadow-box>
+</div>

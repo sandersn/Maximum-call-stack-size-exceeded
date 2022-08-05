@@ -1,0 +1,244 @@
+<div class="bg-light-cold mb-3">
+	<div class="px-4 px-md-5 pt-4 pb-4 row justify-content-between">
+		<div class="col-12 col-xl flex-shrink-1 flex-grow-0">
+			<p-form-group>
+				<div class="d-md-flex align-items-center">
+					<p-input-date
+						class="w-100"
+						[isLoading]="!start"
+						[size]="BootstrapSize.SM"
+						[(ngModel)]="start"
+						[max]="end ? end - 1 : null"
+						[showTimeInput]="false"
+						[timeIsRequired]="false"
+						[showEraseValueBtn]="false"
+						[isExclusiveEnd]="false"
+					></p-input-date>
+					<div class="mx-2 text-center" i18n>bis</div>
+					<p-input-date
+						[isLoading]="!end"
+						class="w-100"
+						[size]="BootstrapSize.SM"
+						[(ngModel)]="end"
+						[min]="start"
+						[showTimeInput]="false"
+						[timeIsRequired]="false"
+						[showEraseValueBtn]="false"
+						[isExclusiveEnd]="true"
+					></p-input-date>
+				</div>
+			</p-form-group>
+		</div>
+
+		<div class="col-12 col-xl-5 flex-grow-1">
+			<p-input
+				id="search-input"
+				[class.mb-2]="focusOnSearch || focusOnSearchSettings || searchString"
+				[size]="BootstrapSize.SM"
+				[type]="PApiPrimitiveTypes.Search"
+				[(ngModel)]="searchString"
+				(keyup)="onSearchKeyUp($event)"
+				placeholder="Suche…" i18n-placeholder
+				(focus)="onFocusSearch()"
+				(blur)="onBlurSearch()"
+			></p-input>
+
+			<p-dropdown
+				*ngIf="focusOnSearch || focusOnSearchSettings || searchString"
+				(focus)="onFocusSearchSettings()"
+				(blur)="onBlurSearchSettings()"
+				(onSelect)="onSelectSearchSetting()"
+				class="m-0 d-flex justify-content-stretch"
+				[(ngModel)]="searchAll"
+				[size]="BootstrapSize.SM"
+			>
+				<p-dropdown-item
+					label="in allen Gutscheinen" i18n-label
+					[value]="true"
+				></p-dropdown-item>
+				<p-dropdown-item
+					label="in angezeigten Gutscheinen" i18n-label
+					[value]="false"
+				></p-dropdown-item>
+			</p-dropdown>
+		</div>
+	</div>
+</div>
+
+<div class="p-4 p-md-5">
+
+	<div class="d-flex justify-content-end mb-3">
+		<div class="d-flex justify-content-end">
+
+			<p-dropdown
+				[dropdownType]="DropdownTypeEnum.BUTTONS"
+				[size]="BootstrapSize.SM"
+				[icon]="exportIsRunning ? PlanoFaIconPool.SYNCING : PlanoFaIconPool.EXPORT"
+				[iconSpin]="exportIsRunning"
+				label="Exportieren" i18n-label
+				[disabled]="isLoading || exportIsRunning"
+			>
+				<p-dropdown-item
+					title="Excel-Export der verkauften Gutscheine" i18n-title
+					(onClick)="exportVouchersXLS()"
+					[attributeInfo]="exportVouchersExcelApiService.data.attributeInfoThis"
+				><strong>Excel</strong>&nbsp;<ng-container i18n>Export</ng-container></p-dropdown-item>
+				<p-dropdown-item
+					title="CSV-Export der verkauften Gutscheine für die Kassensoftware Boulderado" i18n-title
+					(onClick)="exportVouchersBoulderadoCsv()"
+					[attributeInfo]="exportVouchersBoulderadoCsvApiService.data.attributeInfoThis"
+				><strong>Boulderado CSV</strong>&nbsp;<ng-container i18n>Export</ng-container></p-dropdown-item>
+			</p-dropdown>
+		</div>
+	</div>
+
+	<p-grid>
+		<div class="col-12">
+			<div class="list-headline-bar">
+				<div class="flex-grow-1 gift-cards-list-headlines p-2">
+					<p-list-headline-item
+						class="{{ GiftCardsSortedByEmum.DATE_OF_BOOKING }}"
+						label="Gebucht am" i18n-label
+						[isLoading]="!api.isLoaded()"
+						(onToggle)="setSorter(GiftCardsSortedByEmum.DATE_OF_BOOKING)"
+						[sortDirection]="sortedBy!==GiftCardsSortedByEmum.DATE_OF_BOOKING ? ListSortDirection.INACTIVE : (sortedReverse ? ListSortDirection.UP : ListSortDirection.DOWN)"
+					></p-list-headline-item>
+					<p-list-headline-item
+						class="{{ GiftCardsSortedByEmum.BOOKING_NUMBER }}"
+						label="Buchung" i18n-label
+						[isLoading]="!api.isLoaded()"
+						(onToggle)="setSorter(GiftCardsSortedByEmum.BOOKING_NUMBER)"
+						[sortDirection]="sortedBy!==GiftCardsSortedByEmum.BOOKING_NUMBER ? ListSortDirection.INACTIVE : (sortedReverse ? ListSortDirection.UP : ListSortDirection.DOWN)"
+					></p-list-headline-item>
+					<p-list-headline-item
+						class="{{ GiftCardsSortedByEmum.CODE }}"
+						label="Code" i18n-label
+						[isLoading]="!api.isLoaded()"
+						(onToggle)="setSorter(GiftCardsSortedByEmum.CODE)"
+						[sortDirection]="sortedBy!==GiftCardsSortedByEmum.CODE ? ListSortDirection.INACTIVE : (sortedReverse ? ListSortDirection.UP : ListSortDirection.DOWN)"
+					></p-list-headline-item>
+					<p-list-headline-item
+						class="value value-no-initial-value-label"
+						label="Restwert" i18n-label
+						[isLoading]="!api.isLoaded()"
+					></p-list-headline-item>
+					<p-list-headline-item
+						class="bookingPersonName"
+						label="Buchende Person" i18n-label
+						[isLoading]="!api.isLoaded()"
+					></p-list-headline-item>
+					<p-list-headline-item
+						class="value initial-value-label"
+						label="Start- / Restwert" i18n-label
+						[isLoading]="!api.isLoaded()"
+					></p-list-headline-item>
+					<p-list-headline-item
+						class="{{ GiftCardsSortedByEmum.PAYMENT_STATUS }}"
+						[labelIcon]="pCurrencyPipe.getCurrencyIcon()"
+						[isLoading]="!api.isLoaded()"
+						(onToggle)="setSorter(GiftCardsSortedByEmum.PAYMENT_STATUS)"
+						[sortDirection]="sortedBy!==GiftCardsSortedByEmum.PAYMENT_STATUS ? ListSortDirection.INACTIVE : (sortedReverse ? ListSortDirection.UP : ListSortDirection.DOWN)"
+					></p-list-headline-item>
+				</div>
+				<div class="card-option border-0"></div>
+			</div>
+		</div>
+	</p-grid>
+
+<ng-template [ngIf]="!isLoading" [ngIfElse]="skeletonListTemplate">
+	<ng-template [ngIf]="vouchersForList.length" [ngIfElse]="noItems">
+		<ng-container *ngFor="let voucher of vouchersForListSorted.iterable().slice(0,maxVisibleItems!)">
+			<ng-container *ngTemplateOutlet="itemTemplate, context: {$implicit: voucher, isLoading: false}"></ng-container>
+		</ng-container>
+	</ng-template>
+	<ng-template [ngTemplateOutlet]="moreBtnTemplate"></ng-template>
+</ng-template>
+<ng-template #skeletonListTemplate>
+	<ng-container *ngFor="let voucher of [0.6,0.5,0.4,0.3,0.2,0.1]">
+		<ng-container *ngTemplateOutlet="itemTemplate, context: {$implicit: voucher, isLoading: true}"></ng-container>
+	</ng-container>
+</ng-template>
+</div>
+
+<ng-template #moreBtnTemplate>
+	<p-button
+		[attributeInfo]="null"
+		*ngIf="!isLoading && maxVisibleItems !== undefined && maxVisibleItems! < vouchersForList.length"
+		class="mt-5 mx-auto load-more-button"
+		[theme]="PThemeEnum.SECONDARY"
+		(triggerClick)="pMoreBtnService.showMore()"
+	>{{moreBtnText}}</p-button>
+</ng-template>
+
+<ng-template #itemTemplate let-voucher let-isLoading="isLoading">
+	<ng-container *ngIf="!isLoading; else skeletonItem">
+		<div
+			id="scroll-target-id-{{voucher?.id?.toString() ?? 'null'}}"
+			class="card mb-0 card-options flex-row"
+			[class.muted-item]="!voucher.currentValue"
+			style="margin-top: -1px;"
+		>
+			<div class="flex-grow-1 m-2 gift-cards-list-tupel">
+				<div class="{{ GiftCardsSortedByEmum.DATE_OF_BOOKING }}">{{ voucher.dateOfBooking | date:(Config.IS_MOBILE ? 'veryShortDate' : 'shortDate') }}</div>
+				<div class="{{ GiftCardsSortedByEmum.BOOKING_NUMBER }}" title="Buchungsnummer" i18n-title><fa-icon class="small text-muted" [icon]="'hashtag'"></fa-icon>{{ voucher.bookingNumber }}</div>
+				<div class="{{ GiftCardsSortedByEmum.CODE }}">{{voucher.code}}</div>
+				<div class="bookingPersonName">{{voucher.firstName}} {{voucher.lastName}}</div>
+				<div class="value"><span class="price">{{voucher.price | currency}} /&nbsp;</span>{{voucher.currentValue | currency}}</div>
+				<div
+					class="{{ GiftCardsSortedByEmum.PAYMENT_STATUS }}"
+					[tooltip]="paymentStatusTooltipContent"
+					placement="left"
+					[class.text-skeleton-animated]="isLoading"
+				>
+					<fa-icon
+						[isLoading]="isLoading || paymentStatusIcon(voucher.paymentStatus) === PlanoFaIconPool.LOADING"
+						[fixedWidth]="true"
+						[icon]="paymentStatusIcon(voucher.paymentStatus)"
+						[theme]="paymentStatusIconStyle(voucher.paymentStatus)"
+						class="d-block"
+					></fa-icon>
+				</div>
+				<ng-template #paymentStatusTooltipContent>
+					<div [class]="'d-block card m-0 text-left o-hidden ' + paymentStatusTooltipBgClass(voucher.paymentStatus) + ' ' + paymentStatusTooltipTextClass(voucher.paymentStatus)">
+						<div class="p-2">{{ paymentStatusTitle(voucher.paymentStatus) | localize }}</div>
+					</div>
+				</ng-template>
+
+			</div>
+			<p-button
+				[attributeInfo]="null"
+				btnClasses="card-option border-bottom-0"
+				(triggerClick)="navToItem(voucher.id)"
+			><fa-icon [fixedWidth]="true" icon="pen"></fa-icon></p-button>
+		</div>
+	</ng-container>
+
+	<ng-template #skeletonItem>
+		<div class="card mb-0 card-options flex-row"
+			style="margin-top: -1px;"
+			[style.opacity]="voucher"
+		>
+			<div class="flex-grow-1 m-2 gift-cards-list-tupel">
+				<div class="{{ GiftCardsSortedByEmum.DATE_OF_BOOKING }} text-skeleton-animated">{{ 1614177674000 | date:'shortDate' }}</div>
+				<div class="{{ GiftCardsSortedByEmum.BOOKING_NUMBER }} text-skeleton-animated">{{ 123 }}</div>
+				<div class="{{ GiftCardsSortedByEmum.CODE }} text-skeleton-animated">█████████████</div>
+				<div class="bookingPersonName text-skeleton-animated">██████ ███████</div>
+				<div class="value text-skeleton-animated"><span class="d-none d-lg-inline">{{10 | currency}} /&nbsp;</span>{{5 | currency}}</div>
+				<div class="{{ GiftCardsSortedByEmum.PAYMENT_STATUS }}"><fa-icon [isLoading]="true"></fa-icon></div>
+
+			</div>
+			<p-button
+				[attributeInfo]="null"
+				btnClasses="card-option border-bottom-0"
+			><fa-icon [fixedWidth]="true" icon="pen" class="text-skeleton-animated"></fa-icon></p-button>
+		</div>
+	</ng-template>
+
+</ng-template>
+
+<ng-template #noItems>
+	<p-no-items
+		[handleGlobalFilterService]="false"
+		[hasFilterSettings]="false"
+	></p-no-items>
+</ng-template>

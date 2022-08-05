@@ -1,0 +1,97 @@
+<p-page *ngIf="me.isLoaded()">
+	<div class="mb-5">
+		<h2 i18n>Tutorial-Videos</h2>
+		<p class="mt-5" i18n>Die Videos hier entsprechen der Rechtegruppe, der du zugehörst – Admins sehen andere Videos als User ohne Admin-Rechte. Schreib gerne in den Chat, wenn du dir ein bestimmtes Tutorial-Video wünschst 😀</p>
+		<p-alert *ngIf="me.data.isOwner" [theme]="PThemeEnum.LIGHT" [icon]="PlanoFaIconPool.AREA_TUTORIALS" class="mb-6" i18n>Für die Online-Zahlungsfunktion gibt es neben den Videos unten auch einen <a routerLink="/client/plugin/faq-online-payment/" target="_blank" rel="noopener">FAQ-Bereich<fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.NAV_FORWARD" class="ml-1 small"></fa-icon></a></p-alert>
+	</div>
+	<p-grid>
+
+		<!-- tuts for users who can write bookings -->
+		<!-- cSpell:ignore youtube, Jdgb, Kqbyt, yldy, jsogy -->
+		<div id="scroll-target-id-cancellation" *ngIf="me.data.isOwner || userCanWriteBookings" class="col-lg-4 col-md-6 col-sm-12 video-container">
+			<p-youtube [key]="Config.getLanguageCode() === PSupportedLanguageCodes.de ? 'OXTnJkf9anw' : 'a91W4WiiAo8'" quality="maxresdefault"></p-youtube>
+			<p class="title" i18n>Stornierung & Rückzahlung</p>
+			<p class ="description" i18n>Mit nur 4 Klicks – oder sogar komplett automatisiert und 0 Klicks!</p>
+			<p class ="description" i18n>Mehr auch in unserer <a routerLink="/client/plugin/faq-online-payment" fragment="refund" rel="noopener" target="_blank"><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.AREA_FAQ" class="mr-1"></fa-icon>FAQ zur Online-Zahlung</a></p>
+		</div>
+
+		<!-- tuts for admins und manager -->
+		<div id="scroll-target-id-scheduling" *ngIf="userCanEditAssignmentProcesses" class="col-lg-4 col-md-6 col-sm-12 video-container">
+			<p-youtube key="JdgbJKqbytE" quality="maxresdefault"></p-youtube>
+			<p class="title" i18n>Monatsplan in 5 Minuten</p>
+			<p class ="description" i18n>Mit der automatischen Schichtverteilung geht's flott</p>
+		</div>
+
+		<div id="scroll-target-id-sick-leave" *ngIf="userCanEditAssignmentProcesses" class="col-lg-4 col-md-6 col-sm-12 video-container">
+			<p-youtube key="fXMSd7rmWx4" quality="maxresdefault"></p-youtube>
+			<p class="title" i18n>Krankmeldungen bearbeiten</p>
+			<p class ="description" i18n>Schnell Ersatz finden über die Tauschbörse</p>
+		</div>
+
+		<!-- tuts for admins -->
+		<ng-container *ngIf="me.data.isOwner">
+			<ng-container *ngTemplateOutlet="key_9eOaQlBpsFA_template"></ng-container>
+		</ng-container>
+
+		<div id="scroll-target-id-first-4-steps" *ngIf="me.data.isOwner" class="col-lg-4 col-md-6 col-sm-12 video-container">
+			<p-youtube key="93r7_QN-w4Y" quality="maxresdefault"></p-youtube>
+			<p class="title" i18n>Deine ersten 4 Schritte</p>
+			<p class ="description" i18n>So schnell ist dein neuer Account eingerichtet</p>
+		</div>
+
+		<div id="scroll-target-id-booking-system" *ngIf="me.data.isOwner" class="col-lg-4 col-md-6 col-sm-12 video-container">
+			<p-youtube key="yldyYaVgp-k" quality="maxresdefault"></p-youtube>
+			<p class="title" i18n>Buchungssystem einrichten</p>
+			<p class ="description" i18n>In nur 3 Schritten: Angebote anlegen, Termine online bringen, Buchungen verwalten</p>
+		</div>
+
+		<ng-container *ngIf="me.data.isOwner">
+			<ng-container *ngTemplateOutlet="key_p2rsT8YNPgk_template"></ng-container>
+		</ng-container>
+
+		<div id="scroll-target-id-desired-earnings" *ngIf="me.data.isOwner" class="col-lg-4 col-md-6 col-sm-12 video-container">
+			<p-youtube key="jsogyPn4Bs8" quality="maxresdefault"></p-youtube>
+			<p class="title" i18n>Wunschlohn definieren</p>
+			<p class ="description" i18n>Wie du deinen Mitarbeitenden erlaubst, ihren Wunschlohn zu erreichen</p>
+		</div>
+
+		<div id="scroll-target-id-shift-packages" *ngIf="me.data.isOwner" class="col-lg-4 col-md-6 col-sm-12 video-container">
+			<p-youtube key="LTqq4bOMm-Q" quality="maxresdefault"></p-youtube>
+			<p class="title" i18n>Wiederholungen & Schicht-Pakete</p>
+			<p class ="description" i18n>Schichten und Angebotstermine ließen sich noch nie so schnell erstellen und bearbeiten</p>
+		</div>
+
+		<!-- tuts for members -->
+		<ng-container *ngIf="!me.data.isOwner">
+			<ng-container *ngTemplateOutlet="key_9eOaQlBpsFA_template"></ng-container>
+		</ng-container>
+
+		<ng-container *ngIf="!me.data.isOwner">
+			<ng-container *ngTemplateOutlet="key_p2rsT8YNPgk_template"></ng-container>
+		</ng-container>
+
+		<div id="scroll-target-id-members-desired-earnings" *ngIf="!me.data.isOwner" class="col-lg-4 col-md-6 col-sm-12 video-container">
+			<p-youtube key="22vUz_ZXwL0" quality="maxresdefault"></p-youtube>
+			<p class="title" i18n>Wunschlohn definieren</p>
+			<p class ="description" i18n>Wie du deinen Wunschlohn erreichst</p>
+		</div>
+
+		<!-- tuts for both -->
+
+	</p-grid>
+</p-page>
+
+<ng-template #key_9eOaQlBpsFA_template>
+	<div id="scroll-target-id-shift-swapping" class="col-lg-4 col-md-6 col-sm-12 video-container">
+		<p-youtube key="9eOaQlBpsFA" quality="maxresdefault"></p-youtube>
+		<p class="title" i18n>Schichttausch & Krankmeldung</p>
+		<p class ="description" i18n>Die Tauschbörse macht's möglich</p>
+	</div>
+</ng-template>
+<ng-template #key_p2rsT8YNPgk_template>
+	<div id="scroll-target-id-shift-preferences" class="col-lg-4 col-md-6 col-sm-12 video-container">
+		<p-youtube key="p2rsT8YNPgk" quality="maxresdefault"></p-youtube>
+		<p class="title" i18n>Schichtwünsche abgeben</p>
+		<p class ="description" i18n>Unser Ampel-System: grüne, gelbe und rote Schichten</p>
+	</div>
+</ng-template>

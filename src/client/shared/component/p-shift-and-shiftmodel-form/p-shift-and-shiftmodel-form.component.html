@@ -1,0 +1,2152 @@
+<form [formGroup]="$any(formGroup)"
+	*ngIf="!!formItem && !!formGroup; else spinner"
+	[@slideVertical]
+>
+	<p-tabs
+		[isLoading]="!api.isLoaded()"
+	>
+		<p-tab
+			[label]="basisSettingsTabLabel"
+			urlName="basissettings"
+			[hasDanger]="basisSettingsIsInvalid"
+			[size]="PTabSizeEnum.FRAMELESS"
+		>
+			<ng-template [ngIf]="shiftModel">
+				<p-section>
+					<ng-template [ngIf]="service.modeIsEditShiftModel || service.modeIsCreateShiftModel">
+						<p-grid>
+							<div class="col-sm-6">
+								<p-form-group
+									label="Tätigkeitsbereich" i18n-label
+									[control]="formGroup.controls['parentName']!"
+								>
+									<p-input
+										[pEditable]="!shiftModel.isNewItem()"
+										[api]="api"
+										[formControl]="formGroup.controls['parentName']!"
+										[(ngModel)]="shiftModel.parentName"
+										placeholder="Theke" i18n-placeholder
+										[typeahead]="typeAheadShiftModelParentContent"
+										(focusout)="trimParentName()"
+									></p-input>
+								</p-form-group>
+							</div>
+							<div class="col-sm-6">
+								<p-form-group
+									label="Name der Tätigkeit" i18n-label
+									[control]="formGroup.controls['name']!"
+								>
+									<p-input
+										[pEditable]="!shiftModel.isNewItem()"
+										[api]="api"
+										[formControl]="formGroup.controls['name']!"
+										[(ngModel)]="shiftModel.name"
+										placeholder="Empfang" i18n-placeholder
+									></p-input>
+								</p-form-group>
+							</div>
+							<div class="col-12" *ngIf="isOwner">
+								<p-form-group
+									label="Farbe" i18n-label
+									[control]="formGroup.controls['color']!"
+								>
+									<div hidden><span i18n #translatedColorModalBoxLabel>{!formGroup.controls['color']!.value, select, true {Bitte farbe wählen}}</span></div>
+									<p-editable-modal-box
+										[pEditable]="!formItem.isNewItem()"
+										[api]="api"
+										[valid]="!formGroup.controls['color']!.invalid"
+										(onDismiss)="initFormGroup()"
+										[disabled]="formGroup.controls['color']!.disabled"
+										[label]="translatedColorModalBoxLabel.textContent!"
+									>
+										<p-editable-modal-box-header>
+											<div
+												class="w-100"
+												*ngIf="formGroup.controls['color']!.value"
+												[class.rounded-left]="!formItem.isNewItem()"
+												[class.rounded]="formItem.isNewItem()"
+												style.background-color="#{{formGroup.controls['color']!.value}}"
+												style="height: 3em;"
+											></div>
+										</p-editable-modal-box-header>
+										<p-editable-modal-box-form>
+											<p-grid>
+												<div class="col-6" *ngFor="let colorKey of shiftModelColorShadeKeys">
+													<div class="row no-gutters">
+														<div
+															class="col color-box"
+															*ngFor="let color of shiftModelColorShades[colorKey]"
+														>
+															<button
+																type="button"
+																class="d-block clickable w-100"
+																[class.active]="isSelectedColor(color)"
+																[style.padding]="isSelectedColor(color) ? '0.3rem' : '0.5rem'"
+																(click)="formGroup.controls['color']!.setValue(color)"
+																style="transition: opacity 0.5s;"
+															>
+																<div
+																	class="color-box-inner rounded"
+																	style.background-color="#{{color}}"
+																	[style.height]="isSelectedColor(color) ? '2.4em' : ''"
+																>
+																</div>
+															</button>
+														</div>
+													</div>
+												</div>
+											</p-grid>
+										</p-editable-modal-box-form>
+									</p-editable-modal-box>
+									<p-validation-hint
+										[control]="formGroup.controls['color']!"
+									></p-validation-hint>
+								</p-form-group>
+							</div>
+						</p-grid>
+					</ng-template>
+					<p-grid>
+
+						<ng-template [ngIf]="!Config.IS_MOBILE">
+							<div class="col-sm-6" *ngIf="userCanReadShiftModel">
+								<ng-template [ngIf]="service.modeIsCreateShift && !!shift">
+									<p-form-group label="Startdatum" i18n-label [control]="formGroup.controls['startDate']!">
+										<p-input-date
+											formControlName="startDate"
+										></p-input-date>
+										<p-validation-hint
+											[control]="formGroup.controls['startDate']!"
+										></p-validation-hint>
+										<p-validation-hint
+											text="Start darf nicht vor dem Ende liegen" i18n-text
+											[control]="formGroup.controls['startDate']!"
+											validationName="max"
+										></p-validation-hint>
+									</p-form-group>
+								</ng-template>
+
+								<ng-template [ngIf]="service.modeIsEditShiftModel || service.modeIsCreateShiftModel || service.modeIsEditShift">
+									<p-form-group label="Startdatum" i18n-label [control]="formGroup.controls['startDate']!">
+										<div
+											[tooltip]="!service.modeIsCreateShift && userCanWrite ? tooltipTemplate : ''"
+											#pop="bs-tooltip"
+										>
+											<p-input-date
+												[ngModel]="shift ? shift.start : undefined"
+												[readMode]="true"
+												[ngModelOptions]="{standalone: true}"
+											></p-input-date>
+
+											<ng-template #tooltipTemplate>
+												<div class="d-block clickable card m-0 text-left o-hidden"
+													(click)="pop.hide()"
+												>
+													<div class="card-header p-2">
+														<div class="title"><span class="name" i18n>Datum festlegen</span></div>
+													</div>
+													<div class="card-body p-1 pl-2 pr-2">
+														<span i18n>Das Datum kann nur beim Erstellen einer Schicht vergeben und nachträglich nicht mehr verändert werden.</span>
+													</div>
+												</div>
+											</ng-template>
+										</div>
+									</p-form-group>
+								</ng-template>
+							</div>
+							<div class="col-sm-6" *ngIf="userCanReadShiftModel">
+								<p-form-group
+									[control]="formGroup.controls['neededMembersCountConf']!"
+								>
+									<label i18n>Anzahl der benötigten Mitarbeitenden</label>
+									<ng-template
+										[ngIf]="formGroup.controls['isCourse']!.value"
+										[ngIfElse]="neededMembersCountTemplate"
+									>
+										<p-editable-modal-box
+											[pEditable]="!formItem.isNewItem()"
+											[api]="api"
+											[valid]="!formGroup.controls['neededMembersCountConf']!.invalid"
+											[saveChangesHook]="getChangeSelectorModalAsHook(modalContent)"
+											(onDismiss)="initFormGroup()"
+
+											[disabled]="formGroup.controls['neededMembersCountConf']!.controls['neededMembersCount'].disabled"
+											[label]="translatedNeededMembersCountModalBoxLabel"
+										>
+											<p-editable-modal-box-showroom *ngIf="showNeededMembersCountConfShowroom">
+												<ng-template
+													[ngIf]="neededMembersCountConfNotReached"
+													[ngIfElse]="otherTemplate"
+												>
+													<div><p class="m-0" i18n>Aktuell <code>0</code> {shift!.neededMembersCount, plural, zero {Mitarbeitende} one {Mitarbeitende} two {Mitarbeitende} other {Mitarbeitende} }, da Mindest-Teilnehmendenzahl nicht erreicht.</p></div>
+												</ng-template>
+												<ng-template #otherTemplate>
+													<div><p class="m-0" i18n="Plural caused problems here. So we need to translate Trainer to e.g. Instructor(s)">Aktuell <code>{{ shift!.neededMembersCount }}</code> Mitarbeitende bei <code>{!!shift!.currentCourseParticipantCount, select, true {{{shift!.currentCourseParticipantCount}}} other {0}}</code> gebuchten Teilnehmenden.</p></div>
+												</ng-template>
+											</p-editable-modal-box-showroom>
+											<p-editable-modal-box-form>
+												<section>
+													<p-grid>
+														<div class="col-sm-5">
+															<p-form-group
+																*ngIf="formGroup.controls['isCourse']!.value"
+															>
+																<label><span i18n>Methode</span><p-info-circle [class.ml-2]="Config.IS_MOBILE" placement="top" i18n>Bei der variablen Methode wird die Anzahl der Mitarbeitenden automatisch ermittelt - abhängig vom Betreuungsschlüssel sowie der gebuchten Teilnehmendenzahl.</p-info-circle></label>
+																<div
+																	dropdown
+																	[autoClose]="true"
+																	(click)="$event.preventDefault()"
+																>
+																<!-- [isDisabled]="service.modeIsEditShift" -->
+																	<button
+																		dropdownToggle
+																		type="button"
+																		style="min-width: 100px;"
+																		class="dropdown-toggle form-control btn btn-outline-secondary"
+																	>
+																		<span i18n>{!formGroup.controls['neededMembersCountConf']!.controls['modeIsFixedMembersCount'].value, select, true {Variable Anzahl an Mitarbeitenden} other {Fixe Anzahl an Mitarbeitenden}}</span>
+																	</button>
+																	<ul
+																		*dropdownMenu
+																		class="dropdown-menu dropdown-menu-right"
+																	>
+																		<li>
+																			<a class="dropdown-item clickable"
+																				(click)="formGroup.controls['neededMembersCountConf']!.controls['modeIsFixedMembersCount'].setValue(false);"
+																				i18n
+																			>Variable Anzahl an Mitarbeitenden</a>
+																		</li>
+																		<li>
+																			<a class="dropdown-item clickable"
+																				(click)="formGroup.controls['neededMembersCountConf']!.controls['modeIsFixedMembersCount'].setValue(true)"
+																				i18n
+																			>Fixe Anzahl an Mitarbeitenden</a>
+																		</li>
+																	</ul>
+																</div>
+															</p-form-group>
+														</div>
+														<div
+															[class.col-sm-7]="formGroup.controls['neededMembersCountConf']!.controls['modeIsFixedMembersCount'].value"
+															[class.col-sm-4]="!formGroup.controls['neededMembersCountConf']!.controls['modeIsFixedMembersCount'].value"
+														>
+															<p-form-group
+																label="Benötigte Mitarbeitende" i18n-label
+																[control]="formGroup.controls['neededMembersCountConf']!.controls['neededMembersCount']!"
+															>
+																<p-input
+																	[formControl]="formGroup.controls['neededMembersCountConf']!.controls['neededMembersCount']!"
+																	[(ngModel)]="formItem.neededMembersCountConf.neededMembersCount"
+
+																	[type]="PApiPrimitiveTypes.Integer"
+																	placeholder="?"
+																></p-input>
+															</p-form-group>
+														</div>
+														<div class="col-sm-3">
+															<p-form-group
+																*ngIf="!formGroup.controls['neededMembersCountConf']!.controls['modeIsFixedMembersCount'].value"
+																label="Pro x Teilnehmende" i18n-label
+																[control]="formGroup.controls['neededMembersCountConf']!.controls['perXParticipants']!"
+															>
+																<p-input
+																	[formControl]="formGroup.controls['neededMembersCountConf']!.controls['perXParticipants']!"
+																	placeholder="?"
+																	[type]="PApiPrimitiveTypes.Integer"
+																></p-input>
+															</p-form-group>
+														</div>
+													</p-grid>
+												</section>
+												<p-form-group
+													class="m-0 mt-3 col-sm-6"
+													[control]="formGroup.controls['neededMembersCountConf']!.controls['isZeroNotReachedMinParticipantsCount']!"
+												>
+													<p-checkbox
+														[formControl]="formGroup.controls['neededMembersCountConf']!.controls['isZeroNotReachedMinParticipantsCount']!"
+														valueText="Zahl der Mitarbeitenden auf 0 setzen, solange die Mindestteilnehmerzahl des Angebots nicht erreicht ist" i18n-valueText
+													></p-checkbox>
+												</p-form-group>
+											</p-editable-modal-box-form>
+										</p-editable-modal-box>
+									</ng-template>
+									<ng-template #neededMembersCountTemplate>
+										<p-input
+											[pEditable]="!formItem.isNewItem()"
+											[api]="api"
+											[saveChangesHook]="getChangeSelectorModalAsHook(modalContent)"
+											(onDismiss)="initFormGroup()"
+
+											[type]="PApiPrimitiveTypes.Integer"
+											[formControl]="formGroup.controls['neededMembersCountConf']!.controls['neededMembersCount']!"
+
+											placeholder="?"
+										></p-input>
+									</ng-template>
+								</p-form-group>
+							</div>
+						</ng-template>
+					</p-grid>
+					<p-form-control-switch
+						label="Kommentar / ToDo für’s Personal" i18n-label
+						[group]="$any(formGroup)"
+						[attributeInfo]="$any(formItem.attributeInfoDescription)"
+
+						[type]="FormControlSwitchType.TEXTAREA"
+
+						[pEditable]="!formItem.isNewItem()"
+						[api]="api"
+						(onDismiss)="initFormGroup()"
+						[saveChangesHook]="getChangeSelectorModalAsHook(modalContent)"
+					></p-form-control-switch>
+
+				</p-section>
+			</ng-template>
+			<p-section *ngIf="!Config.IS_MOBILE && api.isLoaded()" label="Zeit-Einstellungen" i18n-label>
+				<ng-template #popTemplate><div class="p-2" i18n><strong *ngIf="!shift">Überträgst du diese Einstellungen auf Schichten,</strong><strong *ngIf="!!shift">Änderst du diese Einstellungen,</strong> werden buchende & teilnehmende Personen informiert, <strong>falls</strong> du automatische Emails aktiviert hast.</div></ng-template>
+				<p-editable-modal-box
+					[saveButtonPopover]="!formItem.isNewItem() && shiftModel!.isCourse ? popTemplate : undefined"
+
+					label="Start- und End-Zeit" i18n-label
+
+					[pEditable]="!formItem.isNewItem()"
+					[api]="api"
+					[valid]="service.startAndEndIsValid(formGroup)"
+					(onDismiss)="initFormGroup()"
+					[disabled]="formGroup.controls['startTime']!.disabled || formGroup.controls['endTime']!.disabled"
+					(onLeaveCurrent)="formGroup.updateValueAndValidity()"
+					[saveChangesHook]="getChangeSelectorModalAsHook(modalContent)"
+				>
+					<p-editable-modal-box-header></p-editable-modal-box-header>
+					<p-editable-modal-box-showroom>
+						<p class="m-0" i18n><code>{{ formItem.name }}</code> startet um <code>{{formGroup.controls['startTime']!.value | pDuration:'shortTime'}}</code> und endet um <code>{{formGroup.controls['endTime']!.value | pDuration:'shortTime'}}</code></p>
+					</p-editable-modal-box-showroom>
+					<p-editable-modal-box-form>
+						<p-grid>
+							<p-form-group
+								class="col-12 col-md-6"
+								label="Startet um" i18n-label
+								[control]="formGroup.controls['startTime']!"
+							>
+								<p-input
+									[type]="PApiPrimitiveTypes.LocalTime"
+									[formControl]="formGroup.controls['startTime']!"
+								></p-input>
+								<p-validation-hint
+									[text]="translatedStartTimeValidationHintText"
+									[checkTouched]="false"
+									[control]="formGroup.controls['startTime']!"
+									validationName="time"
+								></p-validation-hint>
+								<p-validation-hint
+									text="Die eingegebene Zeit muss vor dem Ende liegen" i18n-text
+									[control]="formGroup.controls['startTime']!"
+									[checkTouched]="false"
+									validationName="max"
+								></p-validation-hint>
+							</p-form-group>
+							<p-form-group
+								class="col-12 col-md-6"
+								label="Endet um" i18n-label
+								[control]="formGroup.controls['endTime']!"
+							>
+								<p-input
+									[type]="PApiPrimitiveTypes.LocalTime"
+									formControlName="endTime"
+								></p-input>
+								<p-validation-hint
+									[text]="translatedEndTimeValidationHintText"
+									[checkTouched]="false"
+									[control]="formGroup.controls['endTime']!"
+									validationName="time"
+								></p-validation-hint>
+								<p-validation-hint
+									text="Die eingegebene Zeit muss nach dem Start liegen" i18n-text
+									[control]="formGroup.controls['endTime']!"
+									[checkTouched]="false"
+									validationName="min"
+								></p-validation-hint>
+							</p-form-group>
+						</p-grid>
+					</p-editable-modal-box-form>
+				</p-editable-modal-box>
+				<ng-template [ngIf]="packetIsEditableOrAlreadySet && userCanReadShiftModel">
+					<ng-template #youCanNotEditTheRepetitionPacket>
+						<div class="d-block clickable card m-0 text-left o-hidden"
+							(click)="pop.hide()"
+						>
+							<div class="card-header p-2">
+								<div class="title"><span
+									class="name"
+									i18n
+								>Schicht-Paket bearbeiten</span></div>
+							</div>
+							<div class="card-body p-1 pl-2 pr-2">
+								<span i18n>Die Einstellungen für das Schicht-Paket kannst du nur in der Schichtvorlage oder beim Erstellen neuer Schichten bearbeiten. Hier ist es leider nicht mehr möglich.</span>
+							</div>
+						</div>
+					</ng-template>
+
+					<p-editable-modal-box
+						[tooltip]="(userCanWrite && service.modeIsEditShift) ? youCanNotEditTheRepetitionPacket : ''"
+						#pop="bs-tooltip"
+
+						[scrollable]="false"
+
+						[pEditable]="!formItem.isNewItem()"
+						[api]="api"
+						[valid]="shiftPacketSettingsValid"
+						(onDismiss)="initFormGroup()"
+
+						[disabled]="shiftPacketSettingsDisabled"
+
+						label="Schicht-Paket-Einstellungen" i18n-label
+					>
+						<p-editable-modal-box-header>
+							<p-info-circle
+								headline="Schicht-Paket" i18n-headline
+								i18n
+							>Ein Schicht-Paket eignet sich vor allem für buchbare Angebote mit mehreren verbundenen Terminen. Ein Beispiel: Ein Kurs mit drei Terminen lässt sich sehr gut als Schicht-Paket anlegen. Ändert sich die leitende Person des Kurses, dann korrigierst du das nur einmal für das gesamte Schicht-Paket und nicht mehrmals in jeder einzelnen Schicht.</p-info-circle>
+						</p-editable-modal-box-header>
+						<p-editable-modal-box-showroom>
+							<div class="row d-flex justify-content-between align-items-start">
+								<div class="col">
+									<div><label i18n>{{ formItem.name }} ist {formGroup.controls['isPacket']!.value, select, true {ein Schicht-Paket} other {eine Einzelschicht}}</label></div>
+									<div *ngIf="formGroup.controls['isPacket']!.value">
+										<p class="m-0" i18n>Das Schicht-Paket besteht aus <code>{{ formGroup.controls['packet_endsAfterRepetitionCount']!.value }}</code> Schichten.</p>
+										<p class="m-0" i18n><br>Die Schichten aus diesem Paket finden alle <code class="ml-1">{{ formItem.repetition.packetRepetition.x }} {{ packetRepetitionTitle }}</code> statt.</p>
+										<p class="m-0" *ngIf="packetTypeIsWeekly">
+											<br>
+
+											<span *ngIf="formGroup.controls['packet_endsAfterRepetitionCount']!.value > 1" i18n>Verteilt auf die Tage</span>
+											<span *ngIf="!(formGroup.controls['packet_endsAfterRepetitionCount']!.value > 1)" i18n>Am</span>&nbsp;<code i18n>{{ affectedWeekdays }}</code>
+											<span>.</span>
+										</p>
+									</div>
+								</div>
+								<ng-template [ngIf]="service.modeIsEditShift && shift!.packetShifts.length > 1">
+									<div class="col">
+										<div
+											class="text-center"
+											*ngIf="service.modeIsEditShift && shift!.packetShifts.length > 1"
+										>
+											<label i18n>Termine des Pakets</label>
+										</div>
+										<div class="d-flex justify-content-center align-items-center">
+											<p-packet-shifts
+												class="p-2"
+												[clickable]="false"
+												[collapsed]="false"
+												[currentShiftId]="formItem.id"
+												[packetShifts]="shift!.packetShifts"
+											></p-packet-shifts>
+										</div>
+									</div>
+								</ng-template>
+							</div>
+						</p-editable-modal-box-showroom>
+						<p-editable-modal-box-form>
+							<div class="d-flex justify-content-center align-items-center"
+								[class.form-group]="formGroup.controls['isPacket']!.value"
+							>
+								<p class="m-0" i18n><code>{{ formItem.name }}</code> ist</p>
+								<div
+									dropdown
+									class="pl-3 pr-3"
+									[autoClose]="true"
+									(click)="$event.preventDefault()"
+								>
+									<button
+										dropdownToggle
+										type="button"
+										style="min-width: 100px;"
+										class="form-control btn btn-outline-secondary"
+									>
+										<span i18n>{formGroup.controls['isPacket']!.value, select, true {ein Schicht-Paket} other {eine Einzelschicht}}</span>
+									</button>
+									<ul
+										*dropdownMenu
+										class="dropdown-menu dropdown-menu-right"
+									>
+										<li>
+											<a class="dropdown-item clickable"
+												(click)="formGroup.controls['isPacket']!.setValue(false);"
+											>
+												<span i18n>eine Einzelschicht</span>
+											</a>
+										</li>
+										<li>
+											<a class="dropdown-item clickable"
+												(click)="formGroup.controls['isPacket']!.setValue(true)"
+											>
+												<span i18n>ein Schicht-Paket</span>
+											</a>
+										</li>
+									</ul>
+								</div>
+								<p-validation-hint
+									[control]="formGroup.controls['isPacket']!"
+								></p-validation-hint>
+							</div>
+							<div *ngIf="formGroup.controls['isPacket']!.value">
+								<p-form-group
+									[control]="formGroup.controls['packet_endsAfterRepetitionCount']!"
+								>
+									<div class="d-flex justify-content-center align-items-center">
+										<span i18n>Das Schicht-Paket besteht aus</span>
+										<div class="pl-3">
+											<p-input
+												[type]="PApiPrimitiveTypes.number"
+												formControlName="packet_endsAfterRepetitionCount"
+												class="w-3-chars"
+												textAlign="center"
+											></p-input>
+										</div>
+										<span class="pl-3" i18n>Schichten.</span>
+									</div>
+									<div class="d-flex justify-content-center align-items-center">
+										<p-validation-hint
+											text="Bitte eine Zahl eintragen" i18n-text
+											[control]="formGroup.controls['packet_endsAfterRepetitionCount']!"
+											validationName="number"
+										></p-validation-hint>
+									</div>
+									<div class="d-flex justify-content-center align-items-center">
+										<p-validation-hint
+											text="Die Zahl muss mindestens 1 sein" i18n-text
+											[control]="formGroup.controls['packet_endsAfterRepetitionCount']!"
+											validationName="min"
+										></p-validation-hint>
+									</div>
+									<div class="d-flex justify-content-center align-items-center">
+										<p-validation-hint
+											[control]="formGroup.controls['packet_endsAfterRepetitionCount']!"
+										></p-validation-hint>
+									</div>
+								</p-form-group>
+								<p-form-group
+									[control]="formGroup.controls['packet_x']!"
+								>
+									<div class="d-flex justify-content-center align-items-center">
+										<span i18n>Die Schichten aus diesem Paket finden alle</span>
+										<div class="pl-3">
+											<p-input
+												[type]="PApiPrimitiveTypes.number"
+												formControlName="packet_x"
+												class="w-3-chars"
+												textAlign="center"
+											></p-input>
+										</div>
+										<div>
+											<div
+												dropdown
+												class="pl-3"
+												[class.has-danger]="formGroup.controls['packetRepetition_type']!.invalid"
+												[autoClose]="true"
+												(click)="$event.preventDefault()"
+											>
+												<button
+													dropdownToggle
+													type="button"
+													style="min-width: 100px;"
+													class="form-control btn btn-outline-secondary"
+												>
+													<span>{{ packetRepetitionTitle }}</span>
+												</button>
+												<ul
+													*dropdownMenu
+													class="dropdown-menu dropdown-menu-right"
+												>
+													<li *ngFor="let packetRepetitionOption of repetitionOptions">
+														<a
+															class="dropdown-item clickable"
+															(click)="formGroup.controls['packetRepetition_type']!.setValue(packetRepetitionOption.enum)"
+														>
+															<span>{{ packetRepetitionOption.title | localize }}</span>
+														</a>
+													</li>
+												</ul>
+												<p-validation-hint
+													[control]="formGroup.controls['packetRepetition_type']!"
+												></p-validation-hint>
+											</div>
+										</div>
+										<span class="pl-3" i18n>statt.</span>
+									</div>
+									<div class="d-flex justify-content-center align-items-center">
+										<p-validation-hint
+											text="Bitte eine Zahl eintragen" i18n-text
+											[control]="formGroup.controls['packet_x']!"
+											validationName="number"
+										></p-validation-hint>
+									</div>
+									<div class="d-flex justify-content-center align-items-center">
+										<p-validation-hint
+											text="Die Zahl muss mindestens 1 sein" i18n-text
+											[control]="formGroup.controls['packet_x']!"
+											validationName="min"
+										></p-validation-hint>
+									</div>
+									<div class="d-flex justify-content-center align-items-center">
+										<p-validation-hint
+											[control]="formGroup.controls['packet_x']!"
+										></p-validation-hint>
+									</div>
+								</p-form-group>
+								<ng-template [ngIf]="packetTypeIsWeekly">
+									<weekdays
+										[label]="packetEndsAfterRepetitionCountLabel"
+										[disabled]="!!service.modeIsEditShift"
+										[weekdayFormGroup]="formGroup.controls['packet_weekdays']!"
+									></weekdays>
+								</ng-template>
+							</div>
+						</p-editable-modal-box-form>
+					</p-editable-modal-box>
+				</ng-template>
+				<ng-template [ngIf]="intervalIsEditableOrAlreadySet && userCanReadShiftModel">
+					<ng-template #youCanNotEditTheRepetition>
+						<div class="d-block clickable card m-0 text-left o-hidden"
+							(click)="pop.hide()"
+						>
+							<div class="card-header p-2">
+								<div class="title"><span
+									class="name"
+									i18n
+								>Wiederholung bearbeiten</span></div>
+							</div>
+							<div class="card-body p-1 pl-2 pr-2">
+								<span i18n>Die Wiederholung kannst du nur in der Schichtvorlage oder beim Erstellen neuer Schichten bearbeiten. Hier ist es leider nicht mehr möglich.</span>
+							</div>
+						</div>
+					</ng-template>
+
+					<p-editable-modal-box
+						[tooltip]="(userCanWrite && service.modeIsEditShift) ? youCanNotEditTheRepetition : ''"
+						#pop="bs-tooltip"
+
+						[scrollable]="false"
+
+						[pEditable]="!formItem.isNewItem()"
+						[api]="api"
+						[valid]="intervalSettingsAreValid"
+						(onDismiss)="initFormGroup()"
+						[disabled]="intervalSettingsAreDisabled"
+						label="Wiederholungs-Einstellungen" i18n-label
+					>
+						<p-editable-modal-box-header>
+							<p-info-circle
+								headline="Wiederholung" i18n-headline
+								i18n
+							>Eine Wiederholung unterscheidet sich von einem Schicht-Paket dadurch, dass die wiederholenden Schichten nicht verbunden sind. Du solltest also bspw. einen Kurs mit drei Terminen als Schicht-Paket anlegen. Das Schicht-Paket selbst kannst du natürlich wiederholen lassen, wenn du den Kurs in regelmäßigen Abständen anbietest.</p-info-circle>
+						</p-editable-modal-box-header>
+						<p-editable-modal-box-showroom *ngIf="intervalSettingsAreValid">
+							<ng-template [ngIf]="formGroup.controls['isInterval']!.value"><p class="m-0" i18n>{formGroup.controls['isPacket']!.value, select, true {Das Schicht-Paket } other {Die Schicht }}<code>{{ shiftModel!.name }}</code> wiederholt sich alle <code>{!!formItem.repetition.x, select, true {{{formItem.repetition.x}}} other {?}}</code> <code> {{ repetitionTitle }}</code>.</p></ng-template>
+							<ng-template [ngIf]="!formGroup.controls['isInterval']!.value"><p class="m-0" i18n>{formGroup.controls['isPacket']!.value, select, true {Das Schicht-Paket } other {Die Schicht }}<code>{{ shiftModel!.name }}</code> wiederholt sich nicht.</p></ng-template>
+							&ngsp;
+							<ng-template [ngIf]="formGroup.controls['isInterval']!.value">
+								<p class="m-0" *ngIf="typeIsWeekly">
+									<span i18n>{formGroup.controls['isPacket']!.value, select, true {Das Paket beginnt jeweils am} other {An jedem}}</span>
+									<code *ngIf="formItem.repetition.isRepeatingOnMonday">&nbsp;<span i18n>Mo</span></code>
+									<code *ngIf="formItem.repetition.isRepeatingOnTuesday">&nbsp;<span i18n>Di</span></code>
+									<code *ngIf="formItem.repetition.isRepeatingOnWednesday">&nbsp;<span i18n>Mi</span></code>
+									<code *ngIf="formItem.repetition.isRepeatingOnThursday">&nbsp;<span i18n>Do</span></code>
+									<code *ngIf="formItem.repetition.isRepeatingOnFriday">&nbsp;<span i18n>Fr</span></code>
+									<code *ngIf="formItem.repetition.isRepeatingOnSaturday">&nbsp;<span i18n>Sa</span></code>
+									<code *ngIf="formItem.repetition.isRepeatingOnSunday">&nbsp;<span i18n>So</span></code>
+									<span>. </span>
+								</p>
+								<div *ngIf="formGroup.controls['selectedRepetitionEndDateMode']!.value!==intervalEndDateModes.NEVER">
+									<p class="m-0">
+									<span i18n>Die Wiederholung {formGroup.controls['isPacket']!.value, select, true {des Schicht-Pakets} other {der Schicht}} endet {formGroup.controls['selectedRepetitionEndDateMode']!.value===intervalEndDateModes.AFTER_X_TIMES, select, true {nach}}</span>
+									<ng-template [ngIf]="formGroup.controls['selectedRepetitionEndDateMode']!.value===intervalEndDateModes.AFTER_X_TIMES">
+										<span><code>{{ formItem.repetition.endsAfterRepetitionCount }}</code> {{ repetitionEndDateModeTitle }}.</span>
+									</ng-template>
+									<ng-template [ngIf]="formGroup.controls['selectedRepetitionEndDateMode']!.value===intervalEndDateModes.ENDS_AFTER_DATE">
+										<code>{{ repetitionEndDateModeTitle }} {{ formItem.repetition.endsAfterDate | date:'shortDate' }}</code><span>.</span>
+									</ng-template>
+									</p>
+								</div>
+							</ng-template>
+						</p-editable-modal-box-showroom>
+						<p-editable-modal-box-form>
+							<div class="d-flex justify-content-center align-items-center"
+								[class.form-group]="formGroup.controls['isInterval']!.value"
+								[class.has-danger]="formGroup.controls['repetition_type']!.invalid"
+							>
+								<p-checkbox
+									[formControl]="formGroup.controls['isInterval']!"
+									[valueText]="translatedIsIntervalValueText"
+								></p-checkbox>
+							</div>
+							<div *ngIf="formGroup.controls['isInterval']!.value">
+								<div [class.has-danger]="formGroup.controls['repetition_x']!.invalid">
+									<div class="d-flex justify-content-center align-items-center form-group">
+										<span i18n>{formGroup.controls['isPacket']!.value, select, true {Es} other {Sie}} wiederholt sich alle</span>
+										<div class="pl-3">
+											<p-input
+												[type]="PApiPrimitiveTypes.number"
+												class="w-3-chars"
+												textAlign="center"
+												formControlName="repetition_x"
+											></p-input>
+										</div>
+
+										<div
+											dropdown
+											class="pl-3"
+											[autoClose]="true"
+											(click)="$event.preventDefault()"
+										>
+											<button
+												dropdownToggle
+												type="button"
+												style="min-width: 100px;"
+												class="form-control btn btn-outline-secondary"
+											>
+												<span>{{ repetitionTitle }}</span>
+											</button>
+											<ul
+												*dropdownMenu
+												class="dropdown-menu dropdown-menu-right"
+											>
+
+												<li *ngFor="let repetitionOption of repetitionOptions">
+													<a
+														class="dropdown-item clickable"
+														(click)="formGroup.controls['repetition_type']!.setValue(repetitionOption.enum)"
+													>
+														<span>{{ repetitionOption.title | localize }}</span>
+													</a>
+												</li>
+											</ul>
+										</div>
+									</div>
+									<div *ngIf="formGroup.controls['repetition_x']!.invalid">
+										<div class="d-flex justify-content-center align-items-center">
+											<p-validation-hint
+												text="Bitte eine Zahl eintragen" i18n-text
+												[control]="formGroup.controls['repetition_x']!"
+												validationName="number"
+											></p-validation-hint>
+										</div>
+										<div class="d-flex justify-content-center align-items-center">
+											<p-validation-hint
+												text="Die Zahl muss mindestens 1 sein" i18n-text
+												[control]="formGroup.controls['repetition_x']!"
+												validationName="min"
+											></p-validation-hint>
+										</div>
+										<div class="d-flex justify-content-center align-items-center">
+											<p-validation-hint
+												[control]="formGroup.controls['repetition_x']!"
+											></p-validation-hint>
+										</div>
+									</div>
+								</div>
+								<ng-template [ngIf]="typeIsWeekly">
+									<weekdays
+										[label]="isPacketLabel"
+										[disabled]="!!service.modeIsEditShift"
+										[weekdayFormGroup]="formGroup.controls['repetition_weekdays']!"
+									></weekdays>
+								</ng-template>
+
+								<div>
+									<div class="d-flex justify-content-center align-items-center form-group">
+										<span i18n>Die Wiederholung {formGroup.controls['isPacket']!.value, select, true {des Schicht-Pakets} other {der Schicht}} endet {formGroup.controls['selectedRepetitionEndDateMode']!.value===intervalEndDateModes.AFTER_X_TIMES, select, true {nach}}</span>
+										<ng-template [ngIf]="formGroup.controls['selectedRepetitionEndDateMode']!.value===intervalEndDateModes.AFTER_X_TIMES">
+											<div class="pl-3"
+												[class.has-danger]="formGroup.controls['repetition_endsAfterRepetitionCount']!.invalid"
+											>
+												<p-input
+													[type]="PApiPrimitiveTypes.number"
+													formControlName="repetition_endsAfterRepetitionCount"
+													class="w-3-chars"
+													textAlign="center"
+												></p-input>
+											</div>
+										</ng-template>
+										<div
+											dropdown
+											class="pl-3"
+											[autoClose]="true"
+											(click)="$event.preventDefault()"
+										>
+											<button
+												dropdownToggle
+												type="button"
+												style="min-width: 100px;"
+												class="form-control btn btn-outline-secondary"
+											>
+												<span>{{ repetitionEndDateModeTitle }}</span>
+											</button>
+											<ul
+												*dropdownMenu
+												class="dropdown-menu dropdown-menu-right"
+											>
+
+												<li *ngFor="let mode of service.intervalEndDateModesIterable">
+													<a
+														class="dropdown-item clickable"
+														(click)="formGroup.controls['selectedRepetitionEndDateMode']!.setValue(mode.enum)"
+													>
+														<span>{{ mode.title }}</span>
+													</a>
+												</li>
+											</ul>
+										</div>
+									</div>
+									<ng-template [ngIf]="formGroup.controls['selectedRepetitionEndDateMode']!.value===intervalEndDateModes.ENDS_AFTER_DATE">
+										<div class="d-flex justify-content-center align-items-center form-group">
+											<div class="pl-3">
+												<p-input-date
+													formControlName="repetition_endsAfterDate"
+												></p-input-date>
+											</div>
+										</div>
+									</ng-template>
+
+									<div *ngIf="formGroup.controls['repetition_endsAfterRepetitionCount']!.invalid"
+										[class.has-danger]="formGroup.controls['repetition_endsAfterRepetitionCount']!.invalid"
+									>
+										<div class="d-flex justify-content-center align-items-center">
+											<p-validation-hint
+												text="Bitte eine Zahl eintragen" i18n-text
+												[control]="formGroup.controls['repetition_endsAfterRepetitionCount']!"
+												validationName="number"
+											></p-validation-hint>
+										</div>
+										<div class="d-flex justify-content-center align-items-center">
+											<p-validation-hint
+												text="Die Zahl muss mindestens 1 sein" i18n-text
+												[control]="formGroup.controls['repetition_endsAfterRepetitionCount']!"
+												validationName="min"
+											></p-validation-hint>
+										</div>
+										<div class="d-flex justify-content-center align-items-center">
+											<p-validation-hint
+												[control]="formGroup.controls['repetition_endsAfterRepetitionCount']!"
+												[checkTouched]="false"
+											></p-validation-hint>
+										</div>
+									</div>
+
+								</div>
+							</div>
+						</p-editable-modal-box-form>
+					</p-editable-modal-box>
+				</ng-template>
+			</p-section>
+			<ng-template [ngIf]="!Config.IS_MOBILE && userCanWrite">
+				<p-section label="Arbeitszeiterfassung für die Auswertung" i18n-label>
+					<p-form-group
+						[control]="formGroup.controls['workingTimeCreationMethodIsViaTimestamp']!"
+					>
+						<p-radio
+							class="mb-2"
+
+							[pEditable]="!formItem.isNewItem()"
+							[api]="api"
+							[valid]="!formGroup.controls['workingTimeCreationMethodIsViaTimestamp']!.invalid"
+							(onDismiss)="initFormGroup()"
+							[saveChangesHook]="getChangeSelectorModalAsHook(workingTimeCreationMethodIsViaTimestampHook)"
+
+							[checked]="formGroup.controls['workingTimeCreationMethodIsViaTimestamp']!.value===true"
+							[card]="true"
+
+							[disabled]="!formItem.isNewItem() && formGroup.controls['workingTimeCreationMethodIsViaTimestamp']!.disabled"
+							(checkedChange)="!formItem.isNewItem() && formGroup.controls['workingTimeCreationMethodIsViaTimestamp']!.disabled ? undefined : formGroup.controls['workingTimeCreationMethodIsViaTimestamp']!.setValue(true)"
+						>
+							<div class="pl-2"><ng-container i18n>Per Stempeluhr</ng-container><p *ngIf="!formGroup.controls['workingTimeCreationMethodIsViaTimestamp']!.disabled" class="text-style-reset-to-body mb-0" i18n>Deine Team-Mitglieder erfassen per Stempeluhr ihre tatsächlichen Arbeitszeiten. Diese landen in der Auswertung. Vergisst mal jemand eine Schicht zu stempeln, helfen unsere automatischen Erinnerungsmails weiter.
+							<br><fa-icon [fixedWidth]="true" icon="exclamation-triangle"></fa-icon> Die Planzeiten aus dem Kalender werden nicht in die Auswertung übertragen.</p></div>
+						</p-radio>
+						<p-radio
+							[pEditable]="!formItem.isNewItem()"
+							[api]="api"
+							[valid]="!formGroup.controls['workingTimeCreationMethodIsViaTimestamp']!.invalid"
+							(onDismiss)="initFormGroup()"
+							[saveChangesHook]="getChangeSelectorModalAsHook(workingTimeCreationMethodIsViaTimestampHook)"
+
+							[checked]="formGroup.controls['workingTimeCreationMethodIsViaTimestamp']!.value===false"
+							[card]="true"
+							[disabled]="!formItem.isNewItem() && formGroup.controls['workingTimeCreationMethodIsViaTimestamp']!.disabled"
+							(checkedChange)="!formItem.isNewItem() && formGroup.controls['workingTimeCreationMethodIsViaTimestamp']!.disabled ? undefined : formGroup.controls['workingTimeCreationMethodIsViaTimestamp']!.setValue(false)"
+						>
+							<div class="pl-2"><ng-container i18n>Per Schichtplan</ng-container><p *ngIf="!formGroup.controls['workingTimeCreationMethodIsViaTimestamp']!.disabled" class="text-style-reset-to-body mb-0" i18n>Die Arbeitszeiten werden gemäß Schichtplan automatisch in die Auswertung übertragen. Das geschieht, sobald eine Schicht angefangen hat; aber auch, wenn bei vergangenen Schichten auf diese Zeiterfassungsmethode umgestellt wird.
+							<br><fa-icon [fixedWidth]="true" icon="exclamation-triangle"></fa-icon> Über- oder Unterstunden sowie Pausenzeiten müssen händisch ergänzt werden. Änderungen im Schichtplan führen zu Änderungen in der Auswertung.</p></div>
+						</p-radio>
+						<p-validation-hint
+							[control]="formGroup.controls['workingTimeCreationMethodIsViaTimestamp']!"
+							[checkTouched]="false"
+						></p-validation-hint>
+					</p-form-group>
+
+					<ng-template #workingTimeCreationMethodIsViaTimestampHook let-c="close" let-d="dismiss">
+						<p-change-selectors-modal
+							[shiftChangeSelector]="api.data.shiftChangeSelector"
+							[close]="c"
+							[dismiss]="d"
+							[shift]="shift!"
+							[shiftModel]="shiftModel!"
+							[defaultStart]="shiftStart"
+							[minDate]="now"
+							[minEndDate]="now"
+							[isForDeletion]="false"
+							[members]="api.data.members"
+						></p-change-selectors-modal>
+					</ng-template>
+				</p-section>
+			</ng-template>
+			<ng-template [ngIf]="showQuickAssignment" [ngIfElse]="assignMembersBoxTemplate">
+				<p-section>
+					<p-form-group label="Zugewiesene Mitarbeitende" i18n-label>
+						<div class="card">
+							<section *ngIf="shift!.assignedMemberIds.length > 0">
+								<p-assigned-members [shift]="shift!"></p-assigned-members>
+							</section>
+							<section *ngIf="shift!.emptyMemberSlots > 0">
+								<p-quick-assignment
+									[shift]="shift!"
+								></p-quick-assignment>
+							</section>
+						</div>
+					</p-form-group>
+				</p-section>
+			</ng-template>
+			<ng-template #assignMembersBoxTemplate>
+				<p-section>
+					<p-assign-members
+						[api]="api"
+						[shift]="shift!"
+						[shiftModel]="shiftModel!"
+						[showHearts]="userCanWrite && !!service.modeIsEditShift"
+						[disabled]="!userCanWrite ? true : false"
+					></p-assign-members>
+				</p-section>
+			</ng-template>
+		</p-tab>
+		<p-tab
+			*ngIf="showBookingsettingsTab"
+			[label]="bookingsettingsTabLabel"
+			urlName="bookingsettings"
+			[hasDanger]="bookingsettingsTabHasDanger"
+			[size]="PTabSizeEnum.FRAMELESS"
+		>
+			<p-section *ngIf="!Config.IS_MOBILE">
+				<p-grid>
+					<div class="col-12 col-md-6">
+						<p-form-group
+							label="Buchbarkeit" i18n-label
+							[control]="formGroup.controls['isCourse']!"
+						>
+							<p-checkbox
+								[pEditable]="!formItem.isNewItem()"
+								[api]="api"
+								[valid]="!formGroup.controls['isCourse']!.invalid"
+								(onDismiss)="initFormGroup()"
+
+								[formControl]="formGroup.controls['isCourse']!"
+								[disabled]="formGroup.controls['isCourse']!.disabled || !formItem.isNewItem() && formGroup.invalid"
+								[readMode]="formGroup.controls['isCourse']!.disabled"
+								valueText="»{{ formItemName }}« ist ein buchbares Angebot" i18n-valueText
+							></p-checkbox>
+							<small>
+								<span *ngIf="service.modeIsEditShift || service.modeIsCreateShift" i18n>Diese Einstellung kannst du in der Tätigkeit <a *ngIf="isOwner" class="nowrap" rel="noopener" [target]="!!formItem.isNewItem() ? '_blank' : '_self'" routerLink="/client/shiftmodel/{{ shiftModel!.id.toString() }}/bookingsettings">»{{ formItem.name }}«</a><span *ngIf="!isOwner">»{{ formItem.name }}«</span> ändern.</span>
+							</small>
+						</p-form-group>
+
+						<p-form-group
+							*ngIf="showControlCourseCodePrefix"
+							[control]="formGroup.controls['courseCodePrefix']!"
+						>
+							<label><span i18n>Angebotsnummer-Präfix</span> <p-info-circle [class.ml-2]="Config.IS_MOBILE" i18n>Abgesehen vom Präfix wird die Angebotsnummer automatisch vergeben. Jeder buchbare Angebotstermin dieser Tätigkeit bekommt dadurch eine einzigartige Nummer. Änderungen des Präfixes werden auf vergangene und zukünftige Angebote übertragen.</p-info-circle></label>
+							<p-input
+								[pEditable]="!formItem.isNewItem()"
+								[api]="api"
+								(onDismiss)="initFormGroup()"
+
+								[formControl]="formGroup.controls['courseCodePrefix']!"
+							></p-input>
+							<p-validation-hint
+								[control]="formGroup.controls['courseCodePrefix']!"
+								validationName="occupied"
+								text="Dieses Präfix ist bereits vergeben" i18n-text
+								[checkTouched]="false"
+							></p-validation-hint>
+							<p-validation-hint
+								[control]="formGroup.controls['courseCodePrefix']!"
+								validationName="pattern"
+								text="Nur buchstaben und Zahlen sind erlaubt." i18n-text
+								[checkTouched]="false"
+							></p-validation-hint>
+							<div class="form-text"><p class="m-0"><ng-container i18n>Beispiel:</ng-container>&nbsp;<code>{!!formGroup.controls['courseCodePrefix']!.value, select, true {{{formGroup.controls['courseCodePrefix']!.value.toUpperCase()}}} other {XX}}-123-4</code></p></div>
+						</p-form-group>
+						<p-form-group
+							*ngIf="showControlCourseCode"
+							label="Angebotsnummer" i18n-label
+							[control]="formGroup.controls['courseCode']!"
+						>
+							&nbsp;<code [class.text-muted]="!formGroup.controls['courseCode']!.value" style="line-height: 0;"> {!!formGroup.controls['courseCode']!.value, select, true {{{formGroup.controls['courseCode']!.value}}} other {-}}</code>
+						</p-form-group>
+
+					</div>
+					<div class="col-12 col-md-6">
+						<p-form-group
+							[control]="formGroup.controls['isCourseOnline']!"
+						>
+							<label i18n>Sichtbarkeit im <a *ngIf="isOwner" rel="noopener" target="_blank" routerLink="/client/plugin/setup">Homepage-Plugin</a>{!isOwner, select, true {Homepage-Plugin}}</label>
+							<div
+								[popover]="service.getIsCourseOnlineDisabledTooltipContent(shiftModel!)"
+								placement="top"
+							>
+								<p-checkbox
+									[pEditable]="!formItem.isNewItem()"
+									[api]="api"
+									[valid]="!formGroup.controls['isCourseOnline']!.invalid"
+									(onDismiss)="initFormGroup()"
+									[saveChangesHook]="service.modeIsEditShift ? getChangeSelectorModalAsHook(modalContentForIsCourseOnline) : undefined"
+
+									[readMode]="!userCanWrite"
+									[formControl]="formGroup.controls['isCourseOnline']!"
+									[disabled]="formGroup.controls['isCourseOnline']!.disabled || !formItem.isNewItem() && formGroup.invalid"
+									valueText="jetzt im Plugin anzeigen" i18n-valueText
+								></p-checkbox>
+							</div>
+							<div class="mt-2">
+								<p-led
+									class="d-inline-block"
+									[off]="!formGroup.controls['isCourseOnline']!.value"
+								></p-led>
+								<small>
+									<span
+										*ngIf="!shift && formGroup.controls['isCourseOnline']!.value"
+										i18n
+									>Das Angebot<span *ngIf="formItem.name"> »{{ formItem.name }}«</span> ist im Homepage-Plugin sichtbar. Falls du den Plugin auf deiner Homepage integriert hast, können sich Kunden über <strong>Inhalt und Preise</strong> informieren. Erstelle noch im Kalender <strong>Schichten</strong> für »{{ formItem.name }}« und setze sie auf online, damit deinen Kunden buchbare Angebotstermine angezeigt werden.</span>
+
+									<span
+										*ngIf="!shift && !formGroup.controls['isCourseOnline']!.value"
+										i18n
+									>Aktuell ist das Angebot <span *ngIf="formItem.name">»{{ formItem.name }}«</span> im Homepage-Plugin <strong>nicht sichtbar</strong>. Kunden können sich weder über den Angebotsinhalt und Preise informieren, noch Termine buchen.</span>
+
+
+									<span
+										*ngIf="!!shift && formGroup.controls['isCourseOnline']!.value"
+										i18n
+									>Diese Schicht<span *ngIf="formItem.name"> von »{{ formItem.name }}«</span> ist online und wird deinen Kunden als Termin angeboten. <strong>Tipp:</strong> Bei Bedarf kannst du einzelne Schichten/Termine offline setzen, ohne das gesamte Angebot <a *ngIf="isOwner" class="nowrap" rel="noopener" [target]="!!formItem.isNewItem() ? '_blank' : '_self'" routerLink="/client/shiftmodel/{{ shiftModel!.id.toString() }}/bookingsettings">»{{ formItem.name }}«</a><span *ngIf="!isOwner">»{{ formItem.name }}«</span> offline zu setzen.</span>
+
+									<span
+										*ngIf="!!shift && formGroup.controls['isCourseOnline']!.value === false && shiftModel!.isCourseOnline"
+										i18n
+									>Diese Schicht<span *ngIf="formItem.name"> von »{{ formItem.name }}«</span> ist offline und für deine Kunden weder sichtbar noch buchbar. <strong>Tipp:</strong> Bei Bedarf kannst du ausgewählte Schichten online setzen und alle anderen offline lassen.</span>
+
+									<span
+										*ngIf="!!shift && formGroup.controls['isCourseOnline']!.value === false && shiftModel!.isCourseOnline === false"
+										i18n
+									>Da aktuell das gesamte Angebot<span *ngIf="formItem.name"> »{{ formItem.name }}«</span> offline ist, steht auch diese Schicht auf offline. Sie ist für deine Kunden nicht buchbar. Um das zu ändern, musst du zunächst die Tätigkeit <a *ngIf="isOwner" class="nowrap" rel="noopener" [target]="!!formItem.isNewItem() ? '_blank' : '_self'" routerLink="/client/shiftmodel/{{ shiftModel!.id.toString() }}/">»{{ formItem.name }}«</a><span *ngIf="!isOwner">»{{ formItem.name }}«</span> online setzen.</span>
+								</small>
+							</div>
+						</p-form-group>
+					</div>
+
+				</p-grid>
+			</p-section>
+			<p-section *ngIf="!Config.IS_MOBILE">
+				<p-grid>
+
+					<ng-template [ngIf]="showFreeclimberSettings">
+						<div class="col-12 col-md-6">
+							<p-form-group
+								[control]="formGroup.controls['freeclimberArticleId']!"
+							>
+								<label><span i18n>Freeclimber Artikel-ID</span> <p-info-circle [class.ml-2]="Config.IS_MOBILE" i18n>Die Kassensoftware Freeclimber benötigt die Artikel-ID, um Kassenzahlungen für die per Schnittstelle übertragenen Buchungen annehmen zu können. Die hier eingegebene ID muss der jeweiligen Artikel-ID der Kasse entsprechen.</p-info-circle></label>
+								<p-input
+									[type]="PApiPrimitiveTypes.string"
+									[pEditable]="!formItem.isNewItem()"
+									[api]="api"
+									(onDismiss)="initFormGroup()"
+
+									[formControl]="formGroup.controls['freeclimberArticleId']!"
+								></p-input>
+							</p-form-group>
+						</div>
+
+						<div class="col-12 col-md-6"
+							*ngIf="!formGroup.controls['freeclimberArticleId']!.disabled"
+						>
+							<label>&nbsp;</label>
+							<p-alert
+								[theme]="PThemeEnum.WARNING"
+								[dismissable]="false"
+								i18n
+							>Die Freeclimber Artikel-ID ist notwendig, um die Zahlung von Buchungspreisen an der Kasse zu ermöglichen.</p-alert>
+						</div>
+					</ng-template>
+
+					<div class="col-12 col-md-6" *ngIf="showIsCoronaSlotBooking">
+					<p-form-group
+						[control]="formGroup.controls['isCoronaSlotBooking']!"
+						class="p-3 bg-primary rounded text-white"
+					>
+
+						<div class="d-flex align-items-center justify-content-between mb-2">
+
+							<label class="m-0"><ng-container i18n>Slot-Buchung wegen Corona</ng-container></label>
+
+							<div class="large"><fa-icon
+								[fixedWidth]="true"
+								icon="toilet-paper-slash"
+							></fa-icon></div>
+
+						</div>
+						<p-checkbox
+							[pEditable]="!formItem.isNewItem()"
+							[api]="api"
+							[valid]="!formGroup.controls['isCoronaSlotBooking']!.invalid"
+							(onDismiss)="initFormGroup()"
+							[saveChangesHook]="!formGroup.controls['isCoronaSlotBooking']!.value ? modalService.getEditableHook(modalContentForIsCoronaSlotBooking) : undefined"
+							[theme]="PThemeEnum.LIGHT"
+
+							[readMode]="formGroup.controls['isCoronaSlotBooking']!.disabled"
+							[formControl]="formGroup.controls['isCoronaSlotBooking']!"
+							[disabled]="formGroup.controls['isCoronaSlotBooking']!.disabled || !formItem.isNewItem() && formGroup.invalid"
+							valueText="Diese Tätigkeit dient der Slot-Buchung" i18n-valueText
+						></p-checkbox>
+					</p-form-group>
+					</div>
+
+				</p-grid>
+			</p-section>
+			<ng-template [ngIf]="formGroup.controls['isCourse']!.value">
+				<ng-template [ngIf]="!Config.IS_MOBILE && !shift && userCanWrite">
+					<p-section label="Online-Präsentation" i18n-label>
+						<p-grid>
+							<div class="col-12 col-lg-6">
+								<p-form-group
+									label="Angebotstitel im Plugin" i18n-label
+									[control]="formGroup.controls['courseTitle']!"
+								>
+									<p-input
+										[pEditable]="!formItem.isNewItem()"
+										[api]="api"
+										(onDismiss)="initFormGroup()"
+
+										placeholder="{{formGroup.controls['parentName']!.value}} ➡ {{formGroup.controls['name']!.value}}"
+										[formControl]="formGroup.controls['courseTitle']!"
+									></p-input>
+								</p-form-group>
+							</div>
+							<div class="col-12 col-lg-6">
+								<p-form-group
+									label="Untertitel" i18n-label
+									[control]="formGroup.controls['courseSubtitle']!"
+								>
+									<p-input
+										[pEditable]="!formItem.isNewItem()"
+										[api]="api"
+										(onDismiss)="initFormGroup()"
+
+										placeholder="Spaß für die ganze Familie …" i18n-placeholder
+										[formControl]="formGroup.controls['courseSubtitle']!"
+									></p-input>
+								</p-form-group>
+							</div>
+							<div class="col-12">
+								<p-form-group
+									[control]="formGroup.controls['courseGroup']!"
+								>
+								<label><span i18n>Angebotsgruppe</span>	<p-info-circle i18n>Hiermit lassen sich einzelne Angebote im Buchungsplugin auf eurer Homepage gruppieren. Dadurch wird eure Homepage übersichtlicher. Die Angebotsgruppen haben keine Relevanz, wenn ihr die Angebote einzeln auf eurer Homepage einbindet.</p-info-circle></label>
+									<p-input
+										[pEditable]="!shiftModel!.isNewItem()"
+										[api]="api"
+										[formControl]="formGroup.controls['courseGroup']!"
+										[(ngModel)]="shiftModel!.courseGroup"
+										placeholder="z.B. »Kinderkurse«" i18n-placeholder
+										[typeahead]="typeAheadCourseGroupContent"
+										(focusout)="trimCourseGroup()"
+									></p-input>
+								</p-form-group>
+							</div>
+							<div class="col-12">
+								<p-form-group
+									label="Angebotsbeschreibung" i18n-label
+									[control]="formGroup.controls['courseDescription']!"
+								>
+									<p-textarea
+										[wysiwyg]="true"
+										[pEditable]="!formItem.isNewItem()"
+										[api]="api"
+										(onDismiss)="initFormGroup()"
+
+										placeholder="Das ist ein …" i18n-placeholder
+										[formControl]="formGroup.controls['courseDescription']!"
+									></p-textarea>
+								</p-form-group>
+							</div>
+							<div class="col-12 col-lg-6">
+								<p-form-group
+									label="Anforderungen" i18n-label
+									[control]="formGroup.controls['courseSkillRequirements']!"
+								>
+									<p-textarea
+										[wysiwyg]="true"
+										[pEditable]="!formItem.isNewItem()"
+										[api]="api"
+										(onDismiss)="initFormGroup()"
+
+										placeholder="Ehrgeiz …" i18n-placeholder
+										[formControl]="formGroup.controls['courseSkillRequirements']!"
+									></p-textarea>
+								</p-form-group>
+							</div>
+							<div class="col-12 col-lg-6">
+								<p-form-group
+									label="Mitzubringen" i18n-label
+									[control]="formGroup.controls['courseEquipmentRequirements']!"
+								>
+									<p-textarea
+										[wysiwyg]="true"
+										[pEditable]="!formItem.isNewItem()"
+										[api]="api"
+										(onDismiss)="initFormGroup()"
+										placeholder="Sporthose …" i18n-placeholder
+										[formControl]="formGroup.controls['courseEquipmentRequirements']!"
+									></p-textarea>
+								</p-form-group>
+							</div>
+							<div class="col-12">
+								<p-form-group
+									label="Ort" i18n-label
+									[control]="formGroup.controls['courseLocation']!"
+								>
+									<p-input
+										[pEditable]="!formItem.isNewItem()"
+										[api]="api"
+										(onDismiss)="initFormGroup()"
+										placeholder="Gleis 9 3/4" i18n-placeholder
+										[formControl]="formGroup.controls['courseLocation']!"
+									></p-input>
+								</p-form-group>
+							</div>
+						</p-grid>
+					</p-section>
+					<p-section label="Kontakt für Kundenfragen" i18n-label>
+						<p-grid>
+							<div class="col-12 col-lg-4">
+								<p-form-group
+									label="Name" i18n-label
+									[control]="formGroup.controls['courseContactName']!"
+								>
+									<p-input
+										class="d-block mb-2"
+										[pEditable]="!formItem.isNewItem()"
+										[api]="api"
+										(onDismiss)="initFormGroup()"
+										placeholder="Peter Plano" i18n-placeholder
+										[formControl]="formGroup.controls['courseContactName']!"
+									></p-input>
+								</p-form-group>
+							</div>
+							<div class="col-6 col-lg-4">
+								<p-form-group
+									label="Email" i18n-label
+									[control]="formGroup.controls['courseContactEmail']!"
+								>
+									<p-input
+										class="d-block mb-2"
+										[pEditable]="!formItem.isNewItem()"
+										[api]="api"
+										(onDismiss)="initFormGroup()"
+										[valid]="formGroup.controls['courseContactEmail']!.valid"
+										placeholder="service@…" i18n-placeholder
+										[formControl]="formGroup.controls['courseContactEmail']!"
+									></p-input>
+								</p-form-group>
+							</div>
+							<div class="col-6 col-lg-4">
+								<p-form-group
+									label="Telefon" i18n-label
+									[control]="formGroup.controls['courseContactPhone']!"
+								>
+									<p-input
+										[type]="PApiPrimitiveTypes.Tel"
+										class="d-block mb-2"
+										[pEditable]="!formItem.isNewItem()"
+										[api]="api"
+										(onDismiss)="initFormGroup()"
+										[formControl]="formGroup.controls['courseContactPhone']!"
+									></p-input>
+								</p-form-group>
+							</div>
+						</p-grid>
+					</p-section>
+				</ng-template>
+				<p-section label="Buchungsoptionen" i18n-label *ngIf="showBookingOptionsSection">
+					<p-grid *ngIf="!Config.IS_MOBILE && (service.modeIsEditShiftModel || service.modeIsCreateShiftModel)">
+						<div class="col-12">
+							<p-form-group
+								label="Buchungsart" i18n-label
+								[control]="formGroup.controls['courseType']!"
+							>
+								<p-grid>
+									<div class="col-12">
+										<p-radio
+											[pEditable]="!formItem.isNewItem()"
+											[api]="api"
+											[valid]="!formGroup.controls['courseType']!.invalid"
+											(onDismiss)="initFormGroup()"
+
+											class="d-block mb-2"
+											[checked]="formGroup.controls['courseType']!.value === courseTypes.ONLINE_BOOKABLE"
+											(checkedChange)="formGroup.controls['courseType']!.setValue(courseTypes.ONLINE_BOOKABLE)"
+											[card]="true"
+											[disabled]="formGroup.controls['courseType']!.disabled"
+											i18n
+										>Kunden buchen das Angebot direkt online</p-radio>
+									</div>
+									<div class="col-12">
+										<p-radio
+											[pEditable]="!formItem.isNewItem()"
+											[api]="api"
+											[valid]="!formGroup.controls['courseType']!.invalid"
+											(onDismiss)="initFormGroup()"
+
+											class="d-block mb-2"
+											[checked]="formGroup.controls['courseType']!.value === courseTypes.ONLINE_INQUIRY"
+											(checkedChange)="formGroup.controls['courseType']!.setValue(courseTypes.ONLINE_INQUIRY)"
+											[card]="true"
+											[disabled]="formGroup.controls['courseType']!.disabled"
+											i18n
+										>Kunden schicken online eine Buchungsanfrage und warten auf deine Bestätigung</p-radio>
+									</div>
+									<div class="col-12">
+										<p-radio
+											[pEditable]="!formItem.isNewItem()"
+											[api]="api"
+											[valid]="!formGroup.controls['courseType']!.invalid"
+											(onDismiss)="initFormGroup()"
+
+											class="d-block mb-2"
+											[checked]="formGroup.controls['courseType']!.value === courseTypes.NO_BOOKING"
+											(checkedChange)="formGroup.controls['courseType']!.setValue(courseTypes.NO_BOOKING)"
+											[card]="true"
+											[disabled]="formGroup.controls['courseType']!.disabled"
+											i18n
+										>Offenes Angebot: Teilnahme ohne vorherige Buchung möglich</p-radio>
+									</div>
+								</p-grid>
+							</p-form-group>
+						</div>
+						<div class="col-12"
+							[class.d-none]="formGroup.controls['courseType']!.value !== courseTypes.ONLINE_INQUIRY"
+						>
+							<p-form-group
+								[control]="formGroup.controls['bookingDesiredDateSetting']!"
+							>
+								<label><span i18n>Wunschtermin</span> <p-info-circle [class.ml-2]="Config.IS_MOBILE" i18n>Deine Kunden können ihre Wunschzeit frei in ein Textfeld reinschreiben: z.B. »lieber nachmittags« oder »in den nächsten 2 Wochen«. <br>Der Wunschtermin kann eine zusätzliche Option zu den konkreten Terminen sein. Du kannst aber auch deine Angebote nur nach Wunschterminen anbieten.</p-info-circle></label>
+								<p-radios
+									[pEditable]="!formItem.isNewItem()"
+									[api]="api"
+									[valid]="!formGroup.controls['bookingDesiredDateSetting']!.invalid"
+
+									[(ngModel)]="shiftModel!.bookingDesiredDateSetting"
+									[formControl]="formGroup.controls['bookingDesiredDateSetting']!"
+								>
+									<p-radios-radio
+										label="Nicht erlaubt" i18n-label
+										[value]="bookingDesiredDateSettings.DESIRED_DATE_NOT_ALLOWED"
+									></p-radios-radio>
+									<p-radios-radio
+										label="Optional zu Terminen" i18n-label
+										[value]="bookingDesiredDateSettings.DESIRED_DATE_OPTIONAL"
+									></p-radios-radio>
+									<p-radios-radio
+										label="Nur Wunschtermin" i18n-label
+										[value]="bookingDesiredDateSettings.ONLY_DESIRED_DATES"
+									></p-radios-radio>
+								</p-radios>
+							</p-form-group>
+						</div>
+						<div class="col-12"
+							*ngIf="formGroup.controls['courseType']!.value !== courseTypes.NO_BOOKING"
+						>
+							<p-form-group
+								label="Platzbuchung" i18n-label
+								[control]="formGroup.controls['onlyWholeCourseBookable']!"
+							>
+								<p-radios
+									[pEditable]="!formItem.isNewItem()"
+									[api]="api"
+									[valid]="!formGroup.controls['onlyWholeCourseBookable']!.invalid"
+
+									[formControl]="formGroup.controls['onlyWholeCourseBookable']!"
+								>
+									<p-radios-radio
+										popover="Eignet sich z.B. für einen Kurs, an dem mehrere Personen teilnehmen. Die buchende Person kann auch für andere Personen mit buchen. Daten wie Name, Geburtstag und Email-Adresse werden von allen abgefragt." i18n-popover
+										placement="top"
+
+										[value]="false"
+										label="Ein Kunde bucht einzelne Plätze des Angebots" i18n-label
+									></p-radios-radio>
+									<p-radios-radio
+										popover="Eignet sich z.B. für Geburtstagsfeiern oder Firmenevents. Nur die buchende Person gibt ihre vollständigen Daten an. Von den Teilnehmenden wird lediglich die Anzahl und das Alter abgefragt." i18n-popover
+										placement="top"
+
+										[value]="true"
+										label="Ein Kunde bucht mit einer Buchung das gesamte Angebot" i18n-label
+									></p-radios-radio>
+								</p-radios>
+							</p-form-group>
+						</div>
+						<ng-template [ngIf]="formGroup.controls['courseType']!.value !== courseTypes.NO_BOOKING">
+							<div class="col-12 col-md-6">
+								<p-form-group [control]="formGroup.controls['courseBookingDeadlineFrom']!">
+									<label><span i18n>Buchungsfrist für Kunden startet</span><p-info-circle [class.ml-2]="Config.IS_MOBILE" i18n>Vor dieser Frist können Kunden die Termine zwar sehen, aber nicht buchen oder anfragen. Bei Slot-Buchungen startet die Frist zur gleichen Uhrzeit, wie der jeweilige Slot startet; bei anderen buchbaren Angeboten startet die Frist jeweils um {{startOfDay | pDuration:'shortTime'}}.</p-info-circle></label>
+									<p-input
+										[type]="PApiPrimitiveTypes.Duration"
+										[durationUIType]="PApiPrimitiveTypes.Days"
+										[pEditable]="!formItem.isNewItem()"
+										[api]="api"
+										(onDismiss)="initFormGroup()"
+										placeholder="z.B. »14«" i18n-placeholder
+										inputGroupAppendText="Tage vorher" i18n-inputGroupAppendText
+
+										[formControl]="formGroup.controls['courseBookingDeadlineFrom']!"
+									></p-input>
+								</p-form-group>
+							</div>
+							<div class="col-12 col-md-6">
+								<p-form-group [control]="formGroup.controls['courseBookingDeadlineUntil']!">
+									<label><span i18n>Buchungsfrist für Kunden endet</span><p-info-circle [class.ml-2]="Config.IS_MOBILE" i18n>Bis zu dieser Frist können Kunden die Angebotstermine sehen, buchen oder anfragen. Die Frist endet jeweils um {{endOfDay | pDuration:'shortTime'}}. Lässt du das Feld für die Frist leer, dann bleiben bei der Slot-Buchung die Slots bis zu deren End-Uhrzeit buchbar; bei anderen buchbaren Angeboten bis zu deren Start-Uhrzeit.</p-info-circle></label>
+									<p-input
+										[type]="PApiPrimitiveTypes.Duration"
+										[durationUIType]="PApiPrimitiveTypes.Days"
+										[pEditable]="!formItem.isNewItem()"
+										[api]="api"
+										(onDismiss)="initFormGroup()"
+										placeholder="z.B. »7«" i18n-placeholder
+										inputGroupAppendText="Tage vorher" i18n-inputGroupAppendText
+
+										[formControl]="formGroup.controls['courseBookingDeadlineUntil']!"
+									></p-input>
+								</p-form-group>
+							</div>
+						</ng-template>
+					</p-grid>
+					<p-grid *ngIf="userCanReadShiftModel">
+						<div class="col-12 col-md-6">
+							<p-form-group
+								label="Mindest-Teilnehmendenzahl" i18n-label
+								[control]="formGroup.controls['minCourseParticipantCount']!"
+							>
+								<p-input
+									[readMode]="!userCanWrite"
+									[type]="PApiPrimitiveTypes.number"
+									class="d-block mb-2"
+									[pEditable]="!formItem.isNewItem()"
+									[api]="api"
+									(onDismiss)="initFormGroup()"
+									[saveChangesHook]="getChangeSelectorModalAsHook(modalContentForCourseRelatedValues)"
+									placeholder=""
+									[formControl]="formGroup.controls['minCourseParticipantCount']!"
+								></p-input>
+								<p-validation-hint
+									text="Minimum ist 1" i18n-text
+									[control]="formGroup.controls['minCourseParticipantCount']!"
+									[checkTouched]="false"
+									validationName="min"
+								></p-validation-hint>
+								<p-validation-hint
+									text="Maximum: {{formGroup.controls['maxCourseParticipantCount']!.value}}"
+									[control]="formGroup.controls['minCourseParticipantCount']!"
+									[checkTouched]="false"
+									validationName="max"
+								></p-validation-hint>
+							</p-form-group>
+						</div>
+						<div class="col-12 col-md-6">
+							<p-form-group
+								[control]="formGroup.controls['maxCourseParticipantCount']!"
+							>
+								<label><span i18n>Höchst-Teilnehmendenzahl</span> <p-info-circle [class.ml-2]="Config.IS_MOBILE" i18n>Für unbeschränkte Teilnehmendenzahl lasse bitte das Feld einfach leer.</p-info-circle></label>
+								<p-input
+									[readMode]="!userCanWrite"
+
+									[type]="PApiPrimitiveTypes.number"
+									class="d-block mb-2"
+
+									[pEditable]="!formItem.isNewItem()"
+									[api]="api"
+									(onDismiss)="initFormGroup()"
+									[saveChangesHook]="getChangeSelectorModalAsHook(modalContentForCourseRelatedValues)"
+
+									placeholder=""
+									[formControl]="formGroup.controls['maxCourseParticipantCount']!"
+								></p-input>
+								<p-validation-hint
+									text="Für unbeschränkt bitte das Feld einfach leer lassen." i18n-text
+									[isInvalid]="formGroup.controls['maxCourseParticipantCount']!.value === 0"
+									[theme]="PThemeEnum.INFO"
+									[checkTouched]="false"
+								></p-validation-hint>
+								<p-validation-hint
+									text="➡ Anzahl ist unbeschränkt" i18n-text
+									[isInvalid]="formGroup.get('maxCourseParticipantCount')!.valid && formGroup.get('maxCourseParticipantCount')!.value !== 0 && !formGroup.get('maxCourseParticipantCount')!.value"
+									[theme]="PThemeEnum.SECONDARY"
+									[checkTouched]="false"
+								></p-validation-hint>
+							</p-form-group>
+						</div>
+					</p-grid>
+				</p-section>
+				<p-age-limit-section
+					*ngIf="service.modeIsEditShiftModel || service.modeIsCreateShiftModel"
+					[shiftModel]="$any(formItem)"
+					[formGroup]="$any(formGroup)"
+					[api]="api"
+					[userCanWrite]="userCanWrite"
+					(initFormGroup)="initFormGroup()"
+				></p-age-limit-section>
+
+				<ng-template [ngIf]="service.modeIsEditShiftModel || service.modeIsCreateShiftModel">
+					<p-section>
+						<div class="mt-3">
+							<p-editable-modal-box
+								[pEditable]="!formItem.isNewItem()"
+								[api]="api"
+								[valid]="!formGroup.controls['coursePaymentMethods']!.invalid && !formGroup.controls['courseTariffs']!.invalid"
+								(onDismiss)="initFormGroup()"
+
+								[saveChangesHook]="saveChangesHook"
+
+								[disabled]="!userCanWrite"
+								label="Tarife & Zahlungsarten" i18n-label
+							>
+								<p-editable-modal-box-showroom>
+									<p-alert
+										*ngIf="formGroup.controls['isFreeCourse']!.value"
+										[theme]="PThemeEnum.WARNING"
+									><span *ngIf="shiftModel!.courseTariffs.hasUntrashedItem && !pShiftModelTariffService.hasVisibleCourseTariffWithCosts(shiftModel!.courseTariffs)" i18n>Alle Tarife sind entweder als <mark>Interner Tarif</mark> markiert oder ihre Kosten liegen bei <mark>{{ 0 | currency:undefined:'symbol':'1.0-0' }}</mark>.<br></span><span *ngIf="shiftModel!.coursePaymentMethods.hasUntrashedItem && !pShiftModelTariffService.hasVisiblePaymentMethod(shiftModel!.coursePaymentMethods)" i18n>Alle Zahlungsarten sind als <mark>Interne Zahlungsart</mark> markiert.<br></span>{{ shiftModel!.name }} wird bei Online-Buchung als <mark>kostenlos</mark> angezeigt.</p-alert>
+									<p-form-group
+										[control]="formGroup.controls['courseTariffs']!"
+										label="Tarife" i18n-label
+									>
+										<div class="list-group">
+											<ng-template [ngIf]="!!pFormsService.getIterableFormGroups(formGroup.controls['courseTariffs']!).length" [ngIfElse]="noCourseTariffTemplate">
+												<ng-template
+													ngFor let-courseTariff
+													[ngForOf]="pFormsService.getIterableFormGroups(formGroup.controls['courseTariffs']!)"
+													let-i="index"
+												>
+													<ng-template [ngIf]="!courseTariff.controls['trashed'].value">
+														<div class="list-group-item">
+															<div class="d-flex justify-content-between align-items-center title">
+																<label class="m-0">{{ courseTariff.controls['name']!.value ? courseTariff.controls['name']!.value : '-' }}</label>
+																<span *ngIf="hasCourseDatesData(courseTariff.get('reference')!.value)">
+																	<p-tariff-meta-info
+																		[negateForCourseDatesInterval]="courseTariff.controls['negateForCourseDatesInterval']!.value"
+																		[forCourseDatesFrom]="courseTariff.controls['forCourseDatesFrom']!.value"
+																		[forCourseDatesUntil]="courseTariff.controls['forCourseDatesUntil']!.value"
+																		isInternalLabel="Interner Tarif" i18n-isInternalLabel
+																		[isInternal]="courseTariff.controls['isInternal']!.value"
+																	></p-tariff-meta-info>
+																</span>
+															</div>
+														</div>
+													</ng-template>
+												</ng-template>
+											</ng-template>
+											<ng-template #noCourseTariffTemplate>
+												<p-alert
+													[theme]="PAlertThemeEnum.PLAIN"
+													[dismissable]="false"
+													class="text-muted"
+													i18n
+												>Keine Tarife definiert</p-alert>
+											</ng-template>
+										</div>
+									</p-form-group>
+									<p-form-group
+										[control]="formGroup.controls['coursePaymentMethods']!"
+										label="Zahlungsarten" i18n-label
+									>
+										<div class="list-group">
+											<ng-template [ngIf]="!!pFormsService.getIterableFormGroups(formGroup.controls['coursePaymentMethods']!).length" [ngIfElse]="noPaymentMethodTemplate">
+												<ng-template
+													ngFor let-paymentMethodFormGroup
+													[ngForOf]="pFormsService.getIterableFormGroups(formGroup.controls['coursePaymentMethods']!)"
+													let-i="index"
+												>
+													<ng-template [ngIf]="!paymentMethodFormGroup.controls['trashed']!.value">
+														<div class="list-group-item title">
+															<div class="d-flex justify-content-between align-items-center title">
+																<label class="mr-3 mb-0 title"><fa-icon [fixedWidth]="true" *ngIf="paymentMethodIcon(paymentMethodFormGroup.controls['reference'].value)" [icon]="$any(paymentMethodIcon(paymentMethodFormGroup.controls['reference'].value))"></fa-icon>&nbsp;<ng-container i18n>{!!paymentMethodFormGroup.controls['name'].value, select, true {{{paymentMethodFormGroup.controls['name'].value}}} other {Neue Zahlungsart}}</ng-container></label><span *ngIf="paymentMethodFormGroup.controls['isInternal']!.value" i18n>Interne Zahlungsart</span>
+															</div>
+														</div>
+													</ng-template>
+												</ng-template>
+											</ng-template>
+											<ng-template #noPaymentMethodTemplate>
+												<p-alert
+													[theme]="PAlertThemeEnum.PLAIN"
+													[dismissable]="false"
+													class="text-muted"
+													i18n
+												>Keine Zahlungsart definiert</p-alert>
+											</ng-template>
+										</div>
+									</p-form-group>
+								</p-editable-modal-box-showroom>
+								<p-editable-modal-box-form>
+									<p-section
+										[whitespace]="SectionWhitespace.MEDIUM"
+									>
+										<p-form-group
+											class="mb-4 mt-3"
+											[control]="formGroup.controls['courseTariffs']!"
+										>
+											<p-checkbox
+												[formControl]="formGroup.controls['isFreeCourse']!"
+												valueText="Kostenloses Angebot" i18n-valueText
+												[readMode]="false"
+											></p-checkbox>
+										</p-form-group>
+									</p-section>
+									<p-section
+										label="Tarife" i18n-label
+										[hasDanger]="formGroup.controls['courseTariffs']!.invalid"
+										[whitespace]="SectionWhitespace.MEDIUM"
+									>
+										<p-alert
+											*ngIf="formGroup.controls['courseTariffs']!.hasError('maxtariffampunt')"
+											[theme]="PThemeEnum.DANGER"
+											i18n
+										>Kein Tarif {hasTariffWithCosts, select, true {mit einem Preis über {{0 | currency:undefined:undefined:undefined:undefined:true}}}} darf bei der Online-Buchung sichtbar sein.</p-alert>
+										<p-alert
+											*ngIf="formGroup.controls['courseTariffs']!.hasError('mintariffampunt')"
+											[theme]="PThemeEnum.DANGER"
+											i18n
+										>Mindestens ein Tarif {hasTariffWithNoCosts, select, true {mit einem Preis über {{0 | currency:undefined:undefined:undefined:undefined:true}}}} muss bei der Online-Buchung angelegt & sichtbar sein.</p-alert>
+										<div
+											*ngFor="let courseTariff of pFormsService.getIterableFormGroups(formGroup.controls['courseTariffs']!); let i=index"
+										>
+											<p-collapsible
+												[hasDanger]="courseTariff.invalid"
+												[collapsed]="!courseTariff.controls['reference'].value.isNewItem()"
+											>
+												<span trigger class="w-100 mr-3 d-flex align-items-center title">
+													<div class="mr-3 flex-grow-1 d-flex justify-content-between align-items-center title">
+														<label class="m-0 title"><strong *ngIf="courseTariff.controls['name'].value">{{courseTariff.controls['name'].value ? courseTariff.controls['name'].value : 'Tarif'}}</strong></label>
+														<span *ngIf="hasCourseDatesData(courseTariff.get('reference')!.value)">
+															<p-tariff-meta-info
+																[negateForCourseDatesInterval]="courseTariff.controls['negateForCourseDatesInterval'].value"
+																[forCourseDatesFrom]="courseTariff.controls['forCourseDatesFrom'].value"
+																[forCourseDatesUntil]="courseTariff.controls['forCourseDatesUntil'].value"
+																isInternalLabel="Interner Tarif" i18n-isInternalLabel
+																[isInternal]="courseTariff.controls['isInternal'].value"
+															></p-tariff-meta-info>
+														</span>
+													</div>
+													<button *ngIf="!courseTariff.controls['reference'].value.isNewItem()" type="button" class="flex-grow-0 btn btn-light btn-sm mr-3 nowrap"
+														(click)="copyTariff($event, $any(courseTariff))"
+														[class.disabled]="courseTariff.invalid"
+														[disabled]="courseTariff.invalid"
+													><fa-icon icon="copy"></fa-icon>&nbsp;<ng-container i18n>Tarif Duplizieren</ng-container></button>
+												</span>
+												<div content class="card-body">
+													<form *ngIf="!!courseTariff" [formGroup]="courseTariff">
+														<section class="mb-3">
+															<p-form-group [control]="courseTariff.controls['isInternal']">
+																<p-checkbox
+																	[formControl]="$any(courseTariff.controls['isInternal'])"
+																	valueText="Nur für interne Nutzung / nicht sichtbar für Kunden bei der Online-Buchung" i18n-valueText
+																></p-checkbox>
+															</p-form-group>
+															<p-editable-modal-box [valid]="true">
+																<p-editable-modal-box-header class="pl-3 pr-3">
+																	<p-tariff-meta-info
+																		[negateForCourseDatesInterval]="courseTariff.controls['negateForCourseDatesInterval'].value"
+																		[forCourseDatesFrom]="courseTariff.controls['forCourseDatesFrom'].value"
+																		[forCourseDatesUntil]="courseTariff.controls['forCourseDatesUntil'].value"
+																		[longText]="true"
+																	></p-tariff-meta-info>
+																</p-editable-modal-box-header>
+																<p-editable-modal-box-form>
+																	<p-alert [theme]="PThemeEnum.INFO" class="mt-3" i18n>Die Zeitangaben beziehen sich auf das <mark>Datum des gebuchten Angebots</mark> und nicht auf das Buchungsdatum – bei mehrtägigen Angeboten ist der erste Termin relevant.</p-alert>
+																	<p-form-group>
+																		<p-radios [formControl]="$any(courseTariff.controls['negateForCourseDatesInterval'])">
+																			<p-radios-radio
+																				label="Tarif gilt im folgenden Zeitraum" i18n-label
+																				[icon]="PlanoFaIconPool.CALENDAR_SELECT_RELATED_SHIFTS"
+																				[value]="false"
+																			></p-radios-radio>
+																			<p-radios-radio
+																				label="Tarif gilt nicht im folgenden Zeitraum" i18n-label
+																				icon="calendar-times"
+																				[value]="true"
+																			></p-radios-radio>
+																		</p-radios>
+																	</p-form-group>
+																	<p-grid>
+																		<div class="col-12 col-md-6">
+																			<p-form-group
+																				label="Start" i18n-label
+																				[control]="courseTariff.controls['forCourseDatesFrom']"
+																			>
+																				<p-input-date
+																					[formControl]="$any(courseTariff.controls['forCourseDatesFrom'])"
+																					eraseValueBtnLabel="Ohne Begrenzung" i18n-eraseValueBtnLabel
+																					[placeholder]="forCourseDatesPlaceholder(courseTariff.controls['forCourseDatesFrom'].value)"
+																					[max]="courseTariff.controls['forCourseDatesUntil'].value"
+																				></p-input-date>
+																			</p-form-group>
+																		</div>
+																		<div class="col-12 col-md-6">
+																			<p-form-group
+																				label="Ende" i18n-label
+																				[control]="courseTariff.controls['forCourseDatesUntil']"
+																			>
+																				<p-input-date
+																					[formControl]="$any(courseTariff.controls['forCourseDatesUntil'])"
+																					eraseValueBtnLabel="Ohne Begrenzung" i18n-eraseValueBtnLabel
+																					[placeholder]="forCourseDatesPlaceholder(courseTariff.controls['forCourseDatesUntil'].value)"
+																					[min]="courseTariff.controls['forCourseDatesFrom'].value"
+																					[isExclusiveEnd]="true"
+																				></p-input-date>
+																			</p-form-group>
+																		</div>
+																	</p-grid>
+																</p-editable-modal-box-form>
+															</p-editable-modal-box>
+															<p-tariff-form
+																[formGroup]="$any(courseTariff)"
+																[shiftModel]="shiftModel!"
+																(onDismissFeeBox)="initFormGroup()"
+																[api]="api"
+															></p-tariff-form>
+															<p-form-delete-section
+																*ngIf="userCanWrite"
+																(onRemove)="removeTariff(formGroup, i, courseTariff.controls['reference'].value)"
+																modalText="Willst du diesen Tarif wirklich löschen?" i18n-modalText
+															>
+																<div i18n>Willst du diesen Tarif »{{ formGroup.controls['name']!.value }}« löschen?</div>
+															</p-form-delete-section>
+														</section>
+													</form>
+												</div>
+											</p-collapsible>
+										</div>
+										<p-button
+											[attributeInfo]="null"
+											(triggerClick)="addNewTariff(formGroup, userCanWrite, shiftModel!)"
+											[theme]="PBtnThemeEnum.OUTLINE_PRIMARY"
+										><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon>&nbsp;<ng-container i18n>Tarif hinzufügen</ng-container></p-button>
+									</p-section>
+									<p-section
+										label="Zahlungsarten" i18n-label
+										[hasDanger]="formGroup.controls['coursePaymentMethods']!.invalid"
+										[whitespace]="SectionWhitespace.MEDIUM"
+									>
+										<p i18n>Hast du Fragen zur Online-Zahlung? Besuche gerne unsere <a routerLink="/client/plugin/faq-online-payment" rel="noopener" target="_blank"><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.AREA_FAQ" class="mr-1"></fa-icon>FAQ zur Online-Zahlung</a>
+										</p>
+										<p-alert
+											*ngIf="formGroup.controls['coursePaymentMethods']!.hasError('minpaymentmethods')"
+											[theme]="PThemeEnum.DANGER"
+											i18n
+										>Mindestens eine Zahlungsart muss bei der Online-Buchung sichtbar sein.</p-alert>
+										<ng-template
+											ngFor let-paymentMethodFormGroup
+											[ngForOf]="pFormsService.getIterableFormGroups(formGroup.controls['coursePaymentMethods']!)"
+											let-i="index"
+										>
+											<ng-template [ngIf]="!paymentMethodFormGroup.controls['trashed'].value">
+												<p-collapsible
+													[hasDanger]="paymentMethodFormGroup.invalid"
+													[collapsed]="!paymentMethodFormGroup.controls['reference'].value.isNewItem()"
+												>
+													<div trigger class="w-100 mr-3 title">
+														<div class="d-flex justify-content-between align-items-center title">
+															<label class="mr-3 mb-0 title">
+																<fa-icon [fixedWidth]="true" *ngIf="paymentMethodIcon(paymentMethodFormGroup.controls['reference'].value)" [icon]="paymentMethodIcon(paymentMethodFormGroup.controls['reference'].value)"></fa-icon>
+																&nbsp;
+																<strong>
+																	<ng-container i18n>{!!paymentMethodFormGroup.controls['name'].value, select, true {{{paymentMethodFormGroup.controls['name'].value}}} other {Neue Zahlungsart}}</ng-container>
+																</strong>
+															</label>
+															<span *ngIf="paymentMethodFormGroup.controls['isInternal'].value" i18n>Interne Zahlungsart</span>
+														</div>
+													</div>
+													<div content class="card-body">
+														<p-form-group [control]="paymentMethodFormGroup.controls['isInternal']">
+															<p-checkbox
+																[formControl]="$any(paymentMethodFormGroup.controls['isInternal'])"
+																valueText="Nur für interne Nutzung / nicht sichtbar für Kunden bei der Online-Buchung" i18n-valueText
+															></p-checkbox>
+														</p-form-group>
+														<p-form-control-switch
+															label="Typ" i18n-label
+															[group]="$any(paymentMethodFormGroup)"
+															[attributeInfo]="paymentMethodFormGroup.controls['reference'].value.attributeInfoType"
+															[pEditable]="false"
+															[type]="FormControlSwitchType.RADIOS"
+															class="px-0"
+														>
+															<p-form-control-switch-item
+																label="Benutzerdefiniert" i18n-label
+																[value]="service.paymentMethodTypes.MISC"
+															></p-form-control-switch-item>
+
+															<p-form-control-switch-item
+																*ngIf="showPaypal"
+																label="PayPal" i18n-label
+																[icon]="PlanoFaIconPool.BRAND_PAYPAL"
+																[value]="service.paymentMethodTypes.PAYPAL"
+
+																[disabled]="!api.data.isPaypalAvailable"
+																cannotEditHint="Das steht erst zur Verfügung, wenn du in den »Buchungssystem-Einstellungen« deinen PayPal-Account mit Dr. Plano verbunden hast." i18n-cannotEditHint
+															></p-form-control-switch-item>
+
+															<p-form-control-switch-item
+																label="Online-Zahlung" i18n-label
+																[icon]="PlanoFaIconPool.ONLINE_PAYMENT"
+																[value]="service.paymentMethodTypes.ONLINE_PAYMENT"
+																[disabled]="!api.data.isOnlinePaymentAvailable"
+																[cannotEditHint]="cannotEditOnlinePaymentHint"
+															></p-form-control-switch-item>
+														</p-form-control-switch>
+
+														<p-alert
+															class="mt-3"
+															*ngIf="paymentMethodFormGroup.controls[paymentMethodFormGroup.controls['reference'].value.attributeInfoType.id]?.value===service.paymentMethodTypes.PAYPAL && formGroup.controls['courseType']?.value === courseTypes.ONLINE_INQUIRY"
+															i18n
+														>Bei einer Buchungsanfrage müssen Kunden erst online bezahlen, wenn du ihrer Buchungsanfrage zugestimmt hast. Achte bitte darauf, dass du hierfür in der Email-Vorlage den Platzhalter #ZAHLUNGSAUFFORDERUNG# benutzt. Dr.&nbsp;Plano fügt einen Link in der Email ein, worüber eure Kunden online zahlen können.</p-alert>
+														<p-form-group label="Name" i18n-label
+															*ngIf="showPaymentMethodNameAndDescriptionFormFields(paymentMethodFormGroup)"
+															[control]="paymentMethodFormGroup.controls['name']"
+														>
+															<p-input
+																[formControl]="$any(paymentMethodFormGroup.controls['name'])"
+															></p-input>
+															<p-validation-hint
+																[control]="formGroup.controls['name']!"
+																text="Dieser Name ist bereits vergeben" i18n-text
+																validationName="occupied"
+																[checkTouched]="false"
+															></p-validation-hint>
+														</p-form-group>
+														<p-form-group
+															*ngIf="showPaymentMethodNameAndDescriptionFormFields(paymentMethodFormGroup)"
+															[control]="paymentMethodFormGroup.controls['description']"
+															i18n
+														>
+															<label>Zahlungsaufforderung <fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.MORE_INFO_TOOLTIP"
+																popover="Die Zahlungsaufforderung kannst du mithilfe eines Platzhalters in deine automatischen Emails einbauen. Du kannst hier z.B. deine Kontodaten hinterlegen, wenn du  »Banküberweisung« als Zahlungsart anbieten möchtest. Mehr dazu findest du bei Buchungssystem-Einstellungen, unter Email-Vorlagen." i18n-popover
+																placement="top"
+															></fa-icon></label>
+															<p-textarea
+																[wysiwyg]="true"
+																[formControl]="$any(paymentMethodFormGroup.controls['description'])"
+																placeholder="z.B. »Zahlung innerhalb von 14 Tagen nach Rechnungseingang«" i18n-placeholder
+															></p-textarea>
+														</p-form-group>
+														<p-form-delete-section
+															(onRemove)="removeCoursePaymentMethod(formGroup, i, paymentMethodFormGroup.controls['reference'].value)"
+															modalText="Willst du diese Zahlungsart wirklich löschen?" i18n-modalText
+														>
+															<div i18n>Willst du diese Zahlungsart löschen?</div>
+														</p-form-delete-section>
+													</div>
+												</p-collapsible>
+											</ng-template>
+										</ng-template>
+
+										<button class="btn btn-lg w-100 btn-outline-primary"
+											type="button"
+											(click)="service.addCoursePaymentMethod(formGroup, userCanWrite, shiftModel!)"
+											[disabled]="!userCanWrite"
+										><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon>&nbsp;<ng-container i18n>Zahlungsart hinzufügen</ng-container></button>
+									</p-section>
+								</p-editable-modal-box-form>
+							</p-editable-modal-box>
+						</div>
+					</p-section>
+
+					<p-section id="cancellation-policy">
+						<p-cancellation-policy
+							*ngIf="shiftModel !== null && formGroup.controls['isCourse']!.value"
+							[shiftModel]="shiftModel"
+							[formGroup]="formGroup.controls['currentCancellationPolicy']!"
+							[userCanWrite]="userCanWrite"
+							[saveChangesHook]="saveChangesHook"
+							(initFormGroup)="initFormGroup()"
+						></p-cancellation-policy>
+					</p-section>
+
+					<p-section *ngIf="userCanWrite" label="Automatischer Email-Versand" i18n-label id="automatic-mails">
+						<p-grid>
+							<div class="col-12">
+
+								<p class="mb-4" i18n>Lege fest, zum welchen Zeitpunkt automatische Emails verschickt werden sollen. Die Email-Vorlagen kannst du über <a *ngIf="isOwner" class="nowrap" rel="noopener" target="_blank" routerLink="/client/plugin/emails">Buchungssystem-Einstellungen</a>{!isOwner, select, true {Buchungssystem-Einstellungen}} anlegen oder bearbeiten. Möchtest du eine Kopie dieser automatischen Emails erhalten, kannst du dies über <a *ngIf="isOwner" class="nowrap" rel="noopener" target="_blank" routerLink="/client/notifications">Benachrichtigungs-Einstellungen</a>{!isOwner, select, true {Benachrichtigungs-Einstellungen}} festlegen.</p>
+								<p-form-group *ngIf="api.data.customBookableMails.length; else noMailsTemplate" >
+									<ng-template
+										ngFor let-eventTypesObject
+										[ngForOf]="eventTypes.eventTypesObjects"
+									>
+										<ng-template [ngIf]="hasCourseEmails(eventTypesObject.type)">
+											<section class="mb-3 pb-3 row">
+												<div class="col-12 col-md-4">
+													<div><fa-icon
+														*ngIf="eventTypesObject.icon"
+														[fixedWidth]="true" [icon]="eventTypesObject.icon"
+													></fa-icon> {{ eventTypesObject.title | localize }}</div>
+													<small *ngIf="eventTypesObject.description" class="mt-2 form-text">{{ eventTypesObject.description | localize }}</small>
+												</div>
+												<div class="col-12 col-md-8">
+													<div
+														class="mb-1"
+														*ngFor="let customBookableMail of api.data.customBookableMails.getByEventType(eventTypesObject.type).iterable()"
+													>
+														<div *ngIf="customBookableMail.eventType === eventTypesObject.type">
+															<checkbox
+																[pEditable]="!formItem.isNewItem()"
+																[api]="api"
+																[valid]="!formGroup.invalid"
+																(onDismiss)="initFormGroup()"
+
+																(checkedChange)="$event ? shiftModel!.automaticBookableMailIds.push(customBookableMail.id) : shiftModel!.automaticBookableMailIds.removeItem(customBookableMail.id)"
+																[checked]="shiftModel!.automaticBookableMailIds.contains(customBookableMail.id)"
+																[card]="true"
+																[disabled]="!userCanWrite"
+															><div class="">
+																<div><i>»{{ customBookableMail.name }}«</i></div>
+																<div>➡ <ng-container i18n>{customBookableMail.sendToParticipants, select, true {Teilnehmende Person(en)}}</ng-container> {customBookableMail.sendToParticipants && customBookableMail.sendToBookingPerson, select, true {&nbsp;&&nbsp;}} <ng-container i18n>{customBookableMail.sendToBookingPerson, select, true {Buchende Person}}</ng-container></div>
+															</div></checkbox>
+														</div>
+													</div>
+												</div>
+											</section>
+										</ng-template>
+									</ng-template>
+								</p-form-group>
+								<ng-template #noMailsTemplate>
+									<div class="d-block card card-body text-center text-muted" i18n>Es wurden noch keine Emails angelegt. <br>Schau mal in den Einstellungen für das Buchungssystem unter <a rel="noopener" target="_blank" routerLink="/client/plugin/emails">Email-Vorlagen</a>.</div>
+								</ng-template>
+
+							</div>
+						</p-grid>
+					</p-section>
+				</ng-template>
+				<ng-template [ngIf]="showRelatedBookings">
+					<p-section>
+						<p-form-group>
+							<p-shift-bookings
+								[shift]="shift!"
+							></p-shift-bookings>
+							<button
+								type="button"
+								class="btn btn-lg btn-outline-primary w-100"
+								*ngIf="showAddBookingsBtn"
+								(click)="navToBooking()"
+								[disabled]="shift!.isCourseCanceled"
+							><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon>&nbsp;<ng-container i18n>Buchung hinzufügen</ng-container></button>
+						</p-form-group>
+					</p-section>
+					<p-section *ngIf="userCanWrite">
+						<div
+							[pEditable]="!formItem.isNewItem()"
+							[api]="api"
+							(onDismiss)="initFormGroup()"
+							[valid]="formGroup.valid"
+							[saveChangesHook]="modalService.getEditableHook(modalIsCourseCanceled, { size: 'lg' })"
+						>
+							<p-form-group label="Stornierung" i18n-label>
+								<div class="justify-content-between align-items-center"
+									[class.d-flex]="!Config.IS_MOBILE"
+								>
+									<div
+										[class.mr-3]="!Config.IS_MOBILE"
+										[class.mb-2]="Config.IS_MOBILE"
+									>
+										<ng-template [ngIf]="!shift!.isCourseCanceled" [ngIfElse]="courseCanceled">
+											<div i18n>Dieser Schritt ist unwiderruflich.</div>
+											<div *ngIf="api.isLoaded() && hasBookingsForList" i18n>Für dieses Angebot gibt es Buchungen. Sie werden storniert, wenn du das gesamte Angebot stornierst.</div>
+										</ng-template>
+										<ng-template #courseCanceled>
+											<div class="text-danger" i18n>Dieses Angebot ist storniert.</div>
+										</ng-template>
+									</div>
+
+									<ng-template #popTemplate><ng-container i18n><strong>Klickst du hierauf,</strong> werden buchende & teilnehmende Personen informiert, <strong>falls</strong> du automatische Emails aktiviert hast. Deine <strong>Mitarbeitenden</strong> werden auf jeden Fall benachrichtigt.</ng-container></ng-template>
+
+									<button
+										type="button"
+
+										class="btn btn-danger"
+										[class.btn-sm]="!Config.IS_MOBILE"
+										[class.btn-lg]="Config.IS_MOBILE"
+										[class.w-100]="Config.IS_MOBILE"
+
+										[popover]="!formItem.isNewItem() && !shift!.isCourseCanceled ? popTemplate : undefined"
+										placement="top"
+										#pop="bs-popover"
+										(click)="pop.hide()"
+
+										pEditableInstantSaveButton
+										(triggerClick)="shift!.isCourseCanceled=true"
+										[disabled]="!userCanWrite || shift!.isCourseCanceled"
+									><fa-icon [fixedWidth]="true" icon="times"></fa-icon>&nbsp;<ng-container i18n>Angebot & Buchungen Stornieren</ng-container></button>
+								</div>
+							</p-form-group>
+						</div>
+					</p-section>
+				</ng-template>
+			</ng-template>
+		</p-tab>
+		<p-tab
+			*ngIf="showAccountingTab"
+			label="Buchhaltung" i18n-label
+			urlName="accounting"
+			[size]="PTabSizeEnum.FRAMELESS"
+		>
+			<p-section label="Erlöskonten" i18n-label>
+				<div class="mb-4" i18n>Lege hier für diese Tätigkeit fest, welche Kontobezeichnungen für Erlöse aus deinen Buchungen verwendet werden sollen:</div>
+				<p-grid>
+					<div class="col-4" *ngFor="let posAccount of shiftModel!.posAccounts.iterable()">
+						<p-form-group label="Erlöse mit {{(posAccount.tax ? posAccount.tax / 100 : posAccount.tax) | percent: '0.0-1' }} MwSt." i18n-label>
+							<p-input
+								[pEditable]="!formItem.isNewItem()"
+								[api]="api"
+
+								[(ngModel)]="posAccount.name"
+								[ngModelOptions]="{standalone: true}"
+								placeholder="z.B. »0000«" i18n-placeholder
+								[typeahead]="posAccountTypeAheadArray"
+							></p-input>
+						</p-form-group>
+					</div>
+				</p-grid>
+			</p-section>
+			<p-section label="Controlling" i18n-label>
+				<p-grid>
+					<div class="col">
+						<p-form-group label="Kostenstelle" i18n-label [control]="formGroup.controls['costCentre']!">
+							<p-input
+								[pEditable]="!formItem.isNewItem()"
+								[api]="api"
+								(onDismiss)="initFormGroup()"
+
+								formControlName="costCentre"
+								[typeahead]="costCentreTypeAheadArray"
+							></p-input>
+						</p-form-group>
+					</div>
+					<div class="col">
+						<p-form-group label="Warengruppe" i18n-label [control]="formGroup.controls['articleGroup']!">
+							<p-input
+								[pEditable]="!formItem.isNewItem()"
+								[api]="api"
+								(onDismiss)="initFormGroup()"
+
+								formControlName="articleGroup"
+								[typeahead]="articleGroupTypeAheadArray"
+							></p-input>
+						</p-form-group>
+					</div>
+				</p-grid>
+			</p-section>
+		</p-tab>
+
+	</p-tabs>
+
+	<!-- HACK: We had a *ngIf="formGroup.invalid" here, but that caused a changeDetection error -->
+	<div class="pb-0" [class.d-none]="!formGroup.invalid">
+		<p-alert [theme]="PThemeEnum.DANGER" i18n>Hoppla. Deine Eingabe ist unvollständig oder nicht korrekt. Bitte schau nochmal drüber.</p-alert>
+	</div>
+
+	<div *ngIf="formItem.isNewItem()" class="d-flex justify-content-end align-items-center">
+		<p-notification-conf-form
+			*ngIf="showSendEmailSetting"
+			[formControl]="formGroup.controls['sendEmail']!"
+			[api]="api"
+			[shift]="shift"
+		></p-notification-conf-form>
+		<button
+			[type]="formGroup.invalid ? 'submit' : 'button'"
+			class="btn btn-lg btn-primary ml-3"
+			[disabled]="addButtonIsDisabled"
+			(click)="add.emit()"
+		><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.ADD"></fa-icon>&nbsp;<ng-container i18n>Anlegen</ng-container></button>
+	</div>
+
+</form>
+<ng-template #spinner>
+	<p-spinner [size]="BootstrapSize.LG" *ngIf="!!shiftModel" class="m-5 h-100"></p-spinner>
+</ng-template>
+
+<ng-template #modalContent let-c="close" let-d="dismiss">
+	<p-change-selectors-modal
+		[shiftChangeSelector]="api.data.shiftChangeSelector"
+		[close]="c"
+		[dismiss]="d"
+		[shift]="shift!"
+		[shiftModel]="shiftModel!"
+		[defaultStart]="shiftStart"
+		[isForDeletion]="false"
+		[members]="api.data.members"
+	></p-change-selectors-modal>
+</ng-template>
+
+<ng-template #modalContentForIsCourseOnline let-c="close" let-d="dismiss">
+	<p-change-selectors-modal
+		[shiftChangeSelector]="api.data.shiftChangeSelector"
+		[close]="c"
+		[dismiss]="d"
+		[shift]="shift!"
+		[shiftModel]="shiftModel!"
+		[defaultStart]="shiftStart"
+		[isForDeletion]="false"
+		[showApplyToShiftModelCheckbox]="false"
+		[modalForCourseRelatedValues]="true"
+		[members]="api.data.members"
+	></p-change-selectors-modal>
+</ng-template>
+
+<ng-template #modalContentForCourseRelatedValues let-c="close" let-d="dismiss">
+	<p-change-selectors-modal
+		[shiftChangeSelector]="api.data.shiftChangeSelector"
+		[close]="c"
+		[dismiss]="d"
+		[shift]="shift!"
+		[shiftModel]="shiftModel!"
+		[defaultStart]="shiftStart"
+		[isForDeletion]="false"
+		[modalForCourseRelatedValues]="true"
+		[members]="api.data.members"
+	></p-change-selectors-modal>
+</ng-template>
+
+<ng-template #modalIsCourseCanceled let-c="close" let-d="dismiss">
+	<p-change-selectors-modal
+		[showApplyToShiftModelCheckbox]="false"
+		[shiftChangeSelector]="api.data.shiftChangeSelector"
+		[close]="c"
+		[dismiss]="d"
+		[shift]="shift!"
+		[shiftModel]="shift!.model!"
+		[defaultStart]="shiftStart"
+		[typeOfChange]="PTypeOfChange.CANCEL"
+		[members]="api.data.members"
+	></p-change-selectors-modal>
+</ng-template>
+
+<ng-template #modalContentForIsCoronaSlotBooking let-c="close" let-d="dismiss">
+	<p-modal-content
+		[theme]="PThemeEnum.WARNING"
+		modalTitle="Wirklich?" i18n-modalTitle
+		(onDismiss)="d('Cross click')"
+		(onClose)="c('Started');"
+	>
+		<p-modal-content-body>
+			<p class="m-0" i18n>Bitte sei fair und setze die Checkbox nur für die Tätigkeiten, die in der besonderen Situation von Corona für Zeitslots eingesetzt werden und wir dafür einen Sonderpreis angeboten haben, um euch zu helfen.</p>
+		</p-modal-content-body>
+	</p-modal-content>
+</ng-template>

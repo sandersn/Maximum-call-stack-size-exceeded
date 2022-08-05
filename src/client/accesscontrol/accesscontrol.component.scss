@@ -1,0 +1,7 @@
+@import "variables";
+
+.accessgroup-wrapper {
+	width: 100%;
+	max-width: 300px;
+	margin-left: map-get($spacers, 3);
+}

@@ -1,0 +1,12 @@
+// fr-view should both be in edit and non-edit mode "display: block" to have same layout.
+:host {
+	display: block;
+}
+
+.grid-list {
+	--gap-column: 1.5rem;
+	display: grid;
+	grid-template-columns: repeat( auto-fill, minmax(min(40ch, 100%), 1fr) );
+	column-gap: var(--gap-column);
+	row-gap: calc(var(--gap-column) * 0.7);
+}

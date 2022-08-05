@@ -1,0 +1,98 @@
+<div
+	#topAnchor
+
+	class="d-flex flex-column"
+	[class.mb-3]="hasScrollbar"
+	[class.card-header]="theme === PTabsTheme.DEFAULT"
+	[class.justify-content-end]="tryToStickButtonsToBottom"
+	[class.p-2]="size===BootstrapSize.SM"
+	[style.min-height.px]="minHeaderTabBar"
+>
+	<ul class="nav nowrap list-unstyled" #tabsWrap
+		[class.dark-mode]="darkMode"
+		[class.nav-tabs]="!hasScrollbar"
+		[class.flex-nowrap]="noWrap"
+		[class.nav-pills]="hasScrollbar"
+		[class.card-header-tabs]="!hasScrollbar && theme === PTabsTheme.DEFAULT"
+		[class.header-tabs]="!hasScrollbar && theme !== PTabsTheme.DEFAULT"
+		[class.scrollbarHasBeenCalculated]="scrollbarHasBeenCalculated"
+	>
+		<li class="nav-item text-center"
+			*ngFor="let tab of visibleTabs"
+			[@flexGrow]="growListItem(tab)"
+			(mouseenter)="tab.hover=true"
+			(mouseleave)="tab.hover=false"
+			[class.has-danger]="tab.hasDanger && !tab.active"
+		>
+			<span class="clickable position-relative d-flex align-items-center justify-content-center"
+				[class.nowrap]="!hasScrollbar"
+				[class.nav-link]="theme === PTabsTheme.DEFAULT"
+				[class.btn]="theme === PTabsTheme.CLEAN"
+				[class.btn-light]="theme === PTabsTheme.CLEAN && hasScrollbar && !tab.active"
+				[class.btn-dark]="theme === PTabsTheme.CLEAN && hasScrollbar && tab.active"
+
+				[class.px-2]="showFilterLed(tab) || theme === PTabsTheme.DEFAULT && growListItem(tab)"
+				[class.px-3]="!showFilterLed(tab) && theme === PTabsTheme.DEFAULT && !growListItem(tab)"
+				[class.active]="tab.active"
+				[class.btn-sm]="size===BootstrapSize.SM"
+				[class.disabled]="isLoading"
+				(click)="selectTab(tab)"
+			>
+				<div class="d-flex">
+					<label class="mb-0 flex-grow-1" [class.dark-mode]="darkMode"><fa-icon *ngIf="!!tab.icon" [fixedWidth]="true" [icon]="tab.icon"></fa-icon><span
+						*ngIf="showLabel(tab)"
+					><span *ngIf="!!tab.icon">&nbsp;</span>{{ tab.label }}</span></label>
+					<p-led
+						*ngIf="showFilterLed(tab)"
+						[class.ml-1]="!growListItem(tab)"
+						[class.ml-2]="growListItem(tab)"
+						class="flex-grow-0 p-0"
+						[off]="!tab.hasFilter"
+						[theme]="PThemeEnum.PRIMARY"
+
+						[pTooltip]="tab.description ? (tab.description | localize) : null"
+					></p-led>
+				</div>
+				<p-badge
+					[content]="tab.badgeContent"
+					align="right"
+					[size]="theme === PTabsTheme.CLEAN ? BootstrapSize.SM : null"
+				></p-badge>
+			</span>
+		</li>
+	</ul>
+</div>
+<div class="p-0 tabs-body" [class.card-body]="theme !== PTabsTheme.CLEAN">
+	<div
+		*ngIf="isLoading; else contentTemplate"
+		class="flex-grow-1 d-flex align-items-center justify-content-center"
+	>
+		<p-spinner [size]="BootstrapSize.LG" class="p-3"></p-spinner>
+	</div>
+	<ng-template #contentTemplate>
+		<p-alert
+			class="m-4"
+			[theme]="PThemeEnum.DANGER"
+			*ngIf="!!activeTab && activeTab.show === false"
+			i18n
+		>Dir fehlen die Rechte für »{{activeTab?.label}}«. Wende dich bitte an deine Personalleitung oder Administrator*in.</p-alert>
+		<div
+			*ngIf="!this.activeTab"
+			class="flex-grow-1 d-flex align-items-center justify-content-center"
+		>
+			<p-spinner [size]="BootstrapSize.LG" class="p-3"></p-spinner>
+		</div>
+		<div class="content-wrapper" [hidden]="!this.activeTab || !!activeTab && activeTab.show === false">
+			<ng-content></ng-content>
+		</div>
+	</ng-template>
+</div>
+
+<ng-template #spinnerTemplate>
+	<div
+		*ngIf="isLoading; else contentTemplate"
+		class="flex-grow-1 d-flex align-items-center justify-content-center"
+	>
+		<p-spinner [size]="BootstrapSize.LG" class="p-3"></p-spinner>
+	</div>
+</ng-template>

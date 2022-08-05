@@ -1,0 +1,38 @@
+@import "variables";
+
+:host {
+	position: relative;
+	display: block;
+	padding: 0;
+
+	& > a {
+		text-decoration: none;
+	}
+}
+
+@media (hover: hover) {
+	a.clickable:hover {
+		background: theme-color-level("light", 2);
+	}
+}
+
+.card-options {
+	position: absolute;
+	top: 0;
+	right: 0;
+}
+
+:host .card-options .hidden-without-hover {
+	z-index: $z-index-modal;
+	display: none;
+}
+
+@media (hover: hover) {
+	:host:hover .card-options .hidden-without-hover {
+		display: block;
+	}
+}
+
+.btn-outline-danger:not(:hover) {
+	background-color: #f8f9fa;
+}

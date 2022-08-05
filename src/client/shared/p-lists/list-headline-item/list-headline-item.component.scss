@@ -1,0 +1,17 @@
+@import "variables";
+
+:host {
+	display: block;
+	font-weight: bold;
+	font-size: $font-size-xs;
+	white-space: nowrap;
+
+	&.clickable {
+		cursor: pointer;
+		transition: 0.3s;
+
+		&:hover {
+			color: theme-color-level("primary", 3);
+		}
+	}
+}

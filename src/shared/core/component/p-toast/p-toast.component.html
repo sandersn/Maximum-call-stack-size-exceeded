@@ -1,0 +1,70 @@
+
+<div class="toast show bg-{{ theme }}" role="alert" aria-live="assertive" aria-atomic="true"
+	*ngIf="visible"
+>
+	<ng-progress
+		*ngIf="notFirefox"
+		#progressBar
+		id="toast-dismiss-progress-{{titleHash}}"
+		direction="rtl-"
+		[speed]="progressbarSpeed"
+		[trickleSpeed]="progressbarSpeed"
+		[debounceTime]="0"
+		[meteor]="false"
+		[spinner]="false"
+		[thick]="true"
+		[fixed]="false"
+		[min]="0"
+		[max]="100"
+		ease="linear"
+		color="#ffffffaa"
+		style="opacity: 1 !important;"
+	></ng-progress>
+	<div class="toast-header" [class.text-white]="textWhite" *ngIf="!!title">
+		<fa-icon
+			*ngIf="!!icon"
+			class="pr-1"
+			[icon]="icon"
+		></fa-icon>&ngsp;<strong class="mr-auto">{{ title }}</strong>
+		<button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Dismiss"
+			(click)="onDismiss()"
+		>
+			<span aria-hidden="true">&times;</span>
+		</button>
+
+	</div>
+	<div class="toast-body" [class.pt-0]="!!title" [class.text-white]="textWhite">
+		<span>
+			<button *ngIf="!title" type="button" class="ml-2 close" data-dismiss="toast" aria-label="Dismiss"
+				(click)="onDismiss()"
+			>
+				<span aria-hidden="true">&times;</span>
+			</button>
+			<span><fa-icon
+				*ngIf="!title && !!icon"
+				class="pr-1"
+				[icon]="icon"
+			></fa-icon>
+			<span [innerHTML]="toast.content | pSafeHtml"></span></span>
+			<span class="clearfix"></span>
+		</span>
+		<div class="d-flex align-items-center justify-content-between mt-2" *ngIf="toast.dismiss || toast.close">
+			<button
+				type="button"
+				class="btn btn-sm"
+				[class.btn-outline-light]="theme !== 'plain'"
+				[class.btn-light]="theme === 'plain'"
+				[title]="toast.dismissBtnLabel"
+				*ngIf="toast.dismiss"
+				(click)="toast.dismiss();onDismiss()"
+			>{{ toast.dismissBtnLabel }}</button>
+			<button
+				type="button"
+				class="btn btn-sm btn-light"
+				[title]="toast.closeBtnLabel"
+				*ngIf="toast.close"
+				(click)="toast.close();onClose()"
+			>{{ toast.closeBtnLabel }}</button>
+		</div>
+	</div>
+</div>

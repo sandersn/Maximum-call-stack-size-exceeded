@@ -1,0 +1,173 @@
+<p-editable-modal-box
+	[pEditable]="!member.isNewItem()"
+	[api]="api"
+	[valid]="!member.trashed"
+	[saveChangesHook]="modalService.getEditableHook(dateTimePicker)"
+
+	(editMode)="onChangeEditMode()"
+
+	[disabled]="boxDisabled"
+	label="Mögliche Tätigkeiten für {{member.firstName}}" i18n-label
+>
+	<p-editable-modal-box-showroom>
+		<div *ngIf="!itemsForList.length">
+			<span *ngIf="!isOwner || CONFIG.IS_MOBILE; else addItemsHint" i18n>{{ member.firstName }} wurden bisher noch keine möglichen Tätigkeiten zugewiesen.</span>
+			<ng-template #addItemsHint>
+				<span><ng-container i18n>Hier kannst du diejenigen Tätigkeiten eintragen, die {{ member.firstName }} prinzipiell ausführen darf.</ng-container><span *ngIf="hasUntrashedItem"><br /><ng-container i18n>Klicke auf den Stift um loszulegen.</ng-container></span></span>
+			</ng-template>
+
+		</div>
+		<ng-template [ngIf]="!!itemsForList.length">
+			<p-list>
+				<ng-template
+					ngFor let-shiftModels
+					[ngForOf]="itemsForList.groupByParentName"
+				>
+					<ng-container *ngTemplateOutlet="headlineTemplate; context: {$implicit: shiftModels, showroom: true}"></ng-container>
+
+					<ng-template
+						ngFor let-shiftModel
+						[ngForOf]="shiftModels.iterableSortedBy('name')"
+					>
+						<ng-container *ngTemplateOutlet="listItemForShowroomTemplate; context: {$implicit: shiftModel}"></ng-container>
+					</ng-template>
+				</ng-template>
+			</p-list>
+		</ng-template>
+	</p-editable-modal-box-showroom>
+	<p-editable-modal-box-form>
+		<p-list>
+			<ng-template
+				ngFor let-shiftModels
+				[ngForOf]="shiftModelsForForm"
+			>
+				<ng-container *ngTemplateOutlet="headlineTemplate; context: {$implicit: shiftModels, showroom: false}"></ng-container>
+				<ng-template
+					ngFor let-shiftModel
+					[ngForOf]="shiftModels.iterableSortedBy('name')"
+				>
+					<ng-template [ngIf]="!shiftModel.trashed">
+						<p-list-item size="frameless">
+							<div class="d-flex justify-content-between align-items-stretch position-relative p-0 card-options w-100">
+								<div class="card-option d-flex align-items-center list-group-item w-100 p-2 border-0">
+									<p-color-marker
+										[item]="shiftModel"
+										[hexColor]="shiftModel?.color ? '#' + shiftModel.color : null"
+										[title]="shiftModel.name"
+									></p-color-marker>
+									<div class="mr-auto p-2 pl-3"
+									>{{ shiftModel.name }}</div>
+								</div>
+								<div class="d-flex align-items-center p-2">
+									<div class="d-flex align-items-center">
+										<p-input-shiftmodel-earnings
+											[member]="member"
+											[shiftModel]="shiftModel"
+										></p-input-shiftmodel-earnings>
+									</div>
+								</div>
+								<button type="button"
+									(click)="toggleAssignableShiftModel(shiftModel)"
+									[class.text-primary]="!!member.assignableShiftModels.getByShiftModel(shiftModel)"
+									[class.text-secondary]="!member.assignableShiftModels.getByShiftModel(shiftModel)"
+									class="card-option btn pt-2 pb-2 d-flex align-items-center justify-content-center btn-outline-secondary border-bottom-0"
+								><fa-icon [fixedWidth]="true" [icon]="!!member.assignableShiftModels.getByShiftModel(shiftModel) ? PlanoFaIconPool.CHECKBOX_SELECTED : PlanoFaIconPool.CHECKBOX_UNSELECTED"></fa-icon></button>
+							</div>
+						</p-list-item>
+					</ng-template>
+				</ng-template>
+			</ng-template>
+			<p-list-item *ngIf="noShiftModelsCreatedYet">
+				<div class="d-flex">
+					<div class="p-2">
+						<p class="m-0" i18n>Leider sind noch keine Tätigkeiten vorhanden. Lege erst welche an, um sie <code>{{ member.firstName }}</code> zuzuweisen.</p>
+					</div>
+				</div>
+			</p-list-item>
+		</p-list>
+
+	</p-editable-modal-box-form>
+</p-editable-modal-box>
+
+<ng-template #dateTimePicker let-c="close" let-d="dismiss">
+	<p-modal-header
+		title="Start-Datum" i18n-title
+		(onClose)="d('Cross click')"
+	></p-modal-header>
+	<div class="modal-body">
+		<p i18n>Ab wann soll die neue Liste gelten?</p>
+		<div class="d-flex justify-content-end mb-3">
+			<button type="button"
+				[class.btn-primary]="selectedDateIsCurrentDate"
+				[class.btn-outline-secondary]="!selectedDateIsCurrentDate"
+				[class.btn-outline-primary]="!selectedDateIsCurrentDate"
+				class="btn mr-2"
+				(click)="setChangeSelectorDateToCurrentDate()"
+				i18n
+			>Jetzt</button>
+		</div>
+		<div class="d-flex justify-content-center mb-3">
+			<ngb-datepicker
+				[startDate]="changeSelector!"
+				[(ngModel)]="changeSelector"
+				[ngModelOptions]="{standalone: true}"
+			></ngb-datepicker>
+		</div>
+		<p *ngIf="!selectedDateIsCurrentDate" i18n>Die Änderungen werden auf bereits erstellte Schichten ab einschließlich {{ ngbFormats.dateTimeObjectToTimestamp(changeSelector!) | date:'shortDate' }} angewandt. Falls du neue Schichten anlegen solltest, greifen die Änderungen auch vor diesem Datum.</p>
+		<p *ngIf="selectedDateIsCurrentDate" i18n>Die Änderungen gelten für neue, aber auch für bereits erstellte Schichten ab einschließlich {{ ngbFormats.dateTimeObjectToTimestamp(changeSelector!) | date:'shortDate' }}.</p>
+		<p-alert i18n>Bedenke bitte, dass hiermit alle Informationen aus der Liste "Mögliche Tätigkeiten für {{ member.firstName }}" übertragen werden. Nicht nur das, was du gerade geändert hast.</p-alert>
+	</div>
+	<div class="modal-footer">
+		<button type="button"
+			class="btn btn-primary ml-auto"
+			(click)="setChangeSelector();c('Close click');"
+			i18n
+		>Speichern</button>
+	</div>
+</ng-template>
+
+<ng-template #headlineTemplate let-shiftModels let-showroom="showroom">
+	<p-list-item size="frameless"
+		*ngIf="!!shiftModels.hasUntrashedItem"
+	>
+		<div class="d-flex align-items-center w-100 justify-content-between">
+			<span class="p-1">{{ shiftModels.get(0).parentName }}</span>
+			<div class="d-flex justify-content-end align-items-center">
+				<span class="d-flex justify-content-center align-items-center ml-auto pl-1 pr-1" i18n>Stundenlohn</span>
+				<span class="card-option border-0 pt-0 pb-0 d-flex align-items-center justify-content-center pl-1 pr-1"
+					*ngIf="!showroom"
+					[tooltip]="tooltipDarf"
+					i18n
+				>darf</span>
+				<!-- placement="bottom" -->
+				<ng-template #tooltipDarf>
+					<div class="d-block clickable card m-0 text-left o-hidden">
+						<div class="card-body p-1 pl-2 pr-2">
+							<div i18n>Wähle diejenigen Tätigkeiten aus, die diese Person generell ausüben darf. Ob bei der automatischen Schichtverteilung von Dr.&nbsp;Plano oder beim Schichttausch wird es berücksichtigt.</div>
+						</div>
+					</div>
+				</ng-template>
+			</div>
+		</div>
+	</p-list-item>
+</ng-template>
+
+<ng-template #listItemForShowroomTemplate let-shiftModel>
+	<p-list-item size="frameless">
+		<div class="d-flex align-items-center w-100 p-1 justify-content-between">
+			<div class="d-flex align-items-center title">
+				<p-color-marker
+					[item]="shiftModel"
+					[hexColor]="shiftModel.color ? '#' + shiftModel.color : null"
+					[title]="shiftModel.name"
+				></p-color-marker>
+				<div class="mr-auto p-2 pl-3 title">{{ shiftModel.name }}</div>
+			</div>
+			<div class="d-flex align-items-center">
+				<div class="text-monospace p-2 pr-3">
+					<span *ngIf="earningValidNumber(shiftModel)">{{ member.assignableShiftModels.getByShiftModel(shiftModel)!.hourlyEarnings | currency }}</span>
+				</div>
+			</div>
+		</div>
+	</p-list-item>
+</ng-template>

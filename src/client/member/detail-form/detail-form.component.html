@@ -1,0 +1,907 @@
+<div class="d-flex justify-content-between align-items-center w-100 position-relative mt-3 mb-4" *ngIf="item">
+	<div class="mr-3"><p-member-badge
+		[absenceType]="item.trashed ? 'trashed' : null"
+		[firstName]="item.firstName"
+		[lastName]="item.lastName"
+		[memberId]="item.id"
+		MemberBadgeComponent
+		[isMe]="isMe"
+		size="normal"
+	></p-member-badge></div>
+	<div class="mr-auto">
+		<h2 class="m-0"><span
+			i18n
+		>{!!item.firstName || !!item.lastName, select, true {<strong>{{item.firstName}}</strong> {{item.lastName}}} other {Neuer User}}</span><span *ngIf="item.trashed" class="text-danger">&nbsp;(gelöscht)</span></h2>
+	</div>
+</div>
+
+<ng-template [ngIf]="isLoaded" [ngIfElse]="spinner">
+	<p-alert class="mb-5" *ngIf="showPriceWarning" i18n>Du möchtest deinen {{ account.data.billing.activeMembersCountForNextPricing }}. User erstellen. Damit würdest du gemäß unserer <a rel="noopener" target="_blank" routerLink="/terms">AGB</a> in den nächsten Staffelpreis rutschen. Durch das Erstellen dieses Users stimmst du dem neuen Staffelpreis zu. Unsere aktuellen Preise für die Personalplanung findest du <a href="#pricing" rel="noopener" target="_blank">hier</a>.</p-alert>
+	<p-alert
+		*ngIf="showRecoveredHint"
+		[theme]="PThemeEnum.INFO"
+		i18n
+	>Bitte kontrolliere die Daten von {{ item!.firstName }} auf Korrektheit – besonders die Liste der erlaubten Tätigkeiten.</p-alert>
+	<form [formGroup]="$any(formGroup)">
+	<div class="mb-5">
+		<p-grid>
+			<div class="col-12" *ngIf="isOwner || isMe">
+				<p-form-control-switch
+					label="Geschlecht" i18n-label
+					[attributeInfo]="item!.attributeInfoGender"
+					[group]="formGroup!"
+					[type]="FormControlSwitchType.RADIOS"
+				>
+					<p-form-control-switch-item
+						label="Männlich" i18n-label
+						icon="mars"
+						[value]="SchedulingApiGender.MALE"
+					></p-form-control-switch-item>
+					<!-- cSpell:ignore venus -->
+					<p-form-control-switch-item
+						label="Weiblich" i18n-label
+						icon="venus"
+						[value]="SchedulingApiGender.FEMALE"
+					></p-form-control-switch-item>
+					<p-form-control-switch-item
+						label="Divers" i18n-label
+						icon="transgender-alt"
+						[value]="SchedulingApiGender.DIVERSE"
+					></p-form-control-switch-item>
+				</p-form-control-switch>
+			</div>
+
+			<div
+				class="col-12"
+				[class.col-lg-5]="item!.attributeInfoBirthday.show"
+				[class.col-lg-6]="!item!.attributeInfoBirthday.show"
+			>
+				<p-form-control-switch
+					[pEditable]="!item!.isNewItem()"
+					[api]="api"
+
+					label="Vorname" i18n-label
+					[group]="formGroup!"
+					[attributeInfo]="item!.attributeInfoFirstName"
+					placeholder="Plano" i18n-placeholder
+				></p-form-control-switch>
+			</div>
+			<div
+				class="col-12"
+				[class.col-lg-5]="item!.attributeInfoBirthday.show"
+				[class.col-lg-6]="!item!.attributeInfoBirthday.show"
+			>
+				<p-form-control-switch
+					[pEditable]="!item!.isNewItem()"
+					[api]="api"
+
+					label="Nachname" i18n-label
+					[group]="formGroup!"
+					[attributeInfo]="item!.attributeInfoLastName"
+					placeholder="Plano" i18n-placeholder
+				></p-form-control-switch>
+			</div>
+			<div *ngIf="item!.attributeInfoBirthday.show" class="col-12 col-lg-2">
+				<p-form-control-switch
+					[pEditable]="!item!.isNewItem()"
+					[api]="api"
+
+					label="Geburtsdatum" i18n-label
+					[description]="!item!.attributeInfoBirthday.canEdit ? null : ('Deine Kolleginnen und Kollegen, mit denen du in mindestens einer Tätigkeit zusammenarbeiten darfst, sehen dein Geburtsdatum im Kalender – allerdings nicht das Jahr und somit nicht dein genaues Alter 😉 Leitende Personen sehen das komplette Geburtsdatum.' | localize)"
+					[group]="formGroup!"
+					[attributeInfo]="item!.attributeInfoBirthday"
+				></p-form-control-switch>
+			</div>
+
+			<div class="col-sm-6">
+				<p-form-group
+					label="Email-Adresse" i18n-label
+					[control]="formGroup!.controls['email']!"
+				>
+					<div *ngIf="isMe || isOwner">
+						<p-input
+							[pEditable]="!item!.isNewItem()"
+							[api]="api"
+							[valid]="formGroup!.controls['email']!.valid"
+
+							[formControl]="formGroup!.controls['email']!"
+							[ngModel]="item!.email"
+							(ngModelChange)="item!.email = $event"
+							[type]="PApiPrimitiveTypes.Email"
+							(onSaveSuccess)="updateCredentials()"
+						></p-input>
+					</div>
+					<div *ngIf="!isMe && !isOwner" class="form-control-read-mode">
+						<a
+							class="email"
+							[href]="'mailto:' + item!.email"
+						>{{ item!.email }}</a>
+					</div>
+				</p-form-group>
+			</div>
+			<div class="col-sm-6">
+				<p-form-group
+					label="Telefon" i18n-label
+					[control]="formGroup!.controls['phone']!"
+				>
+					<p-input
+						[type]="PApiPrimitiveTypes.Tel"
+
+						[pEditable]="!item!.isNewItem()"
+						[api]="api"
+						[valid]="!formGroup!.controls['phone']!.invalid"
+
+						[(ngModel)]="item!.phone"
+						[formControl]="formGroup!.controls['phone']!"
+					></p-input>
+				</p-form-group>
+			</div>
+		</p-grid>
+	</div>
+	<div class="mb-5" *ngIf="isMe || isOwner">
+		<p-grid>
+			<div class="col-12">
+				<h4 i18n>Account-Einstellungen</h4>
+			</div>
+			<div class="col-12 col-lg-6">
+
+				<ng-template [ngIf]="!formGroup!.controls['password']!.disabled" [ngIfElse]="passwordInputIsDisabled">
+					<p-form-group
+						[control]="formGroup!.controls['password']!"
+						label="Passwort" i18n-label
+					>
+						<p-editable-modal-box
+							[pEditable]="!item!.isNewItem()"
+							[api]="api"
+							[valid]="formGroup!.controls['password']!.valid && formGroup!.controls['confirmPassword']!.valid"
+							(onSaveSuccess)="updateCredentials()"
+							(onDismiss)="resetPasswordValues()"
+
+							(onModalOpen)="clearPasswordValues()"
+							btnLabel="Neues Passwort vergeben" i18n-btnLabel
+							[showBtnLabel]="false"
+							[showBtnIcon]="true"
+
+							[disabled]="!item!.isNewItem() && !isMe"
+						>
+							<p-editable-modal-box-header>
+								<p-input
+									class="flex-grow-1"
+									[readMode]="true"
+									[type]="isChrome ? PApiPrimitiveTypes.string : PApiPrimitiveTypes.Password"
+
+									style="-webkit-text-security: disc;"
+
+									[ngModel]="formGroup!.controls['confirmPassword']!.value"
+									[ngModelOptions]="{standalone: true}"
+								></p-input>
+							</p-editable-modal-box-header>
+							<p-editable-modal-box-form>
+								<p-form-group label="Passwort eingeben" i18n-label [control]="formGroup!.controls['password']!">
+									<p-input
+										[type]="PApiPrimitiveTypes.Password"
+										[formControl]="formGroup!.controls['password']!"
+										[showPasswordMeter]="true"
+										[readMode]="false"
+									></p-input>
+								</p-form-group>
+								<p-form-group label="Passwort wiederholen" i18n-label [control]="formGroup!.controls['confirmPassword']!">
+									<p-input
+										[type]="'ConfirmPassword'"
+										[formControl]="formGroup!.controls['confirmPassword']!"
+										[readMode]="false"
+									></p-input>
+								</p-form-group>
+
+							</p-editable-modal-box-form>
+						</p-editable-modal-box>
+					</p-form-group>
+				</ng-template>
+
+				<ng-template #passwordInputIsDisabled>
+
+					<p-form-group label="Passwort" i18n-label>
+						<p-input
+							[readMode]="true"
+							[type]="isChrome ? PApiPrimitiveTypes.string : PApiPrimitiveTypes.Password"
+
+							style="-webkit-text-security: disc;"
+
+							[ngModel]="'********'"
+							[ngModelOptions]="{standalone: true}"
+						></p-input>
+						<ng-template [ngIf]="item!.isNewItem()" [ngIfElse]="existingMember">
+							<p-alert [theme]="PThemeEnum.INFO" class="mt-2" i18n>Es wird ein automatisch generiertes Passwort an die angegebene Email-Adresse versendet. Damit kann sich die Person einloggen und anschließend ein eigenes Passwort festlegen.</p-alert>
+						</ng-template>
+
+						<ng-template #existingMember>
+							<div class="form-text" i18n>Kann nur von {{ item!.firstName }} bearbeitet werden.</div>
+						</ng-template>
+					</p-form-group>
+
+				</ng-template>
+
+
+			</div>
+			<div class="col-12 col-lg-6" *ngIf="isOwner && !Config.IS_MOBILE">
+				<p-form-group
+					[control]="formGroup!.controls['rightGroupIds']!"
+					[hasDanger]="rightGroupIdsHasDanger"
+				>
+					<label><ng-container i18n>Rechtegruppe</ng-container> (<a rel="noopener" target="_blank" routerLink="/client/rightgroups"><ng-container i18n>Rechteverwaltung</ng-container></a>)</label>
+					<div class="mb-2">
+						<small i18n>Aktivierst du mehrere Gruppen, so werden ihre Rechte summiert.</small>
+					</div>
+					<ng-template
+						ngFor let-rightGroup
+						[ngForOf]="api.data.rightGroups.iterable()"
+						let-i="index"
+					>
+						<!-- TODO: You can not turn this into a p-checkbox because -->
+						<!-- "ngModel cannot be used to register form controls with a parent formGroup directive." -->
+						<!-- You would need to build a new component with checkboxes for rightGroups and bind [formControl] there -->
+						<checkbox
+							class="mb-2"
+							[pEditable]="!item!.isNewItem()"
+							[api]="api"
+							[valid]="!formGroup!.invalid"
+							[saveChangesHook]="unselectAdminGroupWarningNecessary(rightGroup) ? modalService.getEditableHook(deleteWarning) : undefined"
+
+							[card]="true"
+							[checked]="item!.rightGroupIds.contains(rightGroup.id)"
+							(checkedChange)="toggleRightGroup($event, rightGroup, i)"
+							[disabled]="rightGroupIsDisabled(rightGroup)"
+							[required]="rightGroupIdsHasDanger"
+						>{{ rightGroup.name }}</checkbox>
+					</ng-template>
+					<p-validation-hint
+						[control]="formGroup!.controls['rightGroupIds']!"
+					></p-validation-hint>
+					<p-validation-hint
+						[control]="formGroup!.controls['rightGroupIds']!"
+						validationName="min"
+						text="Mindestens eine Gruppe muss zugewiesen werden" i18n-text
+					></p-validation-hint>
+				</p-form-group>
+			</div>
+		</p-grid>
+	</div>
+
+	<div
+		class="mb-5"
+		*ngIf="!item!.trashed && (isMe || isOwner)"
+	>
+		<p-grid>
+			<div class="col">
+				<p-assign-shiftmodels
+					[member]="item!"
+					[disabled]="Config.IS_MOBILE ? true : false"
+				></p-assign-shiftmodels>
+			</div>
+		</p-grid>
+	</div>
+
+	<!-- start PLANO-3464 -->
+	<!-- <div *ngIf="item!.employmentContracts.length > 0">
+		<p-form-control-switch
+			label="VertragsName" i18n-label
+			[attributeInfo]="item!.employmentContracts.get(0).attributeInfoName"
+			[group]="formGroup!"
+		></p-form-control-switch>
+		<p-form-control-switch
+			label="Vertragsstart" i18n-label
+			[attributeInfo]="item!.employmentContracts.get(0).attributeInfoStart"
+			[group]="formGroup!"
+		></p-form-control-switch>
+		<p-form-control-switch
+			label="Vertragsende" i18n-label
+			[attributeInfo]="item!.employmentContracts.get(0).attributeInfoEnd"
+			[group]="formGroup!"
+		></p-form-control-switch>
+		<p-form-control-switch
+			label="PlanningByEarnings" i18n-label
+			[attributeInfo]="item!.employmentContracts.get(0).attributeInfoPlanningByEarnings"
+			[group]="formGroup!"
+		></p-form-control-switch>
+		<p-form-control-switch
+			label="FixedPayment" i18n-label
+			[attributeInfo]="item!.employmentContracts.get(0).attributeInfoFixedPayment"
+			[group]="formGroup!"
+		></p-form-control-switch>
+		<p-form-control-switch
+			label="PlanningPerWeek" i18n-label
+			[attributeInfo]="item!.employmentContracts.get(0).attributeInfoPlanningPerWeek"
+			[group]="formGroup!"
+		></p-form-control-switch>
+		<p-form-control-switch
+			label="Min" i18n-label
+			[attributeInfo]="item!.employmentContracts.get(0).attributeInfoMin"
+			[group]="formGroup!"
+		></p-form-control-switch>
+		<p-form-control-switch
+			label="Goal" i18n-label
+			[attributeInfo]="item!.employmentContracts.get(0).attributeInfoGoal"
+			[group]="formGroup!"
+		></p-form-control-switch>
+		<p-form-control-switch
+			label="Max" i18n-label
+			[attributeInfo]="item!.employmentContracts.get(0).attributeInfoMax"
+			[group]="formGroup!"
+		></p-form-control-switch>
+		<p-form-control-switch
+			label="Salary" i18n-label
+			[attributeInfo]="item!.employmentContracts.get(0).attributeInfoSalary"
+			[group]="formGroup!"
+		></p-form-control-switch>
+		<p-form-control-switch
+			label="MemberCanEditGoal" i18n-label
+			[attributeInfo]="item!.employmentContracts.get(0).attributeInfoMemberCanEditGoal"
+			[group]="formGroup!"
+		></p-form-control-switch>
+		<p-form-control-switch
+			label="MemberEditGoalMin" i18n-label
+			[attributeInfo]="item!.employmentContracts.get(0).attributeInfoMemberEditGoalMin"
+			[group]="formGroup!"
+		></p-form-control-switch>
+		<p-form-control-switch
+			label="MemberEditGoalMax" i18n-label
+			[attributeInfo]="item!.employmentContracts.get(0).attributeInfoMemberEditGoalMax"
+			[group]="formGroup!"
+		></p-form-control-switch>
+		<p-form-control-switch
+			label="MainJob" i18n-label
+			[attributeInfo]="item!.employmentContracts.get(0).attributeInfoMainJob"
+			[group]="formGroup!"
+		></p-form-control-switch>
+	</div> -->
+	<!-- end PLANO-3464 -->
+
+	<div *ngIf="isOwner || isMe" class="mb-5">
+		<h4 i18n>Weitere Daten</h4>
+
+		<p-tabs>
+			<p-tab
+				label="Lohn-Daten" i18n-label
+				[hasDanger]="formGroup!.controls['minMonthlyEarnings']!.invalid || formGroup!.controls['desiredMonthlyEarnings']!.invalid || formGroup!.controls['maxMonthlyEarnings']!.invalid"
+				urlName="earnings"
+			>
+				<p-grid>
+					<div class="col-12 mt-3">
+						<h6 i18n>Lohn-Daten pro Abrechnungszeitraum</h6>
+					</div>
+					<div class="col-lg-4">
+						<p-form-group [control]="formGroup!.controls['minMonthlyEarnings']!">
+							<label><ng-container i18n>Minimaler Lohn</ng-container><p-info-circle [class.ml-2]="Config.IS_MOBILE" placement="top" i18n>Bei der automatischen Schichtverteilung wird sich Dr.&nbsp;Plano darum bemühen, {meService.isLoaded() && !!meService.data.isOwner, select, true {den Mitarbeitenden} other {dir}} so viele Schichten zu geben, dass {meService.isLoaded() && meService.data.isOwner, select, true {deren} other {dein}} Minimallohn nicht unterschritten wird.</p-info-circle></label>
+							<p-input
+								[type]="PApiPrimitiveTypes.Currency"
+
+								[pEditable]="!item!.isNewItem()"
+								[api]="api"
+								(onDismiss)="initFormGroup()"
+								(onSaveSuccess)="refreshEarningsWithValuesFromApi()"
+
+								(keyup)="formGroup!.controls['minMonthlyEarnings']!.updateValueAndValidity()"
+
+								[formControl]="formGroup!.controls['minMonthlyEarnings']!"
+								placeholder="z.B. »450«" i18n-placeholder
+							></p-input>
+						</p-form-group>
+					</div>
+					<div class="col-lg-4">
+						<p-form-group [control]="formGroup!.controls['desiredMonthlyEarnings']!">
+							<label><ng-container i18n>Wunschlohn</ng-container> <p-info-circle [class.ml-2]="Config.IS_MOBILE" placement="top" i18n>{meService.isLoaded() && meService.data.isOwner, select, true {Alle User können ihren Wunschlohn selbst bestimmen.} other {Du bestimmst deinen Wunschlohn.}} Bei der automatischen Schichtverteilung wird sich Dr.&nbsp;Plano darum bemühen, nah an {meService.isLoaded() && meService.data.isOwner, select, true {die Wunschlöhne} other {deinen Wunschlohn}} heranzukommen. Der Wunschlohn muss stets zwischen dem Minimal- und Maximallohn liegen.</p-info-circle></label>
+							<p-input
+								[type]="PApiPrimitiveTypes.Currency"
+
+								[pEditable]="!item!.isNewItem()"
+								[api]="api"
+								(onDismiss)="initFormGroup()"
+								(onSaveSuccess)="refreshEarningsWithValuesFromApi()"
+
+								(keyup)="formGroup!.controls['desiredMonthlyEarnings']!.updateValueAndValidity()"
+
+								[formControl]="formGroup!.controls['desiredMonthlyEarnings']!"
+								[placeholder]="translatedPlaceHolderForDesiredEarnings"
+							></p-input>
+						</p-form-group>
+					</div>
+					<div class="col-lg-4">
+						<p-form-group [control]="formGroup!.controls['maxMonthlyEarnings']!">
+							<label><ng-container i18n>Maximaler Lohn</ng-container> <p-info-circle [class.ml-2]="Config.IS_MOBILE" placement="top" i18n>Bei der automatischen Schichtverteilung wird Dr.&nbsp;Plano niemals {meService.isLoaded() && meService.data.isOwner, select, true {den Maximallohn} other {deinen Maximallohn}} überschreiten.</p-info-circle></label>
+							<p-input
+								[type]="PApiPrimitiveTypes.Currency"
+
+								[pEditable]="!item!.isNewItem()"
+								[api]="api"
+								(onDismiss)="initFormGroup()"
+								(onSaveSuccess)="refreshEarningsWithValuesFromApi()"
+
+								(keyup)="formGroup!.controls['maxMonthlyEarnings']!.updateValueAndValidity()"
+
+								[formControl]="formGroup!.controls['maxMonthlyEarnings']!"
+								placeholder="z.B. »3000«" i18n-placeholder
+							></p-input>
+						</p-form-group>
+					</div>
+				</p-grid>
+			</p-tab>
+			<!-- cSpell:ignore bankaccount -->
+			<p-tab
+				label="Bankverbindung" i18n-label
+				urlName="bankaccount"
+			>
+				<p-grid>
+					<div class="col-12 mt-3">
+						<h6 i18n>Bankverbindung</h6>
+					</div>
+					<div class="col-lg-6">
+						<div
+							[pEditable]="!item!.isNewItem()"
+							[api]="api"
+							[valid]="!formGroup!.invalid"
+						>
+							<div class="form-group">
+								<label>{{ genderOfAccountHolder }}</label>
+								<div class="input-group">
+									<input
+										pEditableTriggerFocussable
+										[(ngModel)]="item!.accountOwner"
+										formControlName="accountOwner"
+										class="form-control"
+										autocomplete="off"
+									/>
+									<span class="input-group-append"
+										pVisibleInEditMode
+									>
+										<button
+											type="button"
+											class="btn btn-outline-secondary"
+											pEditableDismissButton
+										><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.UNDO"></fa-icon></button>
+										<button
+											type="button"
+											class="btn btn-outline-secondary"
+											pEditableSuccessButton
+										><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.SUCCESS"></fa-icon></button>
+									</span>
+								</div>
+							</div>
+							<p-alert
+								pVisibleInEditMode
+								*ngIf="meService.isLoaded() && !meService.data.isOwner && hasInitialAccountOwner"
+								i18n
+							>Der neue Eintrag ist für deine Personalleitung sichtbar. Trotzdem: Informiere sie lieber über die Änderung.</p-alert>
+						</div>
+					</div>
+					<div class="col-lg-6">
+						<div
+							[pEditable]="!item!.isNewItem()"
+							[api]="api"
+							[valid]="!formGroup!.invalid"
+						>
+							<div class="form-group">
+								<label i18n>IBAN</label>
+								<div class="input-group">
+									<input
+										pEditableTriggerFocussable
+										[(ngModel)]="item!.accountIBAN"
+										formControlName="accountIBAN"
+										class="form-control"
+										autocomplete="off"
+									/>
+									<span class="input-group-append"
+										pVisibleInEditMode
+									>
+										<button
+											type="button"
+											class="btn btn-outline-secondary"
+											pEditableDismissButton
+										><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.UNDO"></fa-icon></button>
+										<button
+											type="button"
+											class="btn btn-outline-secondary"
+											pEditableSuccessButton
+										><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.SUCCESS"></fa-icon></button>
+									</span>
+								</div>
+							</div>
+							<p-alert
+								pVisibleInEditMode
+								*ngIf="meService.isLoaded() && !meService.data.isOwner && hasInitialAccountIBAN"
+								i18n
+							>Der neue Eintrag ist für deine Personalleitung sichtbar. Trotzdem: Informiere sie lieber über die Änderung.</p-alert>
+						</div>
+					</div>
+				</p-grid>
+			</p-tab>
+			<p-tab
+				label="Anschrift" i18n-label
+				urlName="address"
+			>
+				<p-grid>
+					<div class="col-12 mt-3">
+						<h6 i18n>Anschrift</h6>
+					</div>
+					<div class="col-12"
+						[pEditable]="!item!.isNewItem()"
+						[api]="api"
+						[valid]="!formGroup!.invalid"
+					>
+						<div class="form-group">
+							<label i18n>Straße & Hausnummer</label>
+							<div class="input-group">
+								<input
+									pEditableTriggerFocussable
+									[(ngModel)]="item!.addressStreet"
+									formControlName="addressStreet"
+									class="form-control"
+									autocomplete="off"
+								/>
+								<span class="input-group-append"
+									pVisibleInEditMode
+								>
+									<button
+										type="button"
+										class="btn btn-outline-secondary"
+										pEditableDismissButton
+									><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.UNDO"></fa-icon></button>
+									<button
+										type="button"
+										class="btn btn-outline-secondary"
+										pEditableSuccessButton
+									><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.SUCCESS"></fa-icon></button>
+								</span>
+							</div>
+						</div>
+						<p-alert
+							pVisibleInEditMode
+							*ngIf="meService.isLoaded() && !meService.data.isOwner && hasInitialAddressStreet"
+							i18n
+						>Der neue Eintrag ist für deine Personalleitung sichtbar. Trotzdem: Informiere sie lieber über die Änderung.</p-alert>
+					</div>
+					<div class="col-lg-6">
+						<p-form-group
+							label="Postleitzahl" i18n-label
+						>
+							<p-input
+								[pEditable]="!item!.isNewItem()"
+								[api]="api"
+
+								[(ngModel)]="item!.addressPostalCode"
+								[formControl]="pFormsService.getByAI(formGroup!, item!.attributeInfoAddressPostalCode)"
+							></p-input>
+						</p-form-group>
+						<p-alert
+							pVisibleInEditMode
+							*ngIf="meService.isLoaded() && !meService.data.isOwner && hasInitialAddressPostalCode"
+							i18n
+						>Der neue Eintrag ist für deine Personalleitung sichtbar. Trotzdem: Informiere sie lieber über die Änderung.</p-alert>
+					</div>
+
+					<div class="col-lg-6"
+						[pEditable]="!item!.isNewItem()"
+						[api]="api"
+						[valid]="!formGroup!.invalid"
+					>
+						<div class="form-group">
+							<label i18n>Stadt</label>
+							<div class="input-group">
+								<input
+									pEditableTriggerFocussable
+									[(ngModel)]="item!.addressCity"
+									formControlName="addressCity"
+									class="form-control"
+									autocomplete="off"
+								/>
+								<span class="input-group-append"
+									pVisibleInEditMode
+								>
+									<button
+										type="button"
+										class="btn btn-outline-secondary"
+										pEditableDismissButton
+									><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.UNDO"></fa-icon></button>
+									<button
+										type="button"
+										class="btn btn-outline-secondary"
+										pEditableSuccessButton
+									><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.SUCCESS"></fa-icon></button>
+								</span>
+							</div>
+						</div>
+						<p-alert
+							pVisibleInEditMode
+							*ngIf="meService.isLoaded() && !meService.data.isOwner && hasInitialAddressCity"
+							i18n
+						>Der neue Eintrag ist für deine Personalleitung sichtbar. Trotzdem: Informiere sie lieber über die Änderung.</p-alert>
+					</div>
+				</p-grid>
+			</p-tab>
+			<!-- cSpell:ignore taxinfo -->
+			<p-tab
+				*ngIf="isOwner"
+				label="Steuerrelevante Daten" i18n-label
+				[hasDanger]="formGroup!.controls['employmentBegin']!.invalid"
+				urlName="taxinfo"
+			>
+				<p-grid>
+					<div class="col-12 mt-3">
+						<h6 i18n>Steuerrelevante Daten</h6>
+					</div>
+					<div class="col-12 col-lg-6">
+						<div class="form-group">
+							<label i18n>Personalnummer</label>
+							<p-input
+								[pEditable]="!item!.isNewItem()"
+								[api]="api"
+
+								[(ngModel)]="item!.personnelNumbers"
+								formControlName="personnelNumbers"
+							></p-input>
+						</div>
+					</div>
+					<div class="col-12 col-lg-6">
+						<div class="form-group">
+							<label i18n>Geburtsort</label>
+							<p-input
+								[pEditable]="!item!.isNewItem()"
+								[api]="api"
+
+								[(ngModel)]="item!.placeOfBirth"
+								formControlName="placeOfBirth"
+							></p-input>
+						</div>
+					</div>
+					<div class="col-lg-6">
+						<div class="form-group">
+							<label i18n>Sozialversicherungsnummer</label>
+							<p-input
+								[pEditable]="!item!.isNewItem()"
+								[api]="api"
+
+								[(ngModel)]="item!.socialSecurityNumber"
+								formControlName="socialSecurityNumber"
+							></p-input>
+						</div>
+					</div>
+					<div class="col-lg-6">
+						<div class="form-group">
+							<label i18n>Steuer ID</label>
+							<p-input
+								[pEditable]="!item!.isNewItem()"
+								[api]="api"
+
+								[(ngModel)]="item!.taxId"
+								formControlName="taxId"
+							></p-input>
+						</div>
+					</div>
+					<div class="col-12">
+						<div class="form-group">
+							<label i18n>Art der Beschäftigung</label>
+
+							<p-radios
+								[pEditable]="!item!.isNewItem()"
+								[api]="api"
+								(onDismiss)="initFormGroup()"
+
+								[(ngModel)]="item!.mainJob"
+								[formControl]="formGroup!.controls['mainJob']!"
+							>
+								<p-radios-radio
+									[value]="true"
+									label="Hauptbeschäftigung" i18n-label
+								></p-radios-radio>
+								<p-radios-radio
+									[value]="false"
+									label="Nebenbeschäftigung" i18n-label
+								></p-radios-radio>
+							</p-radios>
+						</div>
+					</div>
+					<div class="col-lg-6">
+						<div class="form-group">
+							<label i18n>Krankenkasse</label>
+							<p-input
+								[pEditable]="!item!.isNewItem()"
+								[api]="api"
+
+								[(ngModel)]="item!.healthInsurance"
+								formControlName="healthInsurance"
+							></p-input>
+						</div>
+					</div>
+					<div class="col-lg-6">
+						<div class="form-group">
+							<label i18n>Staatsangehörigkeit</label>
+							<p-input
+								[pEditable]="!item!.isNewItem()"
+								[api]="api"
+
+								[(ngModel)]="item!.nationality"
+								formControlName="nationality"
+							></p-input>
+						</div>
+					</div>
+					<div class="col-lg-6">
+						<p-form-group
+							label="Datum Vertragsbeginn" i18n-label
+							[control]="formGroup!.controls['employmentBegin']!"
+							[checkTouched]="item!.isNewItem()"
+						>
+							<ng-template [ngIf]="!isOwner">
+								<div class="input-group">
+									<div class="input-group-prepend">
+										<span class="input-group-text"><fa-icon [fixedWidth]="true" [icon]="!!formGroup!.controls['employmentBegin']!.value ? PlanoFaIconPool.STATE_DATE_PICKED : PlanoFaIconPool.STATE_DATE_EMPTY"></fa-icon></span>
+									</div>
+									<input type="text"
+										class="form-control"
+										[disabled]="true"
+										[value]="!!formGroup!.controls['employmentBegin']!.value ? formatTimestamp(formGroup!.controls['employmentBegin']!.value) : '-'"
+										autocomplete="off"
+									/>
+								</div>
+							</ng-template>
+
+							<div
+								*ngIf="isOwner"
+								class="d-flex justify-content-center align-items-center"
+							>
+								<p-input-date
+									[pEditable]="!item!.isNewItem()"
+									[api]="api"
+									[valid]="!formGroup!.controls['employmentBegin']!.invalid"
+
+									[disabled]="!!item!.employmentBegin && !item!.isNewItem()"
+
+									class="w-100"
+									[formControl]="formGroup!.controls['employmentBegin']!"
+									[(ngModel)]="item!.employmentBegin"
+									[max]="formGroup!.controls['employmentEnd']!.value"
+								></p-input-date>
+							</div>
+							<p-validation-hint
+								[control]="formGroup!.controls['employmentBegin']!"
+								[isInvalid]="!formGroup!.controls['employmentBegin']!.value"
+							></p-validation-hint>
+						</p-form-group>
+						<p-alert *ngIf="!item!.employmentBegin" i18n>Bitte beachte, dass du dieses Datum einmalig festlegst und nicht wieder verändern kannst. Es sollte dem Datum im Arbeitsvertrag entsprechen.</p-alert>
+					</div>
+					<div class="col-lg-6">
+						<p-form-group
+							label="Datum Vertragsende" i18n-label
+							[control]="formGroup!.controls['employmentEnd']!"
+							[checkTouched]="item!.isNewItem()"
+						>
+							<ng-template [ngIf]="!isOwner">
+								<div class="input-group">
+									<div class="input-group-prepend">
+										<span class="input-group-text"><fa-icon [fixedWidth]="true" [icon]="!!formGroup!.controls['employmentEnd']!.value ? PlanoFaIconPool.STATE_DATE_PICKED : PlanoFaIconPool.STATE_DATE_EMPTY"></fa-icon></span>
+									</div>
+									<input type="text"
+										class="form-control"
+										[disabled]="true"
+										[value]="!!formGroup!.controls['employmentEnd']!.value ? formatTimestamp(formGroup!.controls['employmentEnd']!.value) : '-'"
+										autocomplete="off"
+									/>
+								</div>
+							</ng-template>
+							<div
+								*ngIf="isOwner"
+								class="d-flex justify-content-center align-items-center"
+							>
+								<p-input-date
+									[pEditable]="!item!.isNewItem()"
+									[api]="api"
+									[valid]="!formGroup!.invalid"
+
+									class="w-100"
+									[formControl]="formGroup!.controls['employmentEnd']!"
+									[(ngModel)]="item!.employmentEnd"
+									[min]="formGroup!.controls['employmentBegin']!.value"
+								></p-input-date>
+							</div>
+							<p-validation-hint
+								[control]="formGroup!.controls['employmentEnd']!"
+								[isInvalid]="!formGroup!.controls['employmentBegin']!.value"
+							></p-validation-hint>
+						</p-form-group>
+					</div>
+				</p-grid>
+			</p-tab>
+			<p-tab
+				*ngIf="isOwner"
+				label="Kommentar" i18n-label
+				urlName="comment"
+			>
+				<h6 i18n>Kommentar</h6>
+				<div i18n>Hier kannst du einen Kommentar hinterlassen, der von Mitarbeitenden nicht eingesehen werden kann.</div>
+				<p-textarea
+					style="min-height: 4em;"
+					[pEditable]="!item!.isNewItem()"
+					[api]="api"
+					[valid]="!formGroup!.invalid"
+
+					[(ngModel)]="item!.comments"
+					formControlName="comments"
+				></p-textarea>
+			</p-tab>
+		</p-tabs>
+	</div>
+
+	<p-alert *ngIf="item!.trashed" class="mb-4" [theme]="PThemeEnum.DANGER" i18n>Der Account von {{ item!.firstName }} {{ item!.lastName }} ist gelöscht.</p-alert>
+
+	<p-form-recover-section
+		*ngIf="showRecoverSection"
+		label="Account von {{item!.firstName}} {{item!.lastName}} wiederherstellen?" i18n-label
+		btnLabel="Wiederherstellen" i18n-btnLabel
+		(onOpenModal)="onOpenRecoverModal()"
+		(onRecover)="recoverItem()"
+		(onDismiss)="onDismissRecovering()"
+		modalText="Willst du den Account von {{item!.firstName}} {{item!.lastName}} wirklich wiederherstellen?" i18n-modalText
+		[valid]="formGroup!.valid"
+	>
+		<div description>
+			<p *ngIf="initialTrashedValue"><span i18n>Der Account wird sofort freigeschaltet und {{item!.firstName}} automatisch per Email benachrichtigt. {{item!.firstName}} kann sich mit den bisherigen Zugangsdaten einloggen.</span></p>
+		</div>
+		<div modal-content>
+			<p-alert
+				*ngIf="showPriceWarning"
+				class="mt-2"
+				[dismissable]="false"
+				i18n
+			>Damit würdest du gemäß unserer <a rel="noopener" target="_blank" routerLink="/terms">AGB</a> in den nächsten Staffelpreis rutschen. Durch das Erstellen dieses Users stimmst du dem neuen Staffelpreis zu. Unsere aktuellen Preise für die Personalplanung findest du <a href="#pricing" rel="noopener" target="_blank">hier</a>.</p-alert>
+			<p-form-group
+				label="Email-Adresse" i18n-label
+				class="mt-3"
+			>
+				<p-input
+					[formControl]="formGroup!.controls['email']!"
+					[ngModel]="item!.email"
+					(ngModelChange)="item!.email = $event"
+					[type]="PApiPrimitiveTypes.Email"
+
+					[disabled]="false"
+					[readMode]="false"
+				></p-input>
+			</p-form-group>
+		</div>
+	</p-form-recover-section>
+
+	<div class="mb-5" *ngIf="formGroup!.invalid">
+		<p-alert [theme]="PThemeEnum.DANGER" *ngIf="formGroup!.invalid" i18n>Hoppla. Deine Eingabe ist unvollständig oder nicht korrekt. Bitte schau nochmal drüber.</p-alert>
+	</div>
+
+	<div class="d-flex">
+		<button
+			*ngIf="(isOwner || isMe) && item!.isNewItem()"
+			[type]="!formGroup!.valid ? 'submit' : 'button'"
+			class="btn btn-lg btn-primary ml-auto"
+			[disabled]="!formGroup || !formGroup.valid || api.isBackendOperationRunning"
+			(click)="saveItem()"
+		><fa-icon [fixedWidth]="true" [icon]="item!.isNewItem() ? 'plus' : 'times'"></fa-icon>&nbsp;<ng-container i18n>Anlegen und User benachrichtigen</ng-container></button>
+	</div>
+	</form>
+</ng-template>
+
+<ng-template #spinner>
+	<p-spinner [size]="BootstrapSize.LG" class="m-5 h-100"></p-spinner>
+</ng-template>
+
+<ng-template #deleteWarning let-c="close" let-d="dismiss">
+	<p-modal-header
+		title="Bist du sicher?" i18n-title
+		(onClose)="d('Cross click')"
+	></p-modal-header>
+	<div class="modal-body">
+		<p i18n>Möchtest du wirklich dir selbst die Admin-Rechte entziehen? Diese Änderung kann nur von einem anderen User mit Admin-Rechten rückgängig gemacht werden.</p>
+		<h5 i18n>Weitere User mit Admin-Rechten</h5>
+		<ul class="list">
+			<li *ngFor="let admin of allAdmins.iterable()">{{ admin.firstName }}</li>
+		</ul>
+	</div>
+	<div class="modal-footer">
+		<button type="button" class="btn btn-outline-secondary" (click)="d('Close click')" i18n>Ups, nein</button>
+		<button type="button" class="btn btn-danger ml-auto" (click)="c('Ja, ich will.');refreshBrowserTab()" i18n>Ja, ich will!</button>
+	</div>
+</ng-template>

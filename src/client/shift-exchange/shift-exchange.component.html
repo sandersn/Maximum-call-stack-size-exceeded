@@ -1,0 +1,50 @@
+<p-subheader [isNewItem]="!!item && item.behavesAsNewItem" (onNavBack)="dismissReOpen();pRouterService.scrollToSelector($any('#scroll-target-id-'+routeId?.toString()))">
+
+	<ng-container *ngIf="!!item && !!item.rawData">
+
+		<div hidden><span i18n #translatedDeleteSectionLabel>{item.isIllness && !item.isBasedOnIllness, select, true {Krankmeldung} other {Ersatzsuche}} zurückziehen</span></div>
+		<p-dropdown
+			*ngIf="item.closeShiftExchange === false"
+			[dropdownType]="DropdownTypeEnum.BUTTONS"
+			label="Aktionen" i18n-label
+			[icon]="PlanoFaIconPool.MORE_ACTIONS"
+			[size]="BootstrapSize.SM"
+			[showActiveItem]="false"
+		>
+			<p-dropdown-item
+				(onClick)="onRemoveClick()"
+				[disabled]="false"
+				[label]="translatedDeleteSectionLabel.textContent!"
+				[icon]="PlanoFaIconPool.DELETE"
+				[theme]="PBtnThemeEnum.OUTLINE_DANGER"
+				[attributeInfo]="null"
+				></p-dropdown-item>
+		</p-dropdown>
+
+	</ng-container>
+
+</p-subheader>
+
+<div class="flex-grow-1 d-flex position-relative">
+	<scroll-shadow-box class="flex-grow-1">
+		<div class="container pb-tawk">
+			<h2 *ngIf="!!item && item.behavesAsNewItem">
+				<span i18n>{!!item && item.isNewItem(), select, true {Neue }}{item && item.isIllness && !item.isBasedOnIllness, select, true {Krankmeldung} other {Ersatzsuche}} per Tauschbörse</span>
+				<span *ngIf="isExpired" class="text-danger"> (<ng-container i18n>Abgelaufen</ng-container>)</span></h2>
+			<ng-template [ngIf]="!isLoaded" [ngIfElse]="loadedTemplate">
+				<p-spinner [size]="BootstrapSize.LG" class="m-5 h-100"></p-spinner>
+			</ng-template>
+			<ng-template #loadedTemplate>
+				<p-detail-form
+					*ngIf="itemIsValid; else noItemAvailable"
+					[item]="item"
+					(onAddItem)="saveNewItem($event)"
+					(onClickReopenFormBtn)="reOpenForm()"
+				></p-detail-form>
+				<ng-template #noItemAvailable>
+					<p-no-item></p-no-item>
+				</ng-template>
+			</ng-template>
+		</div>
+	</scroll-shadow-box>
+</div>

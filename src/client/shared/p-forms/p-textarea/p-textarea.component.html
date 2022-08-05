@@ -1,0 +1,128 @@
+<div
+	[pEditable]="pEditable"
+	[api]="api"
+	[valid]="isValid"
+	[saveChangesHook]="saveChangesHook"
+	(onSaveStart)="onSaveStart.emit($event)"
+	(onSaveSuccess)="onSaveSuccess.emit($event)"
+	(onDismiss)="onDismiss.emit($event)"
+	(onLeaveCurrent)="isEditWysiwygMode=false;onLeaveCurrent.emit()"
+	(editMode)="editMode.emit($event)"
+>
+	<div class="input-group"
+		[class.input-group-sm]="size === BootstrapSize.SM"
+		[class.input-group-lg]="size === BootstrapSize.LG"
+		[class.d-none]="wysiwyg"
+		[class.has-danger]="formControl && formControl.touched && formControl.invalid"
+	>
+		<ng-container *ngTemplateOutlet="prependItem"></ng-container>
+		<textarea
+			[class.d-none]="readMode"
+			ngbAutofocus
+			style="min-height: 4em;"
+
+			autosize
+			[maxHeight]="'300px'"
+
+			pEditableTriggerFocussable
+
+			[(ngModel)]="value"
+			[placeholder]="placeholder ?? ''"
+			class="form-control"
+			[disabled]="formControl ? formControl.disabled : disabled"
+			(focusout)="focusout.emit($event)"
+			(focus)="focus.emit($event)"
+
+			(change)="onChange($event)"
+			(keyup)="onKeyUp($event)"
+			(blur)="onBlur($event)"
+		></textarea>
+		<ng-template [ngIf]="readMode">
+			<blockquote class="form-control-read-mode" [class.text-muted]="!value"><span [innerHTML]="valueAsHtml | pSafeHtml"></span></blockquote>
+		</ng-template>
+		<div class="input-group-append"
+			pVisibleInEditMode
+		>
+			<button
+				type="button"
+				class="btn btn-outline-secondary"
+				pEditableDismissButton
+			><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.UNDO"></fa-icon></button>
+			<button
+				type="button"
+				class="btn btn-outline-secondary"
+				pEditableSuccessButton
+			><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.SUCCESS"></fa-icon></button>
+		</div>
+		<ng-container *ngTemplateOutlet="appendItem"></ng-container>
+	</div>
+	<ng-template [ngIf]="wysiwyg">
+		<div pHiddenInEditMode class="w-100">
+			<button
+				type="button"
+				*ngIf="!disabled"
+				pEditableTriggerClickable
+				triggerType="click"
+				class="card-option btn btn-outline-secondary form-control pt-2 pb-2 w-100 border-bottom-0 text-right"
+				style="border-bottom-left-radius: 0; border-bottom-right-radius: 0;"
+				(click)="isEditWysiwygMode=true"
+				[disabled]="formControl ? formControl.disabled : disabled"
+			><fa-icon [fixedWidth]="true" icon="pen"></fa-icon>&nbsp;<ng-container i18n>Text bearbeiten</ng-container></button>
+		</div>
+		<div class="input-group"
+			[class.has-danger]="formControl && formControl.touched && formControl.invalid"
+		>
+			<ng-container *ngTemplateOutlet="prependItem"></ng-container>
+			<div
+				*ngIf="!isEditWysiwygMode"
+				[innerHtml]="value! | pSafeHtml"
+				class="card d-block bg-light form-control btn-frameless border email-and-booking-plugin-styles"
+				[class.rounded-bottom]="!disabled"
+				[class.rounded]="disabled"
+			></div>
+
+			<angular-editor
+				*ngIf="isEditWysiwygMode"
+				class="w-100 p-0 h-auto email-and-booking-plugin-styles"
+				[(ngModel)]="value"
+				[config]="editorConfig"
+				[class.required]="required"
+				[required]="required"
+				[class.ng-untouched]="formControl && formControl.untouched"
+				[class.ng-pristine]="formControl && formControl.pristine"
+			></angular-editor>
+			<ng-container *ngTemplateOutlet="appendItem"></ng-container>
+		</div>
+		<div class="w-100 d-flex justify-content-between align-items-center">
+			<button
+				type="button"
+				class="btn mr-2 w-100 mt-2"
+				pEditableDismissButton
+			><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.UNDO"></fa-icon></button>
+			<button
+				type="button"
+				class="btn ml-2 w-100 mt-2"
+				pEditableSuccessButton
+			><fa-icon [fixedWidth]="true" [icon]="PlanoFaIconPool.SUCCESS"></fa-icon></button>
+		</div>
+	</ng-template>
+</div>
+
+<ng-template [ngIf]="!!formControl">
+	<p-validation-hint
+		*ngFor="let error of visibleErrors"
+		[control]="formControl"
+		[isInvalid]="true"
+		[validationName]="error.key"
+		[errorValue]="error.value"
+		[checkTouched]="checkTouched"
+	></p-validation-hint>
+</ng-template>
+
+
+<ng-template #prependItem>
+	<ng-content select="p-input-prepend"></ng-content>
+</ng-template>
+<ng-template #appendItem>
+	<ng-content select="p-input-append"></ng-content>
+</ng-template>

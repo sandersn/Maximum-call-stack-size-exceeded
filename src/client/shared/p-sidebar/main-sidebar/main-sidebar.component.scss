@@ -1,0 +1,45 @@
+@import "variables";
+@import "~bootstrap/scss/bootstrap-grid.scss";
+
+:host {
+	display: flex;
+	background: $dark;
+}
+
+p-tabs:first-child {
+	min-height: 46px;
+}
+
+.scheduling-toolbar {
+	flex-grow: 0;
+}
+
+.sidebar-items {
+	position: relative;
+	flex-grow: 1;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+
+	sidebar-item {
+		position: relative;
+		flex-grow: 1;
+		display: block;
+		overflow: hidden;
+
+		&.collapsed {
+			flex-grow: 0;
+		}
+	}
+}
+
+@include media-breakpoint-up(lg) {
+	.card-options .card-option {
+		border-left: none;
+	}
+}
+
+.card {
+	border: none;
+	overflow: hidden;
+}
