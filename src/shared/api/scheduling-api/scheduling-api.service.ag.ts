@@ -35,35 +35,10 @@ import { SchedulingApiTodaysShiftDescriptions } from '@plano/shared/api';
 import { SchedulingApiTodaysShiftDescription } from '@plano/shared/api';
 import { SchedulingApiHolidays } from '@plano/shared/api';
 import { SchedulingApiHoliday } from '@plano/shared/api';
-
-
+import {  ISchedulingApiShift } from '../../../client/scheduling/shared/api/scheduling-api.interfaces';
 export class SchedulingApiServiceBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiBase
 {
-	constructor(h : HttpClient
-			,	router : Router
-			,	apiE : ApiErrorService
-			,	zone : NgZone
-			,	injector : Injector) {
-		super(h, router, apiE, zone, injector, 'scheduling');
-	}
-
-	protected version() : string {
-		return 'a8081ceb2838c688a9f28c5564fee2b2,4c90e29b32587ae0860f1b2603fa2af6';
-	}
-
-	private dataWrapper = new SchedulingApiRoot<ValidationMode>(this);
-
-	get data() : SchedulingApiRoot<ValidationMode> {
-		return this.dataWrapper;
-	}
-
-	protected getRootWrapper() : SchedulingApiRoot<ValidationMode> {
-		return this.dataWrapper;
-	}
-
-	protected recreateRootWrapper() : void {
-		this.dataWrapper = new SchedulingApiRoot<ValidationMode>(this);
-	}
+	data: SchedulingApiRoot<ValidationMode>
 }
 	 
 export class SchedulingApiRootBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
@@ -87,31 +62,22 @@ export class SchedulingApiRootBase<ValidationMode extends 'draft' | 'validated' 
 	private memosWrapper: SchedulingApiMemos<ValidationMode> = new SchedulingApiMemos<ValidationMode>(this.api, false);
 
 	private todaysShiftDescriptionsWrapper: SchedulingApiTodaysShiftDescriptions<ValidationMode> = new SchedulingApiTodaysShiftDescriptions<ValidationMode>(this.api, false);
-
-	private holidaysWrapper: SchedulingApiHolidays<ValidationMode> = new SchedulingApiHolidays<ValidationMode>(this.api, false);
-
-	private possibleTaxesWrapper: SchedulingApiPossibleTaxes<ValidationMode> = new SchedulingApiPossibleTaxes<ValidationMode>(this.api, false);
-
-	private schedulePreferencesWrapper: SchedulingApiSchedulePreferences<ValidationMode> = new SchedulingApiSchedulePreferences<ValidationMode>(this.api);
 }
 
- export class SchedulingApiShiftsBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+export class SchedulingApiShiftsBase<ValidationMode extends 'draft' | 'validated' = 'validated'>
 {
 	constructor( readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
-		super(api, removeDestroyedItems, 'shifts');
 	}
 
 	 wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiShift<ValidationMode> {
-		const newWrapper = new SchedulingApiShift<ValidationMode>(this.api);
-		return newWrapper;
 	}
 
 }
 				 
-export class SchedulingApiShiftBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
+export class SchedulingApiShiftBase<ValidationMode extends 'draft' | 'validated' = 'validated'> implements ISchedulingApiShift 
 {
 	constructor( readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
-		super(api, SchedulingApiShift as any);
+		super(api, SchedulingApiShiftBase as any);
 	}
 
 	private assignableMembersWrapper : SchedulingApiShiftAssignableMembers<ValidationMode> = new SchedulingApiShiftAssignableMembers<ValidationMode>(this.api, false);
@@ -688,91 +654,26 @@ export class SchedulingApiTodaysShiftDescriptionBase<ValidationMode extends 'dra
 	constructor( readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
 		super(api, SchedulingApiTodaysShiftDescription as any);
 	}
-	private assignedMemberIdsWrapper : SchedulingApiTodaysShiftDescriptionAssignedMemberIds<ValidationMode> = new SchedulingApiTodaysShiftDescriptionAssignedMemberIds<ValidationMode>(this.api, false);
+	// external link to next class, which is part of the problem
+	private assignedMemberIdsWrapper : SchedulingApiTodaysShiftDescriptionAssignedMemberIds<ValidationMode>
 
 }
 
-export class SchedulingApiTodaysShiftDescriptionAssignedMemberIds<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
+class SchedulingApiTodaysShiftDescriptionAssignedMemberIds<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
 {
-	constructor( readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
-		super(api, removeDestroyedItems, 'assignedMemberIds');
-	}
-
-	 wrapItem(item : any, _generateMissingData : boolean) : Id {
-		return Id.create(item);
-	}
-
-	protected containsPrimitives() : boolean {
-		return false;
-	}
-
-	protected containsIds() : boolean {
-		return true;
-	}
-
-	protected createInstance(removeDestroyedItems : boolean) : SchedulingApiTodaysShiftDescriptionAssignedMemberIds<ValidationMode> {
-		return new SchedulingApiTodaysShiftDescriptionAssignedMemberIds<ValidationMode>(this.api, removeDestroyedItems);
-	}
-
-	protected get dni() : string {
-		return '390';
-	}
-
-	 createNewItem() : Id {
-		const newItemRaw = null;
-
-		const newItem = this.wrapItem(newItemRaw, true);
-		return newItem;
-	}
-}
-
-export class SchedulingApiHolidaysBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
-{
-	constructor( readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
-		super(api, removeDestroyedItems, 'holidays');
-	}
-
-	 wrapItem(item : any, _generateMissingData : boolean) : SchedulingApiHoliday<ValidationMode> {
-		const newWrapper = new SchedulingApiHoliday<ValidationMode>(this.api);
-		return newWrapper;
-	}
+	madeUpName: SchedulingApiServiceBase<ValidationMode>;
 
 }
-				 
-export class SchedulingApiHolidayBase<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
-{
-	constructor( readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
-		super(api, SchedulingApiHoliday as any);
-	}
-	private timeWrapper : SchedulingApiHolidayTime<ValidationMode> = new SchedulingApiHolidayTime<ValidationMode>(this.api);
-}
-		 
-export class SchedulingApiHolidayTime<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
-{
-	constructor( readonly api : SchedulingApiServiceBase<ValidationMode> | null, idRaw : any = null) {
-		super(api, SchedulingApiHolidayTime as any);
-	}
-}
-
-export class SchedulingApiPossibleTaxes<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiListWrapper<any>
-{
-	constructor( readonly api : SchedulingApiServiceBase<ValidationMode> | null, removeDestroyedItems : boolean) {
-		super(api, removeDestroyedItems, 'possibleTaxes');
-	}
-}
-				 
-export class SchedulingApiSchedulePreferences<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
-{
-	constructor( readonly api : SchedulingApiServiceBase<ValidationMode> | null) {
-		super(api, SchedulingApiSchedulePreferences as any);
-	}
-	private prioritiesWrapper : SchedulingApiSchedulePreferencesPriorities<ValidationMode> = new SchedulingApiSchedulePreferencesPriorities<ValidationMode>(this.api);
-
-}
-		 
-export class SchedulingApiSchedulePreferencesPriorities<ValidationMode extends 'draft' | 'validated' = 'validated'> extends ApiObjectWrapper<any, any>
-{
-	constructor( readonly api : SchedulingApiServiceBase<ValidationMode> | null) {
-		super(api, SchedulingApiSchedulePreferencesPriorities as any);
-	}
-}
+/**
+ * SchedulingApiTodaysShiftDescriptionBase
+ * ->
+ * SchedulingApiTodaysShiftDescriptionAssignedMemberIds
+ * ->
+ * SchedulingApiServiceBase 
+ * ->
+ * SchedulingApiRoot
+ * ->
+ * SchedulingApiRootBase, 
+ * ->
+ *   SchedulingApiShifts<ValidationMode>
+ */

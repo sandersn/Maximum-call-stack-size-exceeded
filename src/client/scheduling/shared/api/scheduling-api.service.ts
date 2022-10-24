@@ -51,7 +51,7 @@ export class SchedulingApiAbsences<ValidationMode extends 'draft' | 'validated' 
 export class SchedulingApiMembers<ValidationMode extends 'draft' | 'validated' = 'validated'> extends SchedulingApiMembersBase<ValidationMode> {
 }
 
-export class SchedulingApiShift<ValidationMode extends 'draft' | 'validated' = 'validated'> extends SchedulingApiShiftBase<ValidationMode> implements ISchedulingApiShift {
+export class SchedulingApiShift<ValidationMode extends 'draft' | 'validated' = 'validated'> extends SchedulingApiShiftBase<ValidationMode> {
 }
 
 export class SchedulingApiShifts<ValidationMode extends 'draft' | 'validated' = 'validated'> extends SchedulingApiShiftsBase<ValidationMode> {
