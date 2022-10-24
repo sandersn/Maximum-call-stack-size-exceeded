@@ -1,0 +1,1 @@
+{"version":3,"file":"call-by-ref.js","sourceRoot":"","sources":["../../../src/shared/core/call-by-ref.ts"],"names":[],"mappings":"AAAA,MAAM,OAAO,SAAS;IAAtB;QACQ,QAAG,GAAc,IAAI,CAAC;IAM9B,CAAC;IAJA,qFAAqF;IAC9E,SAAS,CAAC,QAAmB,IAAI;QACvC,IAAI,CAAC,GAAG,GAAG,KAAK,CAAC;IAClB,CAAC;CACD"}

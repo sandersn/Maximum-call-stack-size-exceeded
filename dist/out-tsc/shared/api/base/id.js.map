@@ -1,0 +1,1 @@
+{"version":3,"file":"id.js","sourceRoot":"","sources":["../../../../../src/shared/api/base/id.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,MAAM,EAAE,MAAM,WAAW,CAAC;AAGnC;;;;GAIG;AACH,MAAM,OAAO,EAAG,SAAQ,MAAM;IAE7B;;OAEG;IACI,MAAM,CAAC,MAAM,CAAmB,KAAyB;QAC/D,OAAO,IAAI,EAAE,CAAC,KAAK,CAAC,CAAC;IACtB,CAAC;IAED,YAAsB,KAAe;QACpC,KAAK,CAAC,KAAK,CAAC,CAAC;IACd,CAAC;CACD"}
